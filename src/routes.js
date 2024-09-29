@@ -1,8 +1,10 @@
 import About from './views/About';
-import Clients from './views/Clients';
+// Clients
+import Clients from './views/Clients/Clients';
+import ViewOneClient from './views/Clients/ViewOneClient';
 import Financials from './views/Financials';
 import Invoices from './views/Invoices';
-import Proposals from './views/Proposals';
+import Proposals from './views/Proposals/Proposals';
 
 export const routes = [
   {
@@ -12,6 +14,10 @@ export const routes = [
   {
     path: '/clients',
     component: Clients,
+  },
+  {
+    path: '/clients/:id',
+    component: ViewOneClient,
   },
   {
     path: '/financials',

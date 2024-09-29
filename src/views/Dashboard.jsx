@@ -1,5 +1,3 @@
-// DashboardPage.jsx
-
 import React from 'react';
 import {
     Grid,
@@ -199,47 +197,6 @@ const DashboardPage = () => {
                     </Card>
                 </Grid>
 
-                {/* Earnings Chart */}
-                <Grid item xs={12} md={8}>
-                    <Card>
-                        <CardHeader
-                            title="Earnings"
-                            sx={{ backgroundColor: 'primary.main', color: 'white' }}
-                            action={
-                                <FormControl variant="outlined" size="small" sx={{ mr: 2, mt: 1 }}>
-                                    <InputLabel id="time-period-label">Time Period</InputLabel>
-                                    <Select
-                                        labelId="time-period-label"
-                                        value={timePeriod}
-                                        onChange={handleTimePeriodChange}
-                                        label="Time Period"
-                                    >
-                                        <MenuItem value="Last 7 Days">Last 7 Days</MenuItem>
-                                        <MenuItem value="Last 30 Days">Last 30 Days</MenuItem>
-                                        <MenuItem value="Last 3 Months">Last 3 Months</MenuItem>
-                                        <MenuItem value="Last Year">Last Year</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            }
-                        />
-                        <CardContent>
-                            <Box sx={{ height: 300 }}>
-                                <LineChart
-                                    xAxis={[{ data: chartData.x, label: 'Date' }]}
-                                    series={[
-                                        {
-                                            data: chartData.y,
-                                            label: 'Earnings',
-                                            color: '#3f51b5',
-                                        },
-                                    ]}
-                                    height={300}
-                                />
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
-
                 {/* Calendar */}
                 <Grid item xs={12} md={4}>
                     <Card>
@@ -253,7 +210,6 @@ const DashboardPage = () => {
                                     displayStaticWrapperAs="desktop"
                                     value={selectedDate}
                                     onChange={(date) => setSelectedDate(date)}
-                                    renderInput={() => null}
                                 />
                             </LocalizationProvider>
                         </CardContent>
