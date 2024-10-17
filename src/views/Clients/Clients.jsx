@@ -212,6 +212,11 @@ const ClientsPage = () => {
                         rowsPerPageOptions={[5, 10, 20]}
                         getRowId={(row) => row._id}
                         onRowClick={handleRowClick}
+                        sx={{
+                            '& .MuiDataGrid-row:hover': {
+                                cursor: 'pointer',
+                            },
+                        }}
                     />
                 </div>
             ) : (

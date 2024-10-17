@@ -91,14 +91,6 @@ export default function AddClientModal({
                     fullWidth
                     margin="normal"
                 />
-                <TextField
-                    label="Status"
-                    name="status"
-                    value={newClientData.status}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
-                />
                 <Button
                     type="submit"
                     variant="contained"
