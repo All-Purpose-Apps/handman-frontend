@@ -135,11 +135,17 @@ const ProposalsPage = () => {
 
     return (
         <Box padding={3}>
-            <Typography variant="h4" gutterBottom>
-                Proposals
-            </Typography>
 
             <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
+                <Typography variant="h4" gutterBottom>
+                    Proposals
+                </Typography>
+                <Button variant="contained" color="primary" onClick={() => navigate('/add-proposal')}>
+                    Add Proposal
+                </Button>
+            </Box>
+
+            <Box marginBottom={2}>
                 <TextField
                     label="Search Proposals"
                     variant="outlined"
@@ -147,9 +153,6 @@ const ProposalsPage = () => {
                     onChange={handleSearch}
                     style={{ width: '100%', marginRight: 16 }}
                 />
-                <Button variant="contained" color="primary">
-                    Add Proposal
-                </Button>
             </Box>
 
             <div style={{ height: 500, width: '100%' }}>

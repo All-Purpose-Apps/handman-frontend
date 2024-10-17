@@ -138,9 +138,11 @@ const ClientsPage = () => {
 
     const handleAddClient = async () => {
         try {
-            // await createGoogleContact(newClientData);
-            await dispatch(addClient(newClientData));
+            const contact = await createGoogleContact(newClientData);
+            console.log('New contact:', contact);
+            await dispatch(addClient({ ...newClientData, resourceName: contact.resourceName }));
             handleCloseModal();
+            await handleSyncGoogleContacts()
         } catch (error) {
             console.error('Error adding client:', error);
             alert('Failed to add client.');
@@ -222,7 +224,7 @@ const ClientsPage = () => {
             ) : (
                 <Grid container spacing={2}>
                     {filteredClients.map((client) => (
-                        <Grid item xs={12} sm={6} md={4} key={client._id}>
+                        <Grid xs={12} sm={6} md={4} key={client._id}>
                             <ClientCard client={client} handleCardClick={handleCardClick} />
                         </Grid>
                     ))}
