@@ -41,14 +41,7 @@ export const routes = [
     component: ViewOneClient,
     protected: true,
   },
-  {
-    path: '/financials',
-    component: Financials,
-    name: 'Financials',
-    sidebar: true,
-    icon: AttachMoneyIcon,
-    protected: true,
-  },
+
   {
     path: '/invoices',
     component: Invoices,
@@ -76,6 +69,14 @@ export const routes = [
     name: 'Calendar',
     sidebar: true,
     icon: FavoriteIcon,
+    protected: true,
+  },
+  {
+    path: '/financials',
+    component: Financials,
+    name: 'Financials',
+    sidebar: true,
+    icon: AttachMoneyIcon,
     protected: true,
   },
   {

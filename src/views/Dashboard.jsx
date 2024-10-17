@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Card,
@@ -10,6 +10,7 @@ import {
     ListItem,
     ListItemText,
     Divider,
+    Button
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import {
@@ -18,68 +19,119 @@ import {
     Description as DescriptionIcon,
 } from '@mui/icons-material';
 import moment from 'moment';
+import { fetchClients } from '../store/clientSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchInvoices } from '../store/invoiceSlice';
+import { fetchProposals } from '../store/proposalSlice';
 
 const DashboardPage = () => {
     const navigate = useNavigate();
-    // Sample data
-    const totalClients = 150;
-    const totalInvoices = 75;
-    const totalProposals = 50;
+    const dispatch = useDispatch();
 
-    const recentClients = [
-        { name: 'Client A', date: '2023-11-01' },
-        { name: 'Client B', date: '2023-10-28' },
-        { name: 'Client C', date: '2023-10-25' },
-    ];
+    // Fetch clients, invoices, and proposals when the component mounts
+    useEffect(() => {
+        dispatch(fetchClients());
+        dispatch(fetchInvoices());
+        dispatch(fetchProposals());
+    }, [dispatch]);
 
-    const recentInvoices = [
-        { id: 'INV-001', amount: 500, date: '2023-11-02' },
-        { id: 'INV-002', amount: 750, date: '2023-10-30' },
-        { id: 'INV-003', amount: 250, date: '2023-10-27' },
-    ];
+    const clients = useSelector((state) => state.clients.clients);
+    const invoices = useSelector((state) => state.invoices.invoices);
+    const proposals = useSelector((state) => state.proposals.proposals);
 
     const handleNavigate = (path) => () => {
         navigate(path);
+    };
+
+    const handleAddClient = () => {
+        navigate('/add-client'); // Adjust this path to your add-client page
+    };
+
+    const handleAddInvoice = () => {
+        navigate('/add-invoice'); // Adjust this path to your add-invoice page
+    };
+
+    const handleAddProposal = () => {
+        navigate('/add-proposal'); // Adjust this path to your add-proposal page
+    };
+
+    const handleGoToInvoice = (id) => () => {
+        navigate(`/invoices/${id}`);
     }
+
+    const handleGoToClient = (id) => () => {
+        navigate(`/clients/${id}`);
+    }
+
 
     return (
         <Box sx={{ flexGrow: 1, p: 3 }}>
             <Grid container spacing={3}>
                 {/* Info Cards */}
                 <Grid size={{ xs: 12, md: 4 }}>
-                    <Card onClick={handleNavigate('/clients')} sx={{ cursor: 'pointer' }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
-                            <PeopleIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
-                            <Box>
-                                <Typography variant="h5">{totalClients}</Typography>
-                                <Typography color="textSecondary">Total Clients</Typography>
-                            </Box>
-                        </CardContent>
-                    </Card>
+                    <Box sx={{ mb: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleAddClient}
+                        >
+                            Add Client
+                        </Button>
+                        <Card onClick={handleNavigate('/clients')} sx={{ cursor: 'pointer' }}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
+                                <PeopleIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
+                                <Box>
+                                    <Typography variant="h5">{clients.length}</Typography>
+                                    <Typography color="textSecondary">Total Clients</Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Box>
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 4 }}>
-                    <Card onClick={handleNavigate('/invoices')} sx={{ cursor: 'pointer' }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
-                            <ReceiptIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
-                            <Box>
-                                <Typography variant="h5">{totalInvoices}</Typography>
-                                <Typography color="textSecondary">Total Invoices</Typography>
-                            </Box>
-                        </CardContent>
-                    </Card>
+                    <Box sx={{ mb: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleAddInvoice}
+                        >
+                            Add Invoice
+                        </Button>
+                        <Card onClick={handleNavigate('/invoices')} sx={{ cursor: 'pointer' }}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
+                                <ReceiptIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
+                                <Box>
+                                    <Typography variant="h5">{invoices.length}</Typography>
+                                    <Typography color="textSecondary">Total Invoices</Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Box>
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 4 }}>
-                    <Card onClick={handleNavigate('/proposals')} sx={{ cursor: 'pointer' }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
-                            <DescriptionIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
-                            <Box>
-                                <Typography variant="h5">{totalProposals}</Typography>
-                                <Typography color="textSecondary">Total Proposals</Typography>
-                            </Box>
-                        </CardContent>
-                    </Card>
+                    <Box sx={{ mb: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleAddProposal}
+                        >
+                            Add Proposal
+                        </Button>
+                        <Card onClick={handleNavigate('/proposals')} sx={{ cursor: 'pointer' }}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
+                                <DescriptionIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
+                                <Box>
+                                    <Typography variant="h5">{proposals.length}</Typography>
+                                    <Typography color="textSecondary">Total Proposals</Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Box>
                 </Grid>
 
                 {/* Recent Clients */}
@@ -91,17 +143,29 @@ const DashboardPage = () => {
                         />
                         <CardContent>
                             <List>
-                                {recentClients.map((client, index) => (
-                                    <div key={index}>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary={client.name}
-                                                secondary={moment(client.date).format('LL')}
-                                            />
-                                        </ListItem>
-                                        {index < recentClients.length - 1 && <Divider />}
-                                    </div>
-                                ))}
+                                {[...clients]
+                                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                                    .slice(0, 10)
+                                    .map((client, index) => (
+                                        <div key={index}>
+                                            <ListItem
+                                                sx={{
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        backgroundColor: '#f0f0f0',
+                                                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                                                    },
+                                                }}
+                                                onClick={handleGoToClient(client._id)}
+                                            >
+                                                <ListItemText
+                                                    primary={client.firstName + ' ' + client.lastName + ' - ' + client.status}
+                                                    secondary={moment(client.updatedAt).format('LL')}
+                                                />
+                                            </ListItem>
+                                            {index < clients.length - 1 && <Divider />}
+                                        </div>
+                                    ))}
                             </List>
                         </CardContent>
                     </Card>
@@ -116,17 +180,26 @@ const DashboardPage = () => {
                         />
                         <CardContent>
                             <List>
-                                {recentInvoices.map((invoice, index) => (
+                                {invoices.map((invoice, index) => (
                                     <div key={index}>
-                                        <ListItem>
+                                        <ListItem
+                                            onClick={handleGoToInvoice(invoice._id)}
+                                            sx={{
+                                                cursor: 'pointer',
+                                                '&:hover': {
+                                                    backgroundColor: '#f0f0f0',
+                                                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                                                },
+                                            }}
+                                        >
                                             <ListItemText
-                                                primary={`Invoice ${invoice.id}`}
-                                                secondary={`Amount: $${invoice.amount} - ${moment(
+                                                primary={`Invoice: ${invoice.invoiceNumber}`}
+                                                secondary={`Amount: $${invoice.total} - ${moment(
                                                     invoice.date
                                                 ).format('LL')}`}
                                             />
                                         </ListItem>
-                                        {index < recentInvoices.length - 1 && <Divider />}
+                                        {index < invoices.length - 1 && <Divider />}
                                     </div>
                                 ))}
                             </List>

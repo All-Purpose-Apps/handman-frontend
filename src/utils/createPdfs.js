@@ -5,7 +5,6 @@ import moment from 'moment';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { storage } from './firebase';
 
-const gsReference = ref(storage, 'gs://bucket/images/stars.jpg');
 export async function createProposal(invoice) {
   const fileRef = ref(storage, 'gs://handmanpro-c29ca.appspot.com/ProposalTemplate.pdf');
   const downloadURL = await getDownloadURL(fileRef);

@@ -85,7 +85,7 @@ const ClientsPage = () => {
     useEffect(() => {
         dispatch(fetchLastSync());
         fetchClientsFromMongo();
-    }, [dispatch]);
+    }, [dispatch, clients]);
 
     useEffect(() => {
         if (lastSync && lastSync.length > 0) {
