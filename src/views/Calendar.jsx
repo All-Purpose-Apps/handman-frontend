@@ -46,7 +46,6 @@ const MyCalendar = () => {
         };
 
         const event = getGoogleCalendarEventById("7bg837bv8ea9qom8c538cc2b20", selectedCalendarId);
-        console.log(event);
         syncGoogleCalendar();
     }, [selectedCalendarId, isEventCreated]); // Re-sync when the calendar changes or a new event is created
 

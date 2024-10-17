@@ -2,12 +2,16 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import download from 'downloadjs';
 import { formatPhoneNumber } from './formatPhoneNumber';
 import moment from 'moment';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { storage } from './firebase';
 
+const gsReference = ref(storage, 'gs://bucket/images/stars.jpg');
 export async function createProposal(invoice) {
+  const fileRef = ref(storage, 'gs://handmanpro-c29ca.appspot.com/ProposalTemplate.pdf');
+  const downloadURL = await getDownloadURL(fileRef);
   const { invoiceNumber, invoiceDate } = invoice;
   const { firstName, lastName, phone, email, address } = invoice.client;
-  const formUrl = 'http://localhost:3000/api/download-proposal';
-  const formBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
+  const formBytes = await fetch(downloadURL).then((res) => res.arrayBuffer());
   const pdfDoc = await PDFDocument.load(formBytes);
 
   const form = pdfDoc.getForm();
