@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { TextField } from '@mui/material';
+import { TextField, Typography, Box, Button } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInvoices } from '../../store/invoiceSlice';
 import { useNavigate } from 'react-router-dom';
 
 const columns = [
-
     { field: 'invoiceNumber', headerName: 'Invoice Number', width: 150 },
     {
         field: 'invoiceDate',
@@ -19,13 +18,16 @@ const columns = [
         headerName: 'Due Date',
         width: 150,
         valueGetter: (params) => {
-            return new Date(params).toLocaleDateString()
+            return new Date(params).toLocaleDateString();
         },
     },
     {
-        field: 'client', headerName: 'Client', width: 200, valueGetter: (params) => {
+        field: 'client',
+        headerName: 'Client',
+        width: 200,
+        valueGetter: (params) => {
             return params.firstName + ' ' + params.lastName;
-        }
+        },
     },
     {
         field: 'items',
@@ -35,7 +37,7 @@ const columns = [
             return params
                 .map((item) => `${item.description} (Qty: ${item.quantity}, Rate: $${item.rate})`)
                 .join(', ');
-        }
+        },
     },
     { field: 'subTotal', headerName: 'Sub Total', width: 120 },
     { field: 'total', headerName: 'Total', width: 120 },
@@ -66,8 +68,8 @@ const InvoicesPage = () => {
         };
         getInvoices();
     }, [dispatch]);
+
     useEffect(() => {
-        // Whenever `invoices` or `searchText` changes, update filteredInvoices
         setFilteredInvoices(
             invoices.filter((invoice) =>
                 invoice.invoiceNumber.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -82,17 +84,28 @@ const InvoicesPage = () => {
 
     const handleGoToInvoice = (params) => {
         navigate(`/invoices/${params}`);
-    }
+    };
 
     return (
         <div style={{ padding: 20 }}>
-            <TextField
-                label="Search Invoices"
-                variant="outlined"
-                value={searchText}
-                onChange={handleSearch}
-                style={{ marginBottom: 20, width: '100%' }}
-            />
+            <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
+                <Typography variant="h4" gutterBottom>
+                    Invoices
+                </Typography>
+                <Button variant="contained" color="primary" onClick={() => navigate('/add-invoice')}>
+                    Add Invoice
+                </Button>
+            </Box>
+
+            <Box marginBottom={2}>
+                <TextField
+                    label="Search Invoices"
+                    variant="outlined"
+                    value={searchText}
+                    onChange={handleSearch}
+                    fullWidth
+                />
+            </Box>
 
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
