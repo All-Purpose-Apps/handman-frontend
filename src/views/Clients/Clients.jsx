@@ -8,7 +8,7 @@ import {
     FormControlLabel,
     Switch,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Grid2';
 import { useNavigate } from 'react-router-dom';
 import AddClientModal from './AddClientModal';
 import { authenticateGoogleContacts, listGoogleContacts } from '../../utils/googleContactsApi';

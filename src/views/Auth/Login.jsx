@@ -12,7 +12,7 @@ const Login = () => {
         const provider = new GoogleAuthProvider();
         try {
             await signInWithPopup(auth, provider);
-            navigate('/dashboard'); // Redirect to the protected route
+            navigate('/'); // Redirect to the protected route
         } catch (error) {
             console.error('Error signing in with Google:', error);
             // Optionally display an error message to the user
