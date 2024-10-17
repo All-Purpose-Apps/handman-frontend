@@ -38,6 +38,33 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
   }
 });
 
+export const updateClient = createAsyncThunk('clients/updateClient', async (client, { rejectWithValue }) => {
+  try {
+    const response = await axios.put(`http://localhost:3000/api/clients/${client._id}`, client);
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || 'Failed to update client');
+  }
+});
+
+export const deleteClient = createAsyncThunk('clients/deleteClient', async (clientId, { rejectWithValue }) => {
+  try {
+    await axios.delete(`http://localhost:3000/api/clients/${clientId}`);
+    return clientId;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || 'Failed to delete client');
+  }
+});
+
+export const syncClients = createAsyncThunk('clients/syncClients', async (clients, { rejectWithValue }) => {
+  try {
+    const response = await axios.post('http://localhost:3000/api/clients/sync', clients);
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || 'Failed to sync clients');
+  }
+});
+
 export const clientSlice = createSlice({
   name: 'clients',
   initialState,
@@ -78,7 +105,7 @@ export const clientSlice = createSlice({
       })
       .addCase(addClient.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.clients.push(action.payload); // Add the new client to the list
+        state.clients = action.payload; // Add the new client to the list
       })
       .addCase(addClient.rejected, (state, action) => {
         state.status = 'failed';

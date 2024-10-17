@@ -1,6 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-    Grid,
     Card,
     CardContent,
     CardHeader,
@@ -10,23 +10,17 @@ import {
     ListItem,
     ListItemText,
     Divider,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import {
     People as PeopleIcon,
     Receipt as ReceiptIcon,
     Description as DescriptionIcon,
 } from '@mui/icons-material';
-import { LineChart } from '@mui/x-charts/LineChart';
 import moment from 'moment';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 
 const DashboardPage = () => {
+    const navigate = useNavigate();
     // Sample data
     const totalClients = 150;
     const totalInvoices = 75;
@@ -44,73 +38,16 @@ const DashboardPage = () => {
         { id: 'INV-003', amount: 250, date: '2023-10-27' },
     ];
 
-    const [timePeriod, setTimePeriod] = React.useState('Last 7 Days');
-    const [chartData, setChartData] = React.useState({
-        x: [
-            '2023-10-29',
-            '2023-10-30',
-            '2023-10-31',
-            '2023-11-01',
-            '2023-11-02',
-            '2023-11-03',
-            '2023-11-04',
-        ],
-        y: [500, 700, 800, 600, 900, 750, 650],
-    });
-
-    const [selectedDate, setSelectedDate] = React.useState(moment());
-
-    const handleTimePeriodChange = (event) => {
-        const period = event.target.value;
-        setTimePeriod(period);
-
-        // Update chart data based on selected time period
-        // For demonstration, we'll adjust the data randomly
-        let newChartData = {};
-        if (period === 'Last 7 Days') {
-            newChartData = {
-                x: [
-                    '2023-10-29',
-                    '2023-10-30',
-                    '2023-10-31',
-                    '2023-11-01',
-                    '2023-11-02',
-                    '2023-11-03',
-                    '2023-11-04',
-                ],
-                y: Array.from({ length: 7 }, () => Math.floor(Math.random() * 1000)),
-            };
-        } else if (period === 'Last 30 Days') {
-            newChartData = {
-                x: Array.from({ length: 30 }, (_, i) =>
-                    moment().subtract(i, 'days').format('YYYY-MM-DD')
-                ).reverse(),
-                y: Array.from({ length: 30 }, () => Math.floor(Math.random() * 1000)),
-            };
-        } else if (period === 'Last 3 Months') {
-            newChartData = {
-                x: [
-                    moment().subtract(2, 'months').format('MMMM'),
-                    moment().subtract(1, 'months').format('MMMM'),
-                    moment().format('MMMM'),
-                ],
-                y: Array.from({ length: 3 }, () => Math.floor(Math.random() * 10000)),
-            };
-        } else if (period === 'Last Year') {
-            newChartData = {
-                x: moment.monthsShort(),
-                y: Array.from({ length: 12 }, () => Math.floor(Math.random() * 20000)),
-            };
-        }
-        setChartData(newChartData);
-    };
+    const handleNavigate = (path) => () => {
+        navigate(path);
+    }
 
     return (
         <Box sx={{ flexGrow: 1, p: 3 }}>
             <Grid container spacing={3}>
                 {/* Info Cards */}
-                <Grid item xs={12} md={4}>
-                    <Card>
+                <Grid size={{ xs: 12, md: 4 }}>
+                    <Card onClick={handleNavigate('/clients')} sx={{ cursor: 'pointer' }}>
                         <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
                             <PeopleIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
                             <Box>
@@ -121,8 +58,8 @@ const DashboardPage = () => {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
-                    <Card>
+                <Grid size={{ xs: 12, md: 4 }}>
+                    <Card onClick={handleNavigate('/invoices')} sx={{ cursor: 'pointer' }}>
                         <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
                             <ReceiptIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
                             <Box>
@@ -133,8 +70,8 @@ const DashboardPage = () => {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
-                    <Card>
+                <Grid size={{ xs: 12, md: 4 }}>
+                    <Card onClick={handleNavigate('/proposals')} sx={{ cursor: 'pointer' }}>
                         <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
                             <DescriptionIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
                             <Box>
@@ -146,7 +83,7 @@ const DashboardPage = () => {
                 </Grid>
 
                 {/* Recent Clients */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                         <CardHeader
                             title="Recent Clients"
@@ -171,7 +108,7 @@ const DashboardPage = () => {
                 </Grid>
 
                 {/* Recent Invoices */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                         <CardHeader
                             title="Recent Invoices"
@@ -193,25 +130,6 @@ const DashboardPage = () => {
                                     </div>
                                 ))}
                             </List>
-                        </CardContent>
-                    </Card>
-                </Grid>
-
-                {/* Calendar */}
-                <Grid item xs={12} md={4}>
-                    <Card>
-                        <CardHeader
-                            title="Calendar"
-                            sx={{ backgroundColor: 'primary.main', color: 'white' }}
-                        />
-                        <CardContent>
-                            <LocalizationProvider dateAdapter={AdapterMoment}>
-                                <StaticDatePicker
-                                    displayStaticWrapperAs="desktop"
-                                    value={selectedDate}
-                                    onChange={(date) => setSelectedDate(date)}
-                                />
-                            </LocalizationProvider>
                         </CardContent>
                     </Card>
                 </Grid>

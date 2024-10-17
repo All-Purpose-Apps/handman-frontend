@@ -88,6 +88,11 @@ const ViewClient = () => {
                     <Typography variant="body1">
                         <strong>Status:</strong> {client.status || 'N/A'}
                     </Typography>
+                    <Typography variant="body1">
+                        {console.log(client)}
+                        <Button href={`https://contacts.google.com/person/${client.resourceName?.replace(/^people\//, "")}`}>
+                            Go to Google Contacts</Button>
+                    </Typography>
                     {/* Add more client details as needed */}
                 </Grid>
 

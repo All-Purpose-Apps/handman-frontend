@@ -1,118 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchClients, addClient } from '../../store/clientSlice';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from React Router
 import { DataGrid } from '@mui/x-data-grid';
 import {
     Card,
     CardContent,
     Typography,
-    Grid,
-    Switch,
-    FormControlLabel,
     TextField,
-    Button,
-    Modal,
-    Box,
+    FormControlLabel,
+    Switch,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import { useNavigate } from 'react-router-dom';
+import AddClientModal from './AddClientModal';
+import { authenticateGoogleContacts, listGoogleContacts } from '../../utils/googleContactsApi';
+import { useDispatch, useSelector } from 'react-redux';
+import moment from 'moment';
+import { fetchLastSync, updateLastSync } from '../../store/lastSyncSlice';
+import { addClient, fetchClients, syncClients } from '../../store/clientSlice';
+import ClientCard from '../../components/ClientCard';
+import ClientButtons from '../../components/ClientButtons';
 
 const columns = [
-    { field: 'name', headerName: 'Name', width: 200, sortable: true },
+    {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+        sortable: true,
+        renderCell: (params) => {
+            return params.row.firstName + ' ' + params.row.lastName;
+        },
+    },
     { field: 'email', headerName: 'Email', width: 250, sortable: true },
     { field: 'phone', headerName: 'Phone', width: 150, sortable: true },
     {
-        field: 'fullAddress',
+        field: 'address',
         headerName: 'Address',
         width: 250,
         sortable: true,
-        renderCell: (params) => {
-            const address = params.value;
-            const maxLength = 50; // Limit the displayed address length
-            return address.length > maxLength
-                ? `${address.substring(0, maxLength)}...`
-                : address;
-        },
     },
-    { field: 'status', headerName: 'Status', width: 120, sortable: true },
+    { field: 'status', headerName: 'Status', width: 240, sortable: true },
 ];
 
-const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    p: 4,
-};
-
 const ClientsPage = () => {
-    const clientsFromRedux = useSelector((state) => state.clients.clients);
     const dispatch = useDispatch();
-    const navigate = useNavigate(); // React Router hook to navigate
+    const navigate = useNavigate();
 
-    const [tableView, setTableView] = useState(true);
+    const [contacts, setContacts] = useState([]);
+    const [tableView, setTableView] = useState(() => {
+        const savedTableView = localStorage.getItem('tableView');
+        return savedTableView !== null ? JSON.parse(savedTableView) : true;
+    });
     const [searchText, setSearchText] = useState('');
     const [filteredClients, setFilteredClients] = useState([]);
     const [openModal, setOpenModal] = useState(false);
+    const [lastSyncedAt, setLastSyncedAt] = useState(null);
     const [newClientData, setNewClientData] = useState({
-        firstName: '',
-        lastName: '',
+        givenName: '',
+        familyName: '',
         email: '',
         phone: '',
-        address: '',
-        city: '',
-        state: '',
-        zip: '',
-        status: '',
     });
 
+    const lastSync = useSelector((state) => state.lastSync.lastSync);
+    const clients = useSelector((state) => state.clients.clients);
+
+    const fetchContacts = async () => {
+        try {
+            await authenticateGoogleContacts();
+            const googleContacts = await listGoogleContacts();
+            return googleContacts;
+        } catch (error) {
+            console.error('Error fetching contacts:', error);
+        }
+    };
+
+    const fetchClientsFromMongo = async () => {
+        try {
+            const { payload } = await dispatch(fetchClients());
+            setFilteredClients(payload);
+        } catch (error) {
+            console.error('Error fetching clients:', error);
+        }
+    };
+
     useEffect(() => {
-        dispatch(fetchClients());
+        dispatch(fetchLastSync());
+        fetchClientsFromMongo();
     }, [dispatch]);
 
     useEffect(() => {
-        if (clientsFromRedux && clientsFromRedux.length > 0) {
-            // Process clients to include 'name' and 'fullAddress' fields
-            const clientsWithNames = clientsFromRedux.map((client) => {
-                const fullAddress = `${client.address || ''}, ${client.city || ''}, ${client.state || ''
-                    } ${client.zip || ''}`
-                    .trim()
-                    .replace(/,\s*,/g, ',')
-                    .replace(/^,|,$/g, '');
+        if (lastSync && lastSync.length > 0) {
+            const lastSyncTime = moment(lastSync[0].lastSyncedAt).fromNow();
+            setLastSyncedAt(lastSyncTime);
 
-                return {
-                    ...client,
-                    name: `${client.firstName} ${client.lastName}`.trim(),
-                    fullAddress,
-                    id: client._id, // Assuming _id is the unique identifier
-                };
-            });
+            const intervalId = setInterval(() => {
+                setLastSyncedAt(moment(lastSync[0].lastSyncedAt).fromNow());
+            }, 60000); // 1 minute
 
-            // Fields to search
-            const searchableFields = ['name', 'email', 'phone', 'fullAddress', 'status'];
-
-            // Filter clients based on searchText
-            const filtered = clientsWithNames.filter((client) =>
-                searchableFields.some((field) => {
-                    const value = client[field];
-                    if (value) {
-                        return value.toString().toLowerCase().includes(searchText.toLowerCase());
-                    }
-                    return false;
-                })
-            );
-            setFilteredClients(filtered);
+            return () => clearInterval(intervalId);
         }
-    }, [clientsFromRedux, searchText]);
+    }, [lastSync]);
 
-    const handleToggleChange = (event) => {
-        setTableView(event.target.checked);
-    };
+    useEffect(() => {
+        localStorage.setItem('tableView', JSON.stringify(tableView));
+    }, [tableView]);
 
-    const handleSearch = (event) => {
-        setSearchText(event.target.value);
+    const handleSyncGoogleContacts = async () => {
+        try {
+            const contacts = await fetchContacts();
+            await dispatch(syncClients(contacts));
+            if (lastSync && lastSync.length > 0) {
+                await dispatch(updateLastSync(lastSync[0]._id));
+            }
+        } catch (error) {
+            console.error('Error syncing Google Contacts:', error);
+            alert('Failed to sync Google Contacts.');
+        }
     };
 
     const handleOpenModal = () => {
@@ -122,15 +124,10 @@ const ClientsPage = () => {
     const handleCloseModal = () => {
         setOpenModal(false);
         setNewClientData({
-            firstName: '',
-            lastName: '',
+            givenName: '',
+            familyName: '',
             email: '',
             phone: '',
-            address: '',
-            city: '',
-            state: '',
-            zip: '',
-            status: '',
         });
     };
 
@@ -139,24 +136,43 @@ const ClientsPage = () => {
         setNewClientData({ ...newClientData, [name]: value });
     };
 
-    const handleAddClient = (e) => {
-        e.preventDefault();
-        // Dispatch action to add client
-        dispatch(addClient(newClientData));
-        handleCloseModal();
+    const handleAddClient = async () => {
+        try {
+            // await createGoogleContact(newClientData);
+            await dispatch(addClient(newClientData));
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error adding client:', error);
+            alert('Failed to add client.');
+        }
     };
 
-    // Placeholder function for syncing Google Contacts
-    const handleSyncGoogleContacts = () => {
-        // Placeholder function
-        // You can implement the actual sync logic here
-        console.log('Syncing Google Contacts...');
+    const handleSearch = (event) => {
+        const value = event.target.value;
+        setSearchText(value);
+
+        if (value === '') {
+            setFilteredClients(clients);
+        } else {
+            const filtered = clients.filter((client) =>
+                ['name', 'email', 'phone', 'fullAddress', 'status'].some((field) =>
+                    client[field]?.toLowerCase().includes(value.toLowerCase())
+                )
+            );
+            setFilteredClients(filtered);
+        }
     };
 
-    // Handle row click
+    const handleToggleChange = () => {
+        setTableView(!tableView);
+    };
+
     const handleRowClick = (params) => {
-        const clientId = params.row.id; // Get the client id from the clicked row
-        navigate(`/clients/${clientId}`); // Navigate to the view client page
+        navigate(`/clients/${params.row._id}`);
+    };
+
+    const handleCardClick = (clientId) => {
+        navigate(`/clients/${clientId}`);
     };
 
     return (
@@ -172,19 +188,11 @@ const ClientsPage = () => {
                     }
                     label={tableView ? 'Table View' : 'Card View'}
                 />
-                <div>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSyncGoogleContacts}
-                        style={{ marginRight: 10 }}
-                    >
-                        Sync Google Contacts
-                    </Button>
-                    <Button variant="contained" color="primary" onClick={handleOpenModal}>
-                        Add Client
-                    </Button>
-                </div>
+                <ClientButtons
+                    lastSyncedAt={lastSyncedAt}
+                    handleSyncGoogleContacts={handleSyncGoogleContacts}
+                    handleOpenModal={handleOpenModal}
+                />
             </div>
 
             <TextField
@@ -201,129 +209,28 @@ const ClientsPage = () => {
                         rows={filteredClients}
                         columns={columns}
                         pageSize={5}
-                        rowsPerPageOptions={[5]}
-                        onRowClick={handleRowClick} // Add onRowClick to navigate on click
+                        rowsPerPageOptions={[5, 10, 20]}
+                        getRowId={(row) => row._id}
+                        onRowClick={handleRowClick}
                     />
                 </div>
             ) : (
                 <Grid container spacing={2}>
                     {filteredClients.map((client) => (
-                        <Grid item xs={12} sm={6} md={4} key={client.id}>
-                            <Card variant="outlined">
-                                <CardContent>
-                                    <Typography variant="h6">{client.name}</Typography>
-                                    <Typography color="textSecondary">
-                                        Email: {client.email}
-                                    </Typography>
-                                    <Typography color="textSecondary">
-                                        Phone: {client.phone}
-                                    </Typography>
-                                    <Typography color="textSecondary">
-                                        Address: {client.fullAddress}
-                                    </Typography>
-                                    <Typography color="textSecondary">
-                                        Status: {client.status}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
+                        <Grid item xs={12} sm={6} md={4} key={client._id}>
+                            <ClientCard client={client} handleCardClick={handleCardClick} />
                         </Grid>
                     ))}
                 </Grid>
             )}
 
-            <Modal open={openModal} onClose={handleCloseModal}>
-                <Box sx={modalStyle}>
-                    <Typography variant="h6" component="h2" gutterBottom>
-                        Add New Client
-                    </Typography>
-                    <form onSubmit={handleAddClient}>
-                        <TextField
-                            label="First Name"
-                            name="firstName"
-                            value={newClientData.firstName}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                            required
-                        />
-                        <TextField
-                            label="Last Name"
-                            name="lastName"
-                            value={newClientData.lastName}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                            required
-                        />
-                        <TextField
-                            label="Email"
-                            name="email"
-                            type="email"
-                            value={newClientData.email}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Phone"
-                            name="phone"
-                            value={newClientData.phone}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Address"
-                            name="address"
-                            value={newClientData.address}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="City"
-                            name="city"
-                            value={newClientData.city}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="State"
-                            name="state"
-                            value={newClientData.state}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Zip"
-                            name="zip"
-                            value={newClientData.zip}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Status"
-                            name="status"
-                            value={newClientData.status}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            style={{ marginTop: 16 }}
-                        >
-                            Save
-                        </Button>
-                    </form>
-                </Box>
-            </Modal>
+            <AddClientModal
+                handleAddClient={handleAddClient}
+                handleCloseModal={handleCloseModal}
+                openModal={openModal}
+                newClientData={newClientData}
+                handleInputChange={handleInputChange}
+            />
         </div>
     );
 };

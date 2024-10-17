@@ -1,30 +1,51 @@
-import { Routes, Route } from 'react-router-dom'
-import MainLayout from './layouts/MainLayout'
-import Dashboard from './views/Dashboard'
-import NoMatch from './views/NoMatch'
-import { routes } from './routes'
+// src/App.jsx
+import { Routes, Route } from 'react-router-dom';
+import MainLayout from './layouts/MainLayout';
+import NoMatch from './views/NoMatch';
+import { routes } from './routes';
+import { AuthProvider } from './contexts/AuthContext.jsx';
+import Login from './views/Auth/Login';
+import ProtectedRoute from './views/ProtectedRoute';
 
 export default function App() {
   const getRoutes = () => {
     return routes.map((route, index) => {
-      return (
-        <Route
-          key={index}
-          path={route.path}
-          element={<route.component />}
-        />
-      )
-    })
-  }
+      const Component = route.component; // Extract the component
+      if (route.protected) {
+        // Wrap protected routes with ProtectedRoute
+        return (
+          <Route
+            key={index}
+            path={route.path}
+            element={
+              <ProtectedRoute>
+                <Component />
+              </ProtectedRoute>
+            }
+          />
+        );
+      } else {
+        // Public routes
+        return (
+          <Route
+            key={index}
+            path={route.path}
+            element={<Component />}
+          />
+        );
+      }
+    });
+  };
+
   return (
-    <>
+    <AuthProvider>
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="*" element={<NoMatch />} />
           {getRoutes()}
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<NoMatch />} />
         </Route>
       </Routes>
-    </>
-  )
+    </AuthProvider>
+  );
 }
