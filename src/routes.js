@@ -41,7 +41,6 @@ export const routes = [
     component: ViewOneClient,
     protected: true,
   },
-
   {
     path: '/invoices',
     component: Invoices,

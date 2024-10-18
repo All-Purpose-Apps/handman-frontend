@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchOneInvoice, updateInvoice } from '../../store/invoiceSlice';
+import { fetchClients } from '../../store/clientSlice'; // Action to fetch clients
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -9,12 +10,10 @@ import {
     CardContent,
     CardActions,
     Grid,
-    IconButton,
     Typography,
+    Autocomplete,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { createProposal } from '../../utils/createPdfs';
+import moment from 'moment';
 
 export default function ViewOneInvoice() {
     const { id } = useParams();
@@ -22,48 +21,35 @@ export default function ViewOneInvoice() {
     const navigate = useNavigate();
 
     const { invoice, status, error } = useSelector((state) => state.invoices);
-
+    const { clients } = useSelector((state) => state.clients); // Get the list of clients
     const [isEditing, setIsEditing] = useState(false);
     const [editedInvoice, setEditedInvoice] = useState({
-        items: [], // Initialize items as an empty array
+        items: [],
+        client: null, // For client selection
     });
 
     useEffect(() => {
         dispatch(fetchOneInvoice(id));
+        dispatch(fetchClients()); // Fetch clients when component mounts
     }, [dispatch, id]);
 
     useEffect(() => {
         if (invoice) {
-            setEditedInvoice({
+            setEditedInvoice((prev) => ({
+                ...prev,
                 ...invoice,
-                items: invoice.items ? invoice.items : [], // Ensure items is an array
-            });
+                items: invoice.items || [],
+                client: invoice.client || prev.client, // Keep the existing client if already set
+            }));
         }
     }, [invoice]);
 
-    useEffect(() => {
-        if (editedInvoice && isEditing) {
-            const subTotal = editedInvoice.items.reduce((acc, item) => {
-                return acc + item.quantity * item.rate;
-            }, 0);
-            const total = subTotal; // Adjust if you have taxes or discounts
-            setEditedInvoice((prevState) => ({
-                ...prevState,
-                subTotal,
-                total,
-            }));
-        }
-    }, [editedInvoice.items, isEditing]);
-
-    if (status === 'loading' || !editedInvoice) {
-        return <div>Loading...</div>;
-    }
-
-    if (status === 'failed') {
-        return <div>Error: {error}</div>;
-    }
-
-    const formatDate = (date) => new Date(date).toLocaleDateString();
+    const handleClientChange = (event, newValue) => {
+        setEditedInvoice({
+            ...editedInvoice,
+            client: newValue,
+        });
+    };
 
     const handleBack = () => {
         if (isEditing) {
@@ -75,38 +61,23 @@ export default function ViewOneInvoice() {
 
     const handleEditToggle = () => {
         if (isEditing) {
-            // Save changes
-            dispatch(updateInvoice(id, editedInvoice));
+            dispatch(updateInvoice(editedInvoice));
+            dispatch(fetchOneInvoice(id));
         }
         setIsEditing(!isEditing);
     };
 
-    const handleAddItem = () => {
-        if (editedInvoice.items.length < 5) {
-            setEditedInvoice({
-                ...editedInvoice,
-                items: [
-                    ...editedInvoice.items,
-                    { description: '', quantity: 1, rate: 0 },
-                ],
-            });
-        }
+    const getInvoice = async () => {
+        console.log('Invoice:', editedInvoice);
     };
 
-    const handleItemChange = (index, field, value) => {
-        const newItems = editedInvoice.items.map((item, idx) => {
-            if (idx === index) {
-                return { ...item, [field]: value };
-            }
-            return item;
-        });
-        setEditedInvoice({ ...editedInvoice, items: newItems });
-    };
+    if (status === 'loading') {
+        return <div>Loading...</div>;
+    }
 
-    const handleRemoveItem = (index) => {
-        const newItems = editedInvoice.items.filter((_, idx) => idx !== index);
-        setEditedInvoice({ ...editedInvoice, items: newItems });
-    };
+    if (status === 'failed') {
+        return <div>Error: {error}</div>;
+    }
 
     return (
         <Card elevation={3} style={{ padding: '16px' }}>
@@ -115,6 +86,37 @@ export default function ViewOneInvoice() {
                     Invoice Details
                 </Typography>
                 <Grid container spacing={2} alignItems="flex-start">
+                    <Grid item xs={12}>
+                        {isEditing ? (
+                            clients && clients.length > 0 ? (
+                                <Autocomplete
+                                    options={clients}
+                                    getOptionLabel={(client) =>
+                                        client ? `${client.firstName} ${client.lastName}` : ''
+                                    }
+                                    value={editedInvoice.client || null}
+                                    onChange={handleClientChange}
+                                    isOptionEqualToValue={(option, value) =>
+                                        option.id === value?.id
+                                    } // Ensure proper value matching
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select Client"
+                                            fullWidth
+                                        />
+                                    )}
+                                />
+                            ) : (
+                                <Typography>No clients available.</Typography>
+                            )
+                        ) : (
+                            <Typography align="left">
+                                Client: {invoice?.client?.firstName}{' '}
+                                {invoice?.client?.lastName}
+                            </Typography>
+                        )}
+                    </Grid>
                     <Grid item xs={12} sm={6}>
                         <Typography variant="h6" align="left">
                             Invoice Number: {editedInvoice?.invoiceNumber}
@@ -122,7 +124,7 @@ export default function ViewOneInvoice() {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <Typography align="left">
-                            Created At: {formatDate(editedInvoice?.createdAt)}
+                            Created At: {moment.utc(editedInvoice?.createdAt).format('MM-DD-YYYY')}
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -135,7 +137,7 @@ export default function ViewOneInvoice() {
                                 onChange={(e) =>
                                     setEditedInvoice({
                                         ...editedInvoice,
-                                        invoiceDate: e.target.value,
+                                        invoiceDate: moment.utc(e.target.value).format(), // Ensure date is stored in UTC
                                     })
                                 }
                                 InputLabelProps={{
@@ -144,7 +146,7 @@ export default function ViewOneInvoice() {
                             />
                         ) : (
                             <Typography align="left">
-                                Invoice Date: {formatDate(editedInvoice?.invoiceDate)}
+                                Invoice Date: {moment.utc(editedInvoice?.invoiceDate).format('MM-DD-YYYY')}
                             </Typography>
                         )}
                     </Grid>
@@ -158,7 +160,7 @@ export default function ViewOneInvoice() {
                                 onChange={(e) =>
                                     setEditedInvoice({
                                         ...editedInvoice,
-                                        dueDate: e.target.value,
+                                        dueDate: moment.utc(e.target.value).format(), // Ensure date is stored in UTC
                                     })
                                 }
                                 InputLabelProps={{
@@ -167,50 +169,7 @@ export default function ViewOneInvoice() {
                             />
                         ) : (
                             <Typography align="left">
-                                Due Date: {formatDate(editedInvoice?.dueDate)}
-                            </Typography>
-                        )}
-                    </Grid>
-                    <Grid item xs={12} sm={12}>
-                        {isEditing ? (
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        label="Client First Name"
-                                        fullWidth
-                                        value={editedInvoice?.client?.firstName || ''}
-                                        onChange={(e) =>
-                                            setEditedInvoice({
-                                                ...editedInvoice,
-                                                client: {
-                                                    ...editedInvoice.client,
-                                                    firstName: e.target.value,
-                                                },
-                                            })
-                                        }
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        label="Client Last Name"
-                                        fullWidth
-                                        value={editedInvoice?.client?.lastName || ''}
-                                        onChange={(e) =>
-                                            setEditedInvoice({
-                                                ...editedInvoice,
-                                                client: {
-                                                    ...editedInvoice.client,
-                                                    lastName: e.target.value,
-                                                },
-                                            })
-                                        }
-                                    />
-                                </Grid>
-                            </Grid>
-                        ) : (
-                            <Typography align="left">
-                                Client: {editedInvoice?.client?.firstName}{' '}
-                                {editedInvoice?.client?.lastName}
+                                Due Date: {moment.utc(editedInvoice?.dueDate).format('MM-DD-YYYY')}
                             </Typography>
                         )}
                     </Grid>
@@ -236,11 +195,17 @@ export default function ViewOneInvoice() {
                                                     fullWidth
                                                     value={item.description}
                                                     onChange={(e) =>
-                                                        handleItemChange(
-                                                            index,
-                                                            'description',
-                                                            e.target.value
-                                                        )
+                                                        setEditedInvoice({
+                                                            ...editedInvoice,
+                                                            items: editedInvoice.items.map((item, idx) =>
+                                                                idx === index
+                                                                    ? {
+                                                                        ...item,
+                                                                        description: e.target.value,
+                                                                    }
+                                                                    : item
+                                                            ),
+                                                        })
                                                     }
                                                 />
                                             </Grid>
@@ -251,11 +216,17 @@ export default function ViewOneInvoice() {
                                                     fullWidth
                                                     value={item.quantity}
                                                     onChange={(e) =>
-                                                        handleItemChange(
-                                                            index,
-                                                            'quantity',
-                                                            Number(e.target.value)
-                                                        )
+                                                        setEditedInvoice({
+                                                            ...editedInvoice,
+                                                            items: editedInvoice.items.map((item, idx) =>
+                                                                idx === index
+                                                                    ? {
+                                                                        ...item,
+                                                                        quantity: Number(e.target.value),
+                                                                    }
+                                                                    : item
+                                                            ),
+                                                        })
                                                     }
                                                 />
                                             </Grid>
@@ -266,30 +237,24 @@ export default function ViewOneInvoice() {
                                                     fullWidth
                                                     value={item.rate}
                                                     onChange={(e) =>
-                                                        handleItemChange(
-                                                            index,
-                                                            'rate',
-                                                            Number(e.target.value)
-                                                        )
+                                                        setEditedInvoice({
+                                                            ...editedInvoice,
+                                                            items: editedInvoice.items.map((item, idx) =>
+                                                                idx === index
+                                                                    ? {
+                                                                        ...item,
+                                                                        rate: Number(e.target.value),
+                                                                    }
+                                                                    : item
+                                                            ),
+                                                        })
                                                     }
                                                 />
                                             </Grid>
                                             <Grid item xs={12} sm={2}>
                                                 <Typography align="left">
-                                                    Amount: $
-                                                    {item.quantity * item.rate}
+                                                    Amount: ${item.quantity * item.rate}
                                                 </Typography>
-                                            </Grid>
-                                            <Grid item xs={12} sm={2}>
-                                                {editedInvoice.items.length > 1 && (
-                                                    <IconButton
-                                                        onClick={() =>
-                                                            handleRemoveItem(index)
-                                                        }
-                                                    >
-                                                        <DeleteIcon />
-                                                    </IconButton>
-                                                )}
                                             </Grid>
                                         </Grid>
                                     ) : (
@@ -306,8 +271,15 @@ export default function ViewOneInvoice() {
                         {isEditing && editedInvoice.items.length < 5 && (
                             <Button
                                 variant="contained"
-                                onClick={handleAddItem}
-                                startIcon={<AddIcon />}
+                                onClick={() =>
+                                    setEditedInvoice({
+                                        ...editedInvoice,
+                                        items: [
+                                            ...editedInvoice.items,
+                                            { description: '', quantity: 1, rate: 0 },
+                                        ],
+                                    })
+                                }
                             >
                                 Add Item
                             </Button>
@@ -346,29 +318,16 @@ export default function ViewOneInvoice() {
                     </Grid>
                 </Grid>
             </CardContent>
-            <CardActions style={{ justifyContent: 'flex-start' }}>
+            <CardActions>
                 <Button variant="contained" onClick={handleBack}>
                     Back
                 </Button>
                 <Button variant="contained" onClick={handleEditToggle}>
                     {isEditing ? 'Save' : 'Edit'}
                 </Button>
-                {!isEditing && (
-                    <>
-                        <Button
-                            variant="contained"
-                            onClick={() => navigate(`/invoices/delete/${id}`)}
-                        >
-                            Delete
-                        </Button>
-                        <Button
-                            variant="contained"
-                            onClick={() => createProposal(invoice)}
-                        >
-                            Create Proposal
-                        </Button>
-                    </>
-                )}
+                <Button variant="contained" onClick={getInvoice}>
+                    Get Invoice
+                </Button>
             </CardActions>
         </Card>
     );
