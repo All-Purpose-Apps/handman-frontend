@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const accessToken = localStorage.getItem('accessToken');
+
 const initialState = {
   clients: [],
   client: {},
@@ -11,7 +13,12 @@ const initialState = {
 // Fetch all clients
 export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get('http://localhost:3000/api/clients');
+    const response = await axios.get('http://localhost:3000/api/clients', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Something went wrong');
@@ -21,7 +28,12 @@ export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, {
 // Fetch a single client by ID
 export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (clientId, { rejectWithValue }) => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/clients/${clientId}`);
+    const response = await axios.get(`http://localhost:3000/api/clients/${clientId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to fetch client');
@@ -31,7 +43,12 @@ export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (
 // Add a new client
 export const addClient = createAsyncThunk('clients/addClient', async (client, { rejectWithValue }) => {
   try {
-    const response = await axios.post('http://localhost:3000/api/clients', client);
+    const response = await axios.post('http://localhost:3000/api/clients', client, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to add client');
@@ -40,7 +57,12 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
 
 export const updateClient = createAsyncThunk('clients/updateClient', async (client, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`http://localhost:3000/api/clients/${client._id}`, client);
+    const response = await axios.put(`http://localhost:3000/api/clients/${client._id}`, client, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to update client');
@@ -49,7 +71,12 @@ export const updateClient = createAsyncThunk('clients/updateClient', async (clie
 
 export const deleteClient = createAsyncThunk('clients/deleteClient', async (clientId, { rejectWithValue }) => {
   try {
-    await axios.delete(`http://localhost:3000/api/clients/${clientId}`);
+    await axios.delete(`http://localhost:3000/api/clients/${clientId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return clientId;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to delete client');
@@ -58,7 +85,12 @@ export const deleteClient = createAsyncThunk('clients/deleteClient', async (clie
 
 export const syncClients = createAsyncThunk('clients/syncClients', async (clients, { rejectWithValue }) => {
   try {
-    const response = await axios.post('http://localhost:3000/api/clients/sync', clients);
+    const response = await axios.post('http://localhost:3000/api/clients/sync', clients, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to sync clients');

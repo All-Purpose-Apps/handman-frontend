@@ -11,13 +11,13 @@ import {
 import Grid from '@mui/material/Grid2';
 import { useNavigate } from 'react-router-dom';
 import AddClientModal from './AddClientModal';
-import { authenticateGoogleContacts, listGoogleContacts } from '../../utils/googleContactsApi';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { fetchLastSync, updateLastSync } from '../../store/lastSyncSlice';
 import { addClient, fetchClients, syncClients } from '../../store/clientSlice';
 import ClientCard from '../../components/ClientCard';
 import ClientButtons from '../../components/ClientButtons';
+import axios from 'axios';
 
 const columns = [
     {
@@ -64,14 +64,37 @@ const ClientsPage = () => {
     const clients = useSelector((state) => state.clients.clients);
 
     const fetchContacts = async () => {
+        const accessToken = localStorage.getItem('accessToken');
+        console.log('Access token:', accessToken);
+        if (!accessToken) {
+            console.error('No access token found.');
+            return;
+        }
+
         try {
-            await authenticateGoogleContacts();
-            const googleContacts = await listGoogleContacts();
-            return googleContacts;
+            const response = await axios.get(
+                'http://localhost:5000/api/google/contacts',
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+            console.log('Contacts:', response.data);
         } catch (error) {
             console.error('Error fetching contacts:', error);
         }
     };
+
+    // const fetchContacts = async () => {
+    //     try {
+    //         await authenticateGoogleContacts();
+    //         const googleContacts = await listGoogleContacts();
+    //         return googleContacts;
+    //     } catch (error) {
+    //         console.error('Error fetching contacts:', error);
+    //     }
+    // };
 
     const fetchClientsFromMongo = async () => {
         try {

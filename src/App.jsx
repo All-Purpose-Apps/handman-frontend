@@ -6,7 +6,7 @@ import { routes } from './routes';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import Login from './views/Auth/Login';
 import ProtectedRoute from './views/ProtectedRoute';
-
+import AuthWatcher from './components/AuthWatcher.jsx';
 export default function App() {
   const getRoutes = () => {
     return routes.map((route, index) => {
@@ -39,6 +39,7 @@ export default function App() {
 
   return (
     <AuthProvider>
+      <AuthWatcher />
       <Routes>
         <Route path="/" element={<MainLayout />}>
           {getRoutes()}

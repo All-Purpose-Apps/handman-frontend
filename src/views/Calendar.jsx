@@ -1,53 +1,46 @@
+// MyCalendar.js
+
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { authenticateGoogle, listGoogleCalendarEvents, listGoogleCalendars, createGoogleCalendarEvent, getGoogleCalendarEventById } from '../utils/googleCalendarApi';
+
+import {
+    fetchCalendars,
+    fetchCalendar,
+    createCalendarEvent,
+} from '../store/calendarSlice';
 
 const localizer = momentLocalizer(moment);
 
 const MyCalendar = () => {
-    const [events, setEvents] = useState([]);
+    const dispatch = useDispatch();
+
+    // Extract calendars and events from Redux state
+    const { calendars, calendar: events, status, error } = useSelector((state) => state.calendar);
+
     const [newEventTitle, setNewEventTitle] = useState('');
     const [newEventDate, setNewEventDate] = useState('');
-    const [isEventCreated, setIsEventCreated] = useState(false);
-    const [calendars, setCalendars] = useState([]);
     const [selectedCalendarId, setSelectedCalendarId] = useState('');
 
     // Fetch Google Calendars on load
     useEffect(() => {
-        const fetchCalendars = async () => {
-            await authenticateGoogle();
-            const calendarList = await listGoogleCalendars();
-            setCalendars(calendarList);
-            // Set the first calendar as the default selection
-            if (calendarList.length > 0) {
-                setSelectedCalendarId(calendarList[0].id);
-            }
-        };
+        dispatch(fetchCalendars());
+    }, [dispatch]);
 
-        fetchCalendars();
-    }, []);
+    // Set the first calendar as the default selection
+    useEffect(() => {
+        if (calendars && calendars.length > 0) {
+            setSelectedCalendarId(calendars[0].id);
+        }
+    }, [calendars]);
+
     // Sync with selected Google Calendar
     useEffect(() => {
         if (!selectedCalendarId) return;
-
-        const syncGoogleCalendar = async () => {
-            await authenticateGoogle();
-            const googleEvents = await listGoogleCalendarEvents(selectedCalendarId);
-            const mappedEvents = googleEvents.map(event => ({
-
-                title: event.summary,
-                start: new Date(event.start.dateTime || event.start.date),
-                end: new Date(event.end.dateTime || event.end.date),
-            }));
-
-            setEvents(mappedEvents);
-        };
-
-        const event = getGoogleCalendarEventById("7bg837bv8ea9qom8c538cc2b20", selectedCalendarId);
-        syncGoogleCalendar();
-    }, [selectedCalendarId, isEventCreated]); // Re-sync when the calendar changes or a new event is created
+        dispatch(fetchCalendar({ calendarId: selectedCalendarId }));
+    }, [selectedCalendarId, dispatch]);
 
     // Handle calendar selection
     const handleCalendarChange = (event) => {
@@ -60,25 +53,35 @@ const MyCalendar = () => {
             summary: newEventTitle,
             start: {
                 dateTime: new Date(newEventDate).toISOString(),
-                timeZone: 'America/Los_Angeles',
+                timeZone: 'America/New_York',
             },
             end: {
                 dateTime: new Date(new Date(newEventDate).getTime() + 60 * 60 * 1000).toISOString(), // 1-hour event
-                timeZone: 'America/Los_Angeles',
+                timeZone: 'America/New_York',
             },
         };
 
         try {
-            await authenticateGoogle(); // Ensure authentication
-            const createdEvent = await createGoogleCalendarEvent(eventDetails, selectedCalendarId); // Create event on selected Google Calendar
-            console.log('Event created: ', createdEvent);
-            setIsEventCreated(true); // Trigger re-sync with the new event
+            await dispatch(
+                createCalendarEvent({ eventData: eventDetails, calendarId: selectedCalendarId })
+            ).unwrap();
             alert('Event successfully created!');
+            // Optionally, refresh events after creating a new one
+            dispatch(fetchCalendar({ calendarId: selectedCalendarId }));
         } catch (error) {
             console.error('Error creating event:', error);
             alert('Failed to create event.');
         }
     };
+
+    // Handle loading and error states
+    if (status === 'loading') {
+        return <div>Loading calendars...</div>;
+    }
+
+    if (status === 'failed') {
+        return <div>Error: {error}</div>;
+    }
 
     return (
         <div style={{ height: '100vh', padding: '20px' }}>
@@ -87,11 +90,12 @@ const MyCalendar = () => {
             <div style={{ marginBottom: '20px' }}>
                 <h3>Select a Calendar</h3>
                 <select value={selectedCalendarId} onChange={handleCalendarChange}>
-                    {calendars.map(calendar => (
-                        <option key={calendar.id} value={calendar.id}>
-                            {calendar.summary}
-                        </option>
-                    ))}
+                    {calendars &&
+                        calendars.map((calendar) => (
+                            <option key={calendar.id} value={calendar.id}>
+                                {calendar.summary}
+                            </option>
+                        ))}
                 </select>
             </div>
 
@@ -115,7 +119,15 @@ const MyCalendar = () => {
 
             <Calendar
                 localizer={localizer}
-                events={events}
+                events={
+                    events
+                        ? events.map((event) => ({
+                            title: event.summary,
+                            start: new Date(event.start.dateTime || event.start.date),
+                            end: new Date(event.end.dateTime || event.end.date),
+                        }))
+                        : []
+                }
                 startAccessor="start"
                 endAccessor="end"
                 style={{ height: 500 }}

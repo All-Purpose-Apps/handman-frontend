@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const accessToken = localStorage.getItem('accessToken');
+
 const initialState = {
   invoices: [],
   invoice: {},
@@ -11,7 +13,12 @@ const initialState = {
 // Fetch all invoices
 export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get('http://localhost:3000/api/invoices');
+    const response = await axios.get('http://localhost:3000/api/invoices', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Something went wrong');
@@ -21,7 +28,12 @@ export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (_
 // Fetch a single invoice by ID
 export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', async (invoiceId, { rejectWithValue }) => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/invoices/${invoiceId}`);
+    const response = await axios.get(`http://localhost:3000/api/invoices/${invoiceId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to fetch invoice');
@@ -30,8 +42,14 @@ export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', asyn
 
 // Add a new invoice
 export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice, { rejectWithValue }) => {
+  console.log(invoice);
   try {
-    const response = await axios.post('http://localhost:3000/api/invoices', invoice);
+    const response = await axios.post('http://localhost:3000/api/invoices', invoice, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to add invoice');
@@ -40,13 +58,31 @@ export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice
 
 export const updateInvoice = createAsyncThunk('invoices/updateInvoice', async (invoice, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`http://localhost:3000/api/invoices/${invoice._id}`, invoice);
+    const response = await axios.put(`http://localhost:3000/api/invoices/${invoice._id}`, invoice, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to update invoice');
   }
 });
 
+export const deleteInvoice = createAsyncThunk('invoices/deleteInvoice', async (invoiceId, { rejectWithValue }) => {
+  try {
+    const response = await axios.delete(`http://localhost:3000/api/invoices/${invoiceId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || 'Failed to delete invoice');
+  }
+});
 export const invoiceSlice = createSlice({
   name: 'invoices',
   initialState,
@@ -99,6 +135,18 @@ export const invoiceSlice = createSlice({
         state.invoice = action.payload;
       })
       .addCase(updateInvoice.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(deleteInvoice.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteInvoice.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.invoices = action.payload;
+      })
+      .addCase(deleteInvoice.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || action.error.message;
       });

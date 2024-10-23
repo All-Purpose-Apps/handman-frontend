@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const accessToken = localStorage.getItem('accessToken');
+
 const initialState = {
   proposals: [],
   proposal: {},
@@ -10,7 +12,12 @@ const initialState = {
 
 export const fetchProposals = createAsyncThunk('proposals/fetchProposals', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get('http://localhost:3000/api/proposals');
+    const response = await axios.get('http://localhost:3000/api/proposals', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Something went wrong');
@@ -19,7 +26,12 @@ export const fetchProposals = createAsyncThunk('proposals/fetchProposals', async
 
 export const fetchOneProposal = createAsyncThunk('proposals/fetchOneProposal', async (proposalId, { rejectWithValue }) => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/proposals/${proposalId}`);
+    const response = await axios.get(`http://localhost:3000/api/proposals/${proposalId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to fetch proposal');
@@ -28,7 +40,12 @@ export const fetchOneProposal = createAsyncThunk('proposals/fetchOneProposal', a
 
 export const addProposal = createAsyncThunk('proposals/addProposal', async (proposal, { rejectWithValue }) => {
   try {
-    const response = await axios.post('http://localhost:3000/api/proposals', proposal);
+    const response = await axios.post('http://localhost:3000/api/proposals', proposal, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to add proposal');
