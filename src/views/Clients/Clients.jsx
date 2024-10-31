@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
 import {
     Card,
     CardContent,
@@ -9,41 +11,31 @@ import {
     Switch,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AddClientModal from './AddClientModal';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { fetchLastSync, updateLastSync } from '../../store/lastSyncSlice';
-import { addClient, fetchClients, syncClients } from '../../store/clientSlice';
+import { addClient, fetchClients, syncClients, createGoogleContact } from '../../store/clientSlice';
 import ClientCard from '../../components/ClientCard';
 import ClientButtons from '../../components/ClientButtons';
 import axios from 'axios';
 
 const columns = [
-    {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-        sortable: true,
-        renderCell: (params) => {
-            return params.row.firstName + ' ' + params.row.lastName;
-        },
-    },
+    { field: 'name', headerName: 'Name', width: 200, sortable: true },
     { field: 'email', headerName: 'Email', width: 250, sortable: true },
     { field: 'phone', headerName: 'Phone', width: 150, sortable: true },
-    {
-        field: 'address',
-        headerName: 'Address',
-        width: 250,
-        sortable: true,
-    },
+    { field: 'address', headerName: 'Address', width: 250, sortable: true },
     { field: 'status', headerName: 'Status', width: 240, sortable: true },
 ];
 
 const ClientsPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const auth = getAuth();
+    const location = useLocation();
 
+    const [userEmail, setUserEmail] = useState(null);
     const [contacts, setContacts] = useState([]);
     const [tableView, setTableView] = useState(() => {
         const savedTableView = localStorage.getItem('tableView');
@@ -63,38 +55,55 @@ const ClientsPage = () => {
     const lastSync = useSelector((state) => state.lastSync.lastSync);
     const clients = useSelector((state) => state.clients.clients);
 
+    // Auth listener to capture logged-in user's email
+
+    useEffect(() => {
+        if (location.state?.openAddClientModal) {
+            setOpenModal(true);
+
+            // Clear the location state after opening the modal
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, navigate]);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUserEmail(user.email);
+            } else {
+                setUserEmail(null);
+            }
+        });
+        return () => unsubscribe();
+    }, [auth]);
+
+    // Fetch contacts with userEmail as a query param
     const fetchContacts = async () => {
         const accessToken = localStorage.getItem('accessToken');
-        console.log('Access token:', accessToken);
-        if (!accessToken) {
-            console.error('No access token found.');
+        if (!accessToken || !userEmail) {
+            console.error('Access token or user email not found.');
             return;
         }
 
         try {
             const response = await axios.get(
-                'http://localhost:5000/api/google/contacts',
+                'http://localhost:3000/api/google/contacts',
                 {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },
+                    params: { email: userEmail },
                 }
             );
-            console.log('Contacts:', response.data);
+            return response.data;
         } catch (error) {
-            console.error('Error fetching contacts:', error);
+            try {
+                await handleGoogleSignIn(auth);
+            } catch (error) {
+                console.error('Error fetching contacts:', error);
+            }
         }
     };
-
-    // const fetchContacts = async () => {
-    //     try {
-    //         await authenticateGoogleContacts();
-    //         const googleContacts = await listGoogleContacts();
-    //         return googleContacts;
-    //     } catch (error) {
-    //         console.error('Error fetching contacts:', error);
-    //     }
-    // };
 
     const fetchClientsFromMongo = async () => {
         try {
@@ -106,9 +115,11 @@ const ClientsPage = () => {
     };
 
     useEffect(() => {
-        dispatch(fetchLastSync());
-        fetchClientsFromMongo();
-    }, [dispatch, clients]);
+        if (userEmail) {
+            fetchClientsFromMongo();
+            handleSyncGoogleContacts();
+        }
+    }, [dispatch, userEmail]);
 
     useEffect(() => {
         if (lastSync && lastSync.length > 0) {
@@ -134,16 +145,15 @@ const ClientsPage = () => {
             if (lastSync && lastSync.length > 0) {
                 await dispatch(updateLastSync(lastSync[0]._id));
             }
+            await dispatch(fetchLastSync());
+            await fetchClientsFromMongo();
         } catch (error) {
             console.error('Error syncing Google Contacts:', error);
             alert('Failed to sync Google Contacts.');
         }
     };
 
-    const handleOpenModal = () => {
-        setOpenModal(true);
-    };
-
+    const handleOpenModal = () => setOpenModal(true);
     const handleCloseModal = () => {
         setOpenModal(false);
         setNewClientData({
@@ -159,13 +169,16 @@ const ClientsPage = () => {
         setNewClientData({ ...newClientData, [name]: value });
     };
 
-    const handleAddClient = async () => {
+    const handleAddClient = async (e) => {
+        e.preventDefault();
         try {
-            const contact = await createGoogleContact(newClientData);
-            console.log('New contact:', contact);
-            await dispatch(addClient({ ...newClientData, resourceName: contact.resourceName }));
+            const contact = await dispatch(createGoogleContact(newClientData));
+            const resourceName = contact.payload.contact.resourceName;
+            await dispatch(addClient({ ...newClientData, name: `${newClientData.givenName} ${newClientData.familyName}`, resourceName }));
             handleCloseModal();
-            await handleSyncGoogleContacts()
+            await handleSyncGoogleContacts();
+            await dispatch(fetchLastSync());
+            await fetchClientsFromMongo();
         } catch (error) {
             console.error('Error adding client:', error);
             alert('Failed to add client.');
@@ -188,29 +201,16 @@ const ClientsPage = () => {
         }
     };
 
-    const handleToggleChange = () => {
-        setTableView(!tableView);
-    };
+    const handleToggleChange = () => setTableView(!tableView);
 
-    const handleRowClick = (params) => {
-        navigate(`/clients/${params.row._id}`);
-    };
-
-    const handleCardClick = (clientId) => {
-        navigate(`/clients/${clientId}`);
-    };
+    const handleRowClick = (params) => navigate(`/clients/${params.row._id}`);
+    const handleCardClick = (clientId) => navigate(`/clients/${clientId}`);
 
     return (
         <div style={{ padding: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
                 <FormControlLabel
-                    control={
-                        <Switch
-                            checked={tableView}
-                            onChange={handleToggleChange}
-                            color="primary"
-                        />
-                    }
+                    control={<Switch checked={tableView} onChange={handleToggleChange} color="primary" />}
                     label={tableView ? 'Table View' : 'Card View'}
                 />
                 <ClientButtons
@@ -238,9 +238,7 @@ const ClientsPage = () => {
                         getRowId={(row) => row._id}
                         onRowClick={handleRowClick}
                         sx={{
-                            '& .MuiDataGrid-row:hover': {
-                                cursor: 'pointer',
-                            },
+                            '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
                         }}
                     />
                 </div>

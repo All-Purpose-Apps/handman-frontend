@@ -1,146 +1,199 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProposals, addProposal } from '../../store/proposalSlice';
+import { fetchClients } from '../../store/clientSlice';
 import { DataGrid } from '@mui/x-data-grid';
 import {
     Button,
     TextField,
     Typography,
     Box,
+    Modal,
+    Paper,
+    Grid,
+    Autocomplete,
+    IconButton,
 } from '@mui/material';
-import axios from 'axios';
+import DeleteIcon from '@mui/icons-material/Delete';
+import moment from 'moment';
 
 const columns = [
-    { field: 'proposalNumber', headerName: 'Proposal Number', width: 200, sortable: true },
+    { field: 'proposalNumber', headerName: 'Proposal #', width: 100, sortable: true, align: 'center' },
     { field: 'proposalTitle', headerName: 'Title', width: 250, sortable: true },
-    { field: 'clientName', headerName: 'Client', width: 200, sortable: true },
+    { field: 'client', headerName: 'Client', width: 200, sortable: true, valueGetter: (params) => params.name },
     {
         field: 'proposalDate',
         headerName: 'Date',
         width: 150,
         sortable: true,
-        valueFormatter: (params) => new Date(params.value).toLocaleDateString(),
+        valueFormatter: (params) => moment(params.value).format('MMM DD, YYYY'),
     },
     { field: 'status', headerName: 'Status', width: 120, sortable: true },
     {
-        field: 'total',
+        field: 'packagePrice',
         headerName: 'Total',
         width: 120,
         sortable: true,
         valueFormatter: (params) => {
-            const value = params.value || 0;
+            const value = params || 0;
             return `$${value.toFixed(2)}`;
         },
     },
 ];
 
+const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 800,
+    maxHeight: '80vh',
+    overflowY: 'auto',
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+};
+
 const ProposalsPage = () => {
     const navigate = useNavigate();
-    const [proposals, setProposals] = useState([]);
+    const dispatch = useDispatch();
     const [searchText, setSearchText] = useState('');
     const [filteredProposals, setFilteredProposals] = useState([]);
+    const [openModal, setOpenModal] = useState(false);
+    const [newProposalData, setNewProposalData] = useState({
+        proposalNumber: '',
+        proposalDate: new Date().toISOString().split('T')[0],
+        proposalTitle: '',
+        client: null,
+        items: [{ description: '', regularPrice: '', discountPrice: '' }],
+        packagePrice: 0,
+        fileUrl: '',
+    });
 
-    // Sample data (provided object)
-    const sampleProposals = [
-        {
-            "_id": "66f9912aa0ada2510d36e5c4",
-            "client": "64d9b0c53980b4b76fef9abc",
-            "clientName": "John Doe",
-            "proposalNumber": "PROP-2024-001",
-            "proposalDate": "2024-10-01T00:00:00.000Z",
-            "proposalTitle": "Website Development Proposal",
-            "proposalDescription": "Proposal for developing a corporate website with 10 pages, CMS integration, and responsive design.",
-            "items": [
-                {
-                    "description": "Homepage design",
-                    "quantity": 1,
-                    "rate": 1000,
-                    "_id": "66f9912aa0ada2510d36e5c5"
-                },
-                {
-                    "description": "CMS Integration",
-                    "quantity": 1,
-                    "rate": 1500,
-                    "_id": "66f9912aa0ada2510d36e5c6"
-                },
-                {
-                    "description": "Responsive Design",
-                    "quantity": 1,
-                    "rate": 800,
-                    "_id": "66f9912aa0ada2510d36e5c7"
-                }
-            ],
-            "subTotal": 3300,
-            "total": 3300,
-            "status": "Pending",
-            "notes": "Client requested completion by end of Q4.",
-            "createdAt": "2024-09-29T17:40:58.032Z",
-            "__v": 0
-        }
-        // Add more proposals as needed
-    ];
+    const proposals = useSelector((state) => state.proposals.proposals);
+    const loading = useSelector((state) => state.proposals.status === 'loading');
+    const error = useSelector((state) => state.proposals.error);
+    const clients = useSelector((state) => state.clients.clients);
 
     useEffect(() => {
-        const fetchProposals = async () => {
-            try {
-                // Uncomment the following lines to fetch from an actual API
-                // const response = await axios.get('/api/proposals');
-                // const data = response.data;
-
-                // Using sample data for demonstration
-                const data = sampleProposals;
-
-                // Process proposals to include 'id' and 'clientName' fields
-                const proposalsWithId = data.map((proposal) => ({
-                    ...proposal,
-                    id: proposal._id, // DataGrid expects an 'id' field
-                    clientName: proposal.clientName || 'Unknown Client', // Assuming you have client names
-                    total: proposal.total || 0, // Ensure total is defined
-                }));
-
-                setProposals(proposalsWithId);
-            } catch (error) {
-                console.error('Failed to fetch proposals:', error);
-            }
-        };
-
-        fetchProposals();
-    }, []);
+        dispatch(fetchProposals());
+        dispatch(fetchClients());
+    }, [dispatch]);
 
     useEffect(() => {
-        // Fields to search
-        const searchableFields = ['proposalNumber', 'proposalTitle', 'clientName', 'status'];
-
-        // Filter proposals based on searchText
-        const filtered = proposals.filter((proposal) =>
-            searchableFields.some((field) => {
-                const value = proposal[field];
-                if (value) {
-                    return value.toString().toLowerCase().includes(searchText.toLowerCase());
-                }
-                return false;
-            })
+        setFilteredProposals(
+            proposals.filter((proposal) =>
+                ['proposalNumber', 'proposalTitle', 'clientName', 'status'].some((field) =>
+                    proposal[field]?.toLowerCase().includes(searchText.toLowerCase())
+                )
+            )
         );
-        setFilteredProposals(filtered);
     }, [proposals, searchText]);
+
+    useEffect(() => {
+        if (proposals.length > 0) {
+            const latestProposalNumber = Math.max(
+                ...proposals.map((proposal) => parseInt(proposal?.proposalNumber?.replace(/\D/g, ''), 10))
+            );
+            setNewProposalData((prevData) => ({
+                ...prevData,
+                proposalNumber: `${latestProposalNumber + 1}`,
+            }));
+        } else {
+            setNewProposalData((prevData) => ({
+                ...prevData,
+                proposalNumber: '9001',
+            }));
+        }
+    }, [proposals]);
 
     const handleSearch = (event) => {
         setSearchText(event.target.value);
     };
 
-    // Handle row click
     const handleRowClick = (params) => {
-        const proposalId = params.row.id; // Get the proposal id from the clicked row
-        navigate(`/proposals/${proposalId}`); // Navigate to the proposal detail page
+        const proposalId = params.row._id;
+        navigate(`/proposals/${proposalId}`);
     };
+
+    const handleAddProposal = async (event) => {
+        event.preventDefault();
+        await dispatch(addProposal(newProposalData));
+        await dispatch(fetchProposals());
+        setOpenModal(false);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewProposalData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleClientChange = (event, newValue) => {
+        setNewProposalData((prevData) => ({
+            ...prevData,
+            client: newValue,
+        }));
+    };
+
+    const handleAddItem = () => {
+        setNewProposalData((prevData) => ({
+            ...prevData,
+            items: [...prevData.items, { description: '', regularPrice: '', discountPrice: '' }],
+        }));
+    };
+
+    const handleItemChange = (index, field, value) => {
+        const newItems = [...newProposalData.items];
+        newItems[index][field] = value;
+        setNewProposalData((prevData) => ({
+            ...prevData,
+            items: newItems,
+        }));
+    };
+
+    const handleDeleteItem = (index) => {
+        const newItems = [...newProposalData.items];
+        newItems.splice(index, 1);
+        setNewProposalData((prevData) => ({
+            ...prevData,
+            items: newItems,
+        }));
+    };
+
+    const calculateTotals = () => {
+        const total = newProposalData.items.reduce(
+            (acc, item) => acc + parseFloat(item.discountPrice || 0),
+            0
+        );
+        setNewProposalData((prevData) => ({
+            ...prevData,
+            packagePrice: total,
+        }));
+    };
+
+    useEffect(() => {
+        calculateTotals();
+    }, [newProposalData.items]);
+
+    if (loading) {
+        return <Typography variant="h4">Loading...</Typography>;
+    }
+
+    if (error) {
+        return <Typography variant="h4">Error: {error}</Typography>;
+    }
 
     return (
         <Box padding={3}>
-
             <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
                 <Typography variant="h4" gutterBottom>
                     Proposals
                 </Typography>
-                <Button variant="contained" color="primary" onClick={() => navigate('/add-proposal')}>
+                <Button variant="contained" color="primary" onClick={() => setOpenModal(true)}>
                     Add Proposal
                 </Button>
             </Box>
@@ -151,7 +204,7 @@ const ProposalsPage = () => {
                     variant="outlined"
                     value={searchText}
                     onChange={handleSearch}
-                    style={{ width: '100%', marginRight: 16 }}
+                    style={{ width: '100%' }}
                 />
             </Box>
 
@@ -162,8 +215,129 @@ const ProposalsPage = () => {
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     onRowClick={handleRowClick}
+                    sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
+                    getRowId={(row) => row._id}
                 />
             </div>
+
+            <Modal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
+                aria-labelledby="modal-title"
+                aria-describedby="modal-description"
+            >
+                <Paper sx={modalStyle}>
+                    <Typography id="modal-title" variant="h6" component="h2" gutterBottom>
+                        Add New Proposal
+                    </Typography>
+                    <form onSubmit={handleAddProposal}>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Typography variant="h6">
+                                    Proposal Number: {newProposalData.proposalNumber}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Proposal Date"
+                                    name="proposalDate"
+                                    type="date"
+                                    fullWidth
+                                    value={newProposalData.proposalDate}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Autocomplete
+                                    options={clients}
+                                    getOptionLabel={(client) => `${client.name}`}
+                                    value={newProposalData.client}
+                                    onChange={handleClientChange}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Select Client" margin="normal" required />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Proposal Title"
+                                    name="proposalTitle"
+                                    fullWidth
+                                    value={newProposalData.proposalTitle}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </Grid>
+                            {/* Items */}
+                            <Grid item xs={12}>
+                                <Typography variant="h6">Items</Typography>
+                                {newProposalData.items.map((item, index) => (
+                                    <Grid container spacing={2} key={index} alignItems="center">
+                                        <Grid item xs={12} sm={5}>
+                                            <TextField
+                                                label="Description"
+                                                value={item.description}
+                                                onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                                                fullWidth
+                                                margin="normal"
+                                                required
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={3}>
+                                            <TextField
+                                                label="Regular Price"
+                                                type="number"
+                                                value={item.regularPrice}
+                                                onChange={(e) => handleItemChange(index, 'regularPrice', e.target.value)}
+                                                fullWidth
+                                                margin="normal"
+                                                required
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={3}>
+                                            <TextField
+                                                label="Discount Price"
+                                                type="number"
+                                                value={item.discountPrice}
+                                                onChange={(e) => handleItemChange(index, 'discountPrice', e.target.value)}
+                                                fullWidth
+                                                margin="normal"
+                                                required
+                                            />
+                                        </Grid>
+                                        {newProposalData.items.length > 1 && (
+                                            <Grid item xs={12} sm={1}>
+                                                <IconButton aria-label="delete" onClick={() => handleDeleteItem(index)}>
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                ))}
+                                {newProposalData.items.length < 5 && (
+                                    <Button variant="contained" onClick={handleAddItem} sx={{ float: 'right' }}>
+                                        Add Item
+                                    </Button>
+                                )}
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="h6">
+                                    Total Package Price: ${newProposalData.packagePrice.toFixed(2)}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                        <Box display="flex" justifyContent="flex-end" marginTop={2}>
+                            <Button onClick={() => setOpenModal(false)} color="secondary" sx={{ marginRight: 2 }}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" variant="contained" color="primary">
+                                Submit
+                            </Button>
+                        </Box>
+                    </form>
+                </Paper>
+            </Modal>
         </Box>
     );
 };

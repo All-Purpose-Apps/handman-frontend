@@ -2,9 +2,10 @@ import About from './views/About';
 // Clients
 import Clients from './views/Clients/Clients';
 import ViewOneClient from './views/Clients/ViewOneClient';
-import Financials from './views/Financials';
+
 import Invoices from './views/Invoices/Invoices';
 import Proposals from './views/Proposals/Proposals';
+import ViewOneProposal from './views/Proposals/ViewOneProposal';
 import Calendar from './views/Calendar';
 import Dashboard from './views/Dashboard';
 
@@ -63,19 +64,16 @@ export const routes = [
     protected: true,
   },
   {
+    path: '/proposals/:id',
+    component: ViewOneProposal,
+    protected: true,
+  },
+  {
     path: '/calendar',
     component: Calendar,
     name: 'Calendar',
     sidebar: true,
     icon: FavoriteIcon,
-    protected: true,
-  },
-  {
-    path: '/financials',
-    component: Financials,
-    name: 'Financials',
-    sidebar: true,
-    icon: AttachMoneyIcon,
     protected: true,
   },
   {

@@ -1,6 +1,9 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { handleGoogleSignIn } from '../utils/handleGoogleSignIn';
+
 const accessToken = localStorage.getItem('accessToken');
 
 const initialState = {
@@ -12,6 +15,7 @@ const initialState = {
 
 // Fetch all clients
 export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, { rejectWithValue }) => {
+  const auth = getAuth();
   try {
     const response = await axios.get('http://localhost:3000/api/clients', {
       headers: {
@@ -21,6 +25,10 @@ export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, {
     });
     return response.data;
   } catch (error) {
+    console.log(error);
+    if (error.response?.status === 401) {
+      handleGoogleSignIn(auth);
+    }
     return rejectWithValue(error.response?.data || 'Something went wrong');
   }
 });
@@ -51,6 +59,7 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to add client');
   }
 });
@@ -84,6 +93,7 @@ export const deleteClient = createAsyncThunk('clients/deleteClient', async (clie
 });
 
 export const syncClients = createAsyncThunk('clients/syncClients', async (clients, { rejectWithValue }) => {
+  const auth = getAuth();
   try {
     const response = await axios.post('http://localhost:3000/api/clients/sync', clients, {
       headers: {
@@ -93,7 +103,30 @@ export const syncClients = createAsyncThunk('clients/syncClients', async (client
     });
     return response.data;
   } catch (error) {
+    console.log('error', error.response);
+    if (error.response?.status === 401) {
+      handleGoogleSignIn(auth);
+    }
     return rejectWithValue(error.response?.data || 'Failed to sync clients');
+  }
+});
+
+export const createGoogleContact = createAsyncThunk('clients/createGoogleContact', async (contact, { rejectWithValue }) => {
+  const auth = getAuth();
+  console.log('contact', contact);
+  try {
+    const response = await axios.post('http://localhost:3000/api/google/contacts', contact, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      handleGoogleSignIn(auth);
+    }
+    return rejectWithValue(error.response?.data || 'Failed to create Google contact');
   }
 });
 
@@ -140,6 +173,50 @@ export const clientSlice = createSlice({
         state.clients = action.payload; // Add the new client to the list
       })
       .addCase(addClient.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(updateClient.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateClient.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.client = action.payload; // Update the client in the list
+      })
+      .addCase(updateClient.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(deleteClient.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deleteClient.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.clients = state.clients.filter((client) => client._id !== action.payload);
+      })
+      .addCase(deleteClient.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(syncClients.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(syncClients.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.clients = action.payload;
+      })
+      .addCase(syncClients.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(createGoogleContact.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(createGoogleContact.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.client = action.payload;
+      })
+      .addCase(createGoogleContact.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || action.error.message;
       });

@@ -1,4 +1,9 @@
 export function formatPhoneNumber(input) {
+  // Ensure the input is a string and not null or undefined
+  if (typeof input !== 'string') {
+    return 'Invalid input';
+  }
+
   // Remove all non-numeric characters
   const cleaned = input.replace(/\D/g, '');
 

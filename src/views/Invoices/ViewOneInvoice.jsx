@@ -193,7 +193,7 @@ export default function ViewOneInvoice() {
                                     options={clients}
                                     getOptionLabel={(client) =>
                                         client
-                                            ? `${client.firstName} ${client.lastName}`
+                                            ? client.name
                                             : ''
                                     }
                                     value={editedInvoice.client || null}
@@ -214,8 +214,7 @@ export default function ViewOneInvoice() {
                             )
                         ) : (
                             <Typography align="left">
-                                Client: {invoice?.client?.firstName}{' '}
-                                {invoice?.client?.lastName}
+                                Client: {invoice?.client?.name}
                             </Typography>
                         )}
                     </Grid>

@@ -42,7 +42,6 @@ export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', asyn
 
 // Add a new invoice
 export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice, { rejectWithValue }) => {
-  console.log(invoice);
   try {
     const response = await axios.post('http://localhost:3000/api/invoices', invoice, {
       headers: {

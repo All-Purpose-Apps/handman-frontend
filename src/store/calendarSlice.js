@@ -2,9 +2,12 @@
 
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { handleGoogleSignIn } from '../utils/handleGoogleSignIn';
 
 const initialState = {
   calendar: [],
+  events: [],
   calendars: [],
   status: 'idle',
   error: null,
@@ -12,6 +15,8 @@ const initialState = {
 
 export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async (_, { rejectWithValue }) => {
   const accessToken = localStorage.getItem('accessToken');
+  const auth = getAuth();
+
   if (!accessToken) {
     return rejectWithValue('Access token is missing');
   }
@@ -24,12 +29,16 @@ export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async 
     });
     return response.data;
   } catch (error) {
+    if (error.response?.status === 401) {
+      handleGoogleSignIn(auth);
+    }
     return rejectWithValue(error.response?.data || error.message || 'Something went wrong');
   }
 });
 
 export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({ calendarId }, { rejectWithValue }) => {
   const accessToken = localStorage.getItem('accessToken');
+  const auth = getAuth();
   if (!accessToken) {
     return rejectWithValue('Access token is missing');
   }
@@ -42,6 +51,9 @@ export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({
     });
     return response.data;
   } catch (error) {
+    if (error.response?.status === 401) {
+      handleGoogleSignIn(auth);
+    }
     return rejectWithValue(error.response?.data || error.message || 'Something went wrong');
   }
 });
@@ -144,7 +156,7 @@ const calendarSlice = createSlice({
       })
       .addCase(fetchCalendar.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.calendar = action.payload;
+        state.events = action.payload;
       })
       .addCase(fetchCalendar.rejected, (state, action) => {
         state.status = 'failed';

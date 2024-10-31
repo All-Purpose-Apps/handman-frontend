@@ -16,7 +16,9 @@ import {
     TableRow,
     Paper,
 } from '@mui/material';
-import ClientTimeline from '../../components/ClientTimeline'; // Import the ClientTimeline component
+import ClientTimeline from '../../components/ClientTimeline';
+import { formatPhoneNumber } from '../../utils/formatPhoneNumber';
+import moment from 'moment';
 
 const ViewClient = () => {
     const { id } = useParams(); // Get client ID from the URL
@@ -57,6 +59,12 @@ const ViewClient = () => {
 
     // Invoices data (assuming client.invoices is an array of invoice objects)
     const invoices = client.invoices || [];
+    // Proposals data (assuming client.proposals is an array of proposal objects)
+    const proposals = client.proposals || [];
+
+    const handleInvoiceClick = (invoiceId) => {
+        navigate(`/invoices/${invoiceId}`);
+    }
 
     return (
         <Box padding={3}>
@@ -79,20 +87,19 @@ const ViewClient = () => {
                         <strong>Email:</strong> {client.email || 'N/A'}
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Phone:</strong> {client.phone || 'N/A'}
+                        <strong>Phone:</strong> {formatPhoneNumber(client.phone) || 'N/A'}
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Address:</strong> {client.address}, {client.city}, {client.state}{' '}
-                        {client.zip}
+                        <strong>Address:</strong> {client.address}
                     </Typography>
                     <Typography variant="body1">
                         <strong>Status:</strong> {client.status || 'N/A'}
                     </Typography>
                     <Typography variant="body1">
                         <Button href={`https://contacts.google.com/person/${client.resourceName?.replace(/^people\//, "")}`}>
-                            Go to Google Contacts</Button>
+                            Go to Google Contacts
+                        </Button>
                     </Typography>
-                    {/* Add more client details as needed */}
                 </Grid>
 
                 {/* Client Timeline */}
@@ -110,21 +117,21 @@ const ViewClient = () => {
                             <Table aria-label="invoices table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Invoice Number</TableCell>
+                                        <TableCell>Invoice #</TableCell>
                                         <TableCell>Issue Date</TableCell>
-                                        <TableCell>Due Date</TableCell>
                                         <TableCell>Status</TableCell>
                                         <TableCell align="right">Amount</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {invoices.map((invoice) => (
-                                        <TableRow key={invoice._id}>
-                                            <TableCell>{invoice.number}</TableCell>
-                                            <TableCell>{formatDate(invoice.issueDate)}</TableCell>
-                                            <TableCell>{formatDate(invoice.dueDate)}</TableCell>
+                                        <TableRow key={invoice._id} onClick={() => handleInvoiceClick(invoice._id)} style={{ cursor: 'pointer' }}>
+                                            <TableCell>{invoice.invoiceNumber}</TableCell>
+                                            <TableCell>{moment(invoice.invoiceDate).format('MM/DD/YYYY')}</TableCell>
                                             <TableCell>{invoice.status}</TableCell>
-                                            <TableCell align="right">${invoice.amount.toFixed(2)}</TableCell>
+                                            <TableCell align="right">
+                                                ${invoice.total}
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -132,6 +139,41 @@ const ViewClient = () => {
                         </TableContainer>
                     ) : (
                         <Typography variant="body1">No invoices available.</Typography>
+                    )}
+                </Grid>
+
+                {/* Proposals Table */}
+                <Grid item="true" xs={12}>
+                    <Typography variant="h5" gutterBottom>
+                        Proposals
+                    </Typography>
+                    {proposals.length > 0 ? (
+                        <TableContainer component={Paper}>
+                            <Table aria-label="proposals table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Proposal Number</TableCell>
+                                        <TableCell>Issue Date</TableCell>
+                                        <TableCell>Status</TableCell>
+                                        <TableCell align="right">Amount</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {proposals.map((proposal) => (
+                                        <TableRow key={proposal._id}>
+                                            <TableCell>{proposal.number}</TableCell>
+                                            <TableCell>{formatDate(proposal.issueDate)}</TableCell>
+                                            <TableCell>{proposal.status}</TableCell>
+                                            <TableCell align="right">
+                                                ${proposal.amount.toFixed(2)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    ) : (
+                        <Typography variant="body1">No proposals available.</Typography>
                     )}
                 </Grid>
             </Grid>

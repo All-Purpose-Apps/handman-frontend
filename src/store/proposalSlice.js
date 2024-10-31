@@ -52,6 +52,34 @@ export const addProposal = createAsyncThunk('proposals/addProposal', async (prop
   }
 });
 
+export const updateProposal = createAsyncThunk('proposals/updateProposal', async (proposal, { rejectWithValue }) => {
+  try {
+    const response = await axios.put(`http://localhost:3000/api/proposals/${proposal._id}`, proposal, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || 'Failed to update proposal');
+  }
+});
+
+export const deleteProposal = createAsyncThunk('proposals/deleteProposal', async (proposalId, { rejectWithValue }) => {
+  try {
+    const response = await axios.delete(`http://localhost:3000/api/proposals/${proposalId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || 'Failed to delete proposal');
+  }
+});
+
 export const proposalSlice = createSlice({
   name: 'proposals',
   initialState,

@@ -44,11 +44,11 @@ const DashboardPage = () => {
     };
 
     const handleAddClient = () => {
-        navigate('/add-client'); // Adjust this path to your add-client page
+        navigate('/clients', { state: { openAddClientModal: true } }); // Adjust this path to your add-client page
     };
 
     const handleAddInvoice = () => {
-        navigate('/add-invoice'); // Adjust this path to your add-invoice page
+        navigate('/invoices', { state: { openAddInvoiceModal: true } });
     };
 
     const handleAddProposal = () => {
@@ -62,6 +62,16 @@ const DashboardPage = () => {
     const handleGoToClient = (id) => () => {
         navigate(`/clients/${id}`);
     }
+
+    const getLatestStatus = (statusHistory) => {
+        if (!statusHistory || statusHistory.length === 0) return 'No Status Available';
+
+        const latestStatus = statusHistory.reduce((latest, current) => {
+            return moment(current.timestamp).isAfter(latest.timestamp) ? current : latest;
+        });
+
+        return latestStatus.status;
+    };
 
 
     return (
@@ -159,7 +169,7 @@ const DashboardPage = () => {
                                                 onClick={handleGoToClient(client._id)}
                                             >
                                                 <ListItemText
-                                                    primary={client.firstName + ' ' + client.lastName + ' - ' + client.status}
+                                                    primary={client.name + ' - ' + getLatestStatus(client.statusHistory)}
                                                     secondary={moment(client.updatedAt).format('LL')}
                                                 />
                                             </ListItem>

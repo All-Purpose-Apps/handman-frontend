@@ -1,8 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const accessToken = localStorage.getItem('accessToken');
-
 const initialState = {
   lastSync: null,
   status: 'idle',
@@ -12,6 +10,8 @@ const initialState = {
 // Fetch the last sync time
 export const fetchLastSync = createAsyncThunk('lastSync/fetchLastSync', async (_, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
+
     const response = await axios.get('http://localhost:3000/api/last-synced', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -27,12 +27,18 @@ export const fetchLastSync = createAsyncThunk('lastSync/fetchLastSync', async (_
 // Update the last sync time
 export const updateLastSync = createAsyncThunk('lastSync/updateLastSync', async (id, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`http://localhost:3000/api/last-synced/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axios.put(
+      `http://localhost:3000/api/last-synced/${id}`,
+      {}, // Empty body if you're not sending data
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
         withCredentials: true,
-      },
-    });
+      }
+    );
+
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || 'Failed to update last sync');
