@@ -1,14 +1,20 @@
 import React from 'react';
-import { Timeline, TimelineItem, TimelineSeparator, TimelineConnector, TimelineContent, TimelineDot, TimelineOppositeContent } from '@mui/lab';
-import { Typography } from '@mui/material';
+import { Box, Typography, Divider } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import { useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
-const ClientTimeline = ({ client }) => {
-    // Determine the status of each event based on client data
+const CustomClientTimeline = ({ client }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const events = [
         {
-            key: 'inquiry',
-            label: 'Inquiry',
-            completed: !!client.createdAt, // If client has a creation date, inquiry is completed
+            key: 'created',
+            label: 'Created',
+            completed: !!client.createdAt,
             date: client.createdAt ? new Date(client.createdAt).toLocaleDateString() : null,
         },
         {
@@ -34,38 +40,75 @@ const ClientTimeline = ({ client }) => {
         {
             key: 'paid',
             label: 'Paid',
-            completed: client.isPaid || false, // Assuming there's an 'isPaid' flag in client data
+            completed: client.isPaid || false,
             date: client.isPaidDate ? new Date(client.isPaidDate).toLocaleDateString() : null,
         },
         {
             key: 'followUp',
             label: 'Follow Up',
-            completed: client.followUpCompleted || false, // Assuming there's a 'followUpCompleted' flag
+            completed: client.followUpCompleted || false,
             date: client.followUpDate ? new Date(client.followUpDate).toLocaleDateString() : null,
         },
     ];
 
     return (
-        <Timeline position="alternate">
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: 'center',
+                overflowX: 'auto',
+                padding: 2,
+            }}
+        >
             {events.map((event, index) => (
-                <TimelineItem key={event.key}>
-                    <TimelineOppositeContent color="textSecondary">
-                        {event.date}
-                    </TimelineOppositeContent>
-                    <TimelineSeparator>
-                        <TimelineDot color={event.completed ? 'primary' : 'grey'} />
-                        {index < events.length - 1 && <TimelineConnector />}
-                    </TimelineSeparator>
-                    <TimelineContent>
-                        <Typography variant="h6">{event.label}</Typography>
-                        <Typography color="textSecondary">
+                <Box
+                    key={event.key}
+                    sx={{
+                        display: 'flex',
+                        flexDirection: isMobile ? 'column' : 'row',
+                        alignItems: 'center',
+                        minWidth: isSmallMobile ? '100px' : '150px',
+                        textAlign: 'center',
+                        mb: isMobile ? 2 : 0,
+                    }}
+                >
+                    <Box>
+                        {event.completed ? (
+                            <CheckCircleIcon color="success" fontSize={isSmallMobile ? 'medium' : 'large'} />
+                        ) : (
+                            <HourglassEmptyIcon color="disabled" fontSize={isSmallMobile ? 'medium' : 'large'} />
+                        )}
+                        <Typography variant={isSmallMobile ? 'body1' : 'h6'} sx={{ mt: 1 }}>
+                            {event.label}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {event.date || 'N/A'}
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            color={event.completed ? 'textSecondary' : 'error'}
+                        >
                             {event.completed ? 'Completed' : 'Pending'}
                         </Typography>
-                    </TimelineContent>
-                </TimelineItem>
+                    </Box>
+                    {index < events.length - 1 && (
+                        <Divider
+                            orientation={isMobile ? 'horizontal' : 'vertical'}
+                            flexItem
+                            sx={{
+                                height: isMobile ? 'auto' : '50px',
+                                width: isMobile ? '80%' : 'auto',
+                                mx: isMobile ? 0 : 2,
+                                my: isMobile ? 2 : 0,
+                                backgroundColor: 'grey.400',
+                            }}
+                        />
+                    )}
+                </Box>
             ))}
-        </Timeline>
+        </Box>
     );
 };
 
-export default ClientTimeline;
+export default CustomClientTimeline;

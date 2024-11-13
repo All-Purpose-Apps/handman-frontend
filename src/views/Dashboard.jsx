@@ -44,7 +44,7 @@ const DashboardPage = () => {
     };
 
     const handleAddClient = () => {
-        navigate('/clients', { state: { openAddClientModal: true } }); // Adjust this path to your add-client page
+        navigate('/clients', { state: { openAddClientModal: true } });
     };
 
     const handleAddInvoice = () => {
@@ -52,26 +52,32 @@ const DashboardPage = () => {
     };
 
     const handleAddProposal = () => {
-        navigate('/add-proposal'); // Adjust this path to your add-proposal page
+        navigate('/proposals', { state: { openAddProposalModal: true } });
     };
-
-    const handleGoToInvoice = (id) => () => {
-        navigate(`/invoices/${id}`);
-    }
 
     const handleGoToClient = (id) => () => {
         navigate(`/clients/${id}`);
-    }
+    };
 
+    // Helper function to get the most recent status
     const getLatestStatus = (statusHistory) => {
         if (!statusHistory || statusHistory.length === 0) return 'No Status Available';
-
-        const latestStatus = statusHistory.reduce((latest, current) => {
-            return moment(current.timestamp).isAfter(latest.timestamp) ? current : latest;
-        });
-
-        return latestStatus.status;
+        return statusHistory.reduce((latest, current) =>
+            new Date(current.date) > new Date(latest.date) ? current : latest
+        ).status;
     };
+
+    // Combine invoices and proposals, sort by date (most recent first)
+    const recentItems = [
+        ...invoices.map((invoice) => ({
+            ...invoice,
+            type: 'Invoice'
+        })),
+        ...proposals.map((proposal) => ({
+            ...proposal,
+            type: 'Proposal'
+        }))
+    ].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 10);
 
 
     return (
@@ -161,6 +167,8 @@ const DashboardPage = () => {
                                             <ListItem
                                                 sx={{
                                                     cursor: 'pointer',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
                                                     '&:hover': {
                                                         backgroundColor: '#f0f0f0',
                                                         boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
@@ -169,9 +177,12 @@ const DashboardPage = () => {
                                                 onClick={handleGoToClient(client._id)}
                                             >
                                                 <ListItemText
-                                                    primary={client.name + ' - ' + getLatestStatus(client.statusHistory)}
+                                                    primary={client.name}
                                                     secondary={moment(client.updatedAt).format('LL')}
                                                 />
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {getLatestStatus(client.statusHistory)}
+                                                </Typography>
                                             </ListItem>
                                             {index < clients.length - 1 && <Divider />}
                                         </div>
@@ -181,38 +192,43 @@ const DashboardPage = () => {
                     </Card>
                 </Grid>
 
-                {/* Recent Invoices */}
+                {/* Recent Invoices & Proposals */}
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                         <CardHeader
-                            title="Recent Invoices"
+                            title="Recent Invoices and Proposals"
                             sx={{ backgroundColor: 'primary.main', color: 'white' }}
                         />
                         <CardContent>
-                            <List>
-                                {invoices.map((invoice, index) => (
-                                    <div key={index}>
-                                        <ListItem
-                                            onClick={handleGoToInvoice(invoice._id)}
-                                            sx={{
-                                                cursor: 'pointer',
-                                                '&:hover': {
-                                                    backgroundColor: '#f0f0f0',
-                                                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                                                },
-                                            }}
-                                        >
-                                            <ListItemText
-                                                primary={`Invoice: ${invoice.invoiceNumber}`}
-                                                secondary={`Amount: $${invoice.total} - ${moment(
-                                                    invoice.date
-                                                ).format('LL')}`}
-                                            />
-                                        </ListItem>
-                                        {index < invoices.length - 1 && <Divider />}
-                                    </div>
-                                ))}
-                            </List>
+                            {recentItems.length > 0 ? (
+                                <List>
+                                    {recentItems.map((item, index) => (
+                                        <div key={index}>
+                                            <ListItem
+                                                onClick={() => navigate(`/${item.type.toLowerCase()}s/${item._id}`)}
+                                                sx={{
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        backgroundColor: '#f0f0f0',
+                                                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                                                    },
+                                                }}
+                                            >
+                                                <ListItemText
+                                                    primary={`${item.type}: ${item.number || item.proposalNumber || item.invoiceNumber}`}
+                                                    secondary={`${moment(item.date).format('LL')}`}
+                                                />
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {item.status}
+                                                </Typography>
+                                            </ListItem>
+                                            {index < recentItems.length - 1 && <Divider />}
+                                        </div>
+                                    ))}
+                                </List>
+                            ) : (
+                                <Typography>No recent items available</Typography>
+                            )}
                         </CardContent>
                     </Card>
                 </Grid>

@@ -55,12 +55,16 @@ export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice
   }
 });
 
-export const updateInvoice = createAsyncThunk('invoices/updateInvoice', async (invoice, { rejectWithValue }) => {
+export const updateInvoice = createAsyncThunk('invoices/updateInvoice', async ({ id, prevClientId, newClientId, invoiceData }, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`http://localhost:3000/api/invoices/${invoice._id}`, invoice, {
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axios.put(`http://localhost:3000/api/invoices/${id}`, invoiceData, {
+      params: {
+        prevClientId,
+        newClientId,
+      },
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
       },
     });
     return response.data;

@@ -2,7 +2,7 @@ import React from 'react'
 import { TextField, Typography, Box, Button, Modal, Paper, Grid, Autocomplete, FormControl, InputLabel, Select, MenuItem, IconButton } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete';
 
-export default function AddInvoiceModal({
+export default function ConvertInvoiceModal({
     openModal,
     setOpenModal,
     newInvoiceData,

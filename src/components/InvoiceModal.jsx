@@ -26,7 +26,6 @@ const modalStyle = {
 
 const InvoiceModal = ({ open, onClose, invoiceData, setInvoiceData, handleAddInvoice }) => {
 
-    console.log(invoiceData)
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setInvoiceData((prevData) => ({

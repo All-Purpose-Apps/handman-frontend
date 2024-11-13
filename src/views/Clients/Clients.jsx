@@ -9,6 +9,10 @@ import {
     TextField,
     FormControlLabel,
     Switch,
+    CircularProgress,
+    Box,
+    Modal,
+
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,14 +23,20 @@ import { fetchLastSync, updateLastSync } from '../../store/lastSyncSlice';
 import { addClient, fetchClients, syncClients, createGoogleContact } from '../../store/clientSlice';
 import ClientCard from '../../components/ClientCard';
 import ClientButtons from '../../components/ClientButtons';
+import { formatPhoneNumber } from '../../utils/formatPhoneNumber';
 import axios from 'axios';
 
 const columns = [
     { field: 'name', headerName: 'Name', width: 200, sortable: true },
     { field: 'email', headerName: 'Email', width: 250, sortable: true },
-    { field: 'phone', headerName: 'Phone', width: 150, sortable: true },
+    { field: 'phone', headerName: 'Phone', width: 150, sortable: true, valueFormatter: (params) => formatPhoneNumber(params) },
     { field: 'address', headerName: 'Address', width: 250, sortable: true },
-    { field: 'status', headerName: 'Status', width: 240, sortable: true },
+    {
+        field: 'statusHistory', headerName: 'Status', width: 240, sortable: true, valueFormatter: (params) => {
+            params.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return params[0].status;
+        }
+    },
 ];
 
 const ClientsPage = () => {
@@ -45,6 +55,7 @@ const ClientsPage = () => {
     const [filteredClients, setFilteredClients] = useState([]);
     const [openModal, setOpenModal] = useState(false);
     const [lastSyncedAt, setLastSyncedAt] = useState(null);
+    const [isCreatingClient, setIsCreatingClient] = useState(false);
     const [newClientData, setNewClientData] = useState({
         givenName: '',
         familyName: '',
@@ -115,8 +126,8 @@ const ClientsPage = () => {
     };
 
     useEffect(() => {
+        fetchClientsFromMongo();
         if (userEmail) {
-            fetchClientsFromMongo();
             handleSyncGoogleContacts();
         }
     }, [dispatch, userEmail]);
@@ -137,6 +148,10 @@ const ClientsPage = () => {
     useEffect(() => {
         localStorage.setItem('tableView', JSON.stringify(tableView));
     }, [tableView]);
+
+    useEffect(() => {
+        setFilteredClients(clients);
+    }, [clients]);
 
     const handleSyncGoogleContacts = async () => {
         try {
@@ -171,17 +186,19 @@ const ClientsPage = () => {
 
     const handleAddClient = async (e) => {
         e.preventDefault();
+        setIsCreatingClient(true);
         try {
             const contact = await dispatch(createGoogleContact(newClientData));
             const resourceName = contact.payload.contact.resourceName;
-            await dispatch(addClient({ ...newClientData, name: `${newClientData.givenName} ${newClientData.familyName}`, resourceName }));
+
+            await dispatch(addClient({ ...newClientData, name: `${newClientData.givenName} ${newClientData.familyName}`, resourceName, statusHistory: [{ status: 'created by user', date: new Date().toISOString() }] }));
             handleCloseModal();
-            await handleSyncGoogleContacts();
-            await dispatch(fetchLastSync());
-            await fetchClientsFromMongo();
+            navigate('/clients');
         } catch (error) {
             console.error('Error adding client:', error);
             alert('Failed to add client.');
+        } finally {
+            setIsCreatingClient(false);
         }
     };
 
@@ -193,8 +210,9 @@ const ClientsPage = () => {
             setFilteredClients(clients);
         } else {
             const filtered = clients.filter((client) =>
-                ['name', 'email', 'phone', 'fullAddress', 'status'].some((field) =>
-                    client[field]?.toLowerCase().includes(value.toLowerCase())
+                ['name', 'email', 'phone', 'address'].some((field) => {
+                    return client[field]?.toLowerCase().includes(value.toLowerCase())
+                }
                 )
             );
             setFilteredClients(filtered);
@@ -209,9 +227,12 @@ const ClientsPage = () => {
     return (
         <div style={{ padding: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                <FormControlLabel
-                    control={<Switch checked={tableView} onChange={handleToggleChange} color="primary" />}
-                    label={tableView ? 'Table View' : 'Card View'}
+                <TextField
+                    label="Search Clients"
+                    variant="outlined"
+                    value={searchText}
+                    onChange={handleSearch}
+                    style={{ width: '100%' }}
                 />
                 <ClientButtons
                     lastSyncedAt={lastSyncedAt}
@@ -220,37 +241,30 @@ const ClientsPage = () => {
                 />
             </div>
 
-            <TextField
-                label="Search Clients"
-                variant="outlined"
-                value={searchText}
-                onChange={handleSearch}
-                style={{ marginBottom: 20, width: '100%' }}
-            />
 
-            {tableView ? (
-                <div style={{ height: 500, width: '100%' }}>
-                    <DataGrid
-                        rows={filteredClients}
-                        columns={columns}
-                        pageSize={5}
-                        rowsPerPageOptions={[5, 10, 20]}
-                        getRowId={(row) => row._id}
-                        onRowClick={handleRowClick}
-                        sx={{
-                            '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                        }}
-                    />
-                </div>
-            ) : (
-                <Grid container spacing={2}>
-                    {filteredClients.map((client) => (
-                        <Grid xs={12} sm={6} md={4} key={client._id}>
-                            <ClientCard client={client} handleCardClick={handleCardClick} />
-                        </Grid>
-                    ))}
-                </Grid>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
+                <DataGrid
+                    rows={filteredClients}
+                    columns={columns}
+                    pageSize={5}
+                    rowsPerPageOptions={[5, 10, 20]}
+                    getRowId={(row) => row._id}
+                    onRowClick={handleRowClick}
+                    pageSizeOptions={[5, 10, 25]}
+                    initialState={{
+                        sorting: {
+                            sortModel: [{ field: 'name', sort: 'asc' }],
+                        },
+                        pagination: {
+                            paginationModel: { pageSize: 5, page: 0 },
+                        },
+                    }}
+                    sx={{
+                        '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
+                    }}
+                />
+            </div>
+
 
             <AddClientModal
                 handleAddClient={handleAddClient}
@@ -259,6 +273,29 @@ const ClientsPage = () => {
                 newClientData={newClientData}
                 handleInputChange={handleInputChange}
             />
+            <Modal
+                open={isCreatingClient}
+                aria-labelledby="creating-client-modal"
+                aria-describedby="creating-client-description"
+            >
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="20vh"
+                    bgcolor="background.paper"
+                    p={3}
+                    borderRadius={1}
+                    boxShadow={3}
+                >
+                    <Box textAlign="center">
+                        <CircularProgress />
+                        <Typography variant="h6" mt={2}>
+                            Creating Client...
+                        </Typography>
+                    </Box>
+                </Box>
+            </Modal>
         </div>
     );
 };

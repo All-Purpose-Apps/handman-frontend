@@ -16,6 +16,18 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    CardActionArea,
+    ListItem,
+    ListItemText,
+    List,
+    ListItemButton,
+    IconButton,
+    ListItemIcon,
+    ListItemAvatar,
+    Avatar,
+    Modal,
+    Box,
+    CircularProgress,
 } from '@mui/material';
 import moment from 'moment';
 import axios from 'axios';
@@ -28,6 +40,10 @@ export default function ViewOneInvoice() {
     const { invoice, status, error } = useSelector((state) => state.invoices);
     const { clients } = useSelector((state) => state.clients);
     const [isEditing, setIsEditing] = useState(false);
+    const [prevClientId, setPrevClientId] = useState(null);
+    const [isCreatingPdf, setIsCreatingPdf] = useState(false); // New state for loading modal
+
+
     const [editedInvoice, setEditedInvoice] = useState({
         items: [],
         client: null,
@@ -45,6 +61,7 @@ export default function ViewOneInvoice() {
                 client: invoice.client || null,
                 items: invoice.items || [],
             });
+            setPrevClientId(invoice.client?._id || null);
         }
     }, [invoice]);
 
@@ -65,12 +82,25 @@ export default function ViewOneInvoice() {
 
     const handleEditToggle = () => {
         if (isEditing) {
-            dispatch(updateInvoice({ ...editedInvoice, fileUrl: '', updatedAt: new Date().toISOString() }));
-            dispatch(fetchOneInvoice(id));
+            const newClientId = editedInvoice.client?._id || null;
+            dispatch(
+                updateInvoice({
+                    id,
+                    prevClientId,
+                    newClientId,
+                    invoiceData: {
+                        ...editedInvoice,
+                        client: newClientId,
+                        fileUrl: '',
+                        updatedAt: new Date().toISOString(),
+                    },
+                })
+            ).then(() => {
+                dispatch(fetchOneInvoice(id));
+            });
         }
         setIsEditing(!isEditing);
     };
-
     const handleDeleteInvoice = () => {
         dispatch(deleteInvoice(id));
         navigate(-1);
@@ -140,6 +170,7 @@ export default function ViewOneInvoice() {
     ]);
 
     const handleCreatePdf = async () => {
+        setIsCreatingPdf(true);
         const accessToken = localStorage.getItem('accessToken');
 
         try {
@@ -154,13 +185,28 @@ export default function ViewOneInvoice() {
                 }
             );
 
-            await dispatch(updateInvoice({ ...editedInvoice, fileUrl: response.data.url, updatedAt: new Date().toISOString() }));
-            console.log(response.data.url);
+            await dispatch(updateInvoice({ invoiceData: { ...editedInvoice, fileUrl: response.data.url, updatedAt: new Date().toISOString() }, id: editedInvoice._id, prevClientId: editedInvoice.client._id, newClientId: editedInvoice.client._id }));
             window.open(response.data.url);
         } catch (error) {
             console.error('Error creating PDF:', error);
+        } finally {
+            setIsCreatingPdf(false);
         }
     };
+
+    const handleSendInvoice = () => {
+        if (editedInvoice.fileUrl) {
+            const subject = encodeURIComponent(`Invoice ${editedInvoice.invoiceNumber}`);
+            const body = encodeURIComponent(`Dear ${editedInvoice.client?.name},\n\nPlease find your invoice here: ${editedInvoice.fileUrl}.\n\nThank you,\nYour Company`);
+            const mailtoLink = `mailto:${editedInvoice.client?.email}?subject=${subject}&body=${body}`;
+
+            // Open mail client with pre-filled data
+            window.location.href = mailtoLink;
+        } else {
+            alert('Please create the PDF first before sending.');
+        }
+    };
+
 
     if (status === 'loading') {
         return <div>Loading...</div>;
@@ -186,7 +232,7 @@ export default function ViewOneInvoice() {
                     )}
                 </Grid>
                 <Grid container spacing={2} alignItems="flex-start">
-                    <Grid item xs={12}>
+                    <Grid item xs={4}>
                         {isEditing ? (
                             clients && clients.length > 0 ? (
                                 <Autocomplete
@@ -213,40 +259,51 @@ export default function ViewOneInvoice() {
                                 <Typography>No clients available.</Typography>
                             )
                         ) : (
-                            <Typography align="left">
-                                Client: {invoice?.client?.name}
-                            </Typography>
+                            <ListItemButton
+                                onClick={() => navigate(`/clients/${invoice.client._id}`)}
+                                sx={{
+                                    borderRadius: 2,
+                                    '&:hover': {
+                                        backgroundColor: 'primary.light',
+                                    },
+                                }}
+                            >
+                                <ListItemAvatar>
+                                    <Avatar>
+                                        {invoice?.client?.name?.charAt(0)}
+                                    </Avatar>
+                                </ListItemAvatar>
+                                <ListItemText primary={invoice?.client?.name} secondary="Click to view details" />
+                            </ListItemButton>
                         )}
                     </Grid>
                     <Grid item xs={12}>
-                        <Typography variant="h6" align="left">
-                            Invoice Number: {editedInvoice?.invoiceNumber}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        {isEditing ? (
-                            <TextField
-                                label="Invoice Date"
-                                type="date"
-                                fullWidth
-                                name="invoiceDate"
-                                value={
-                                    editedInvoice?.invoiceDate
-                                        ?.split('T')[0] || ''
-                                }
-                                onChange={handleInputChange}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />
-                        ) : (
-                            <Typography align="left">
-                                Invoice Date:{' '}
-                                {moment
-                                    .utc(editedInvoice?.invoiceDate)
-                                    .format('MM-DD-YYYY')}
-                            </Typography>
-                        )}
+                        <Grid container spacing={12} alignItems="center">
+                            <Grid item>
+                                <Typography variant="h6" align="left">
+                                    Invoice Number: {editedInvoice?.invoiceNumber}
+                                </Typography>
+                            </Grid>
+                            <Grid item>
+                                {isEditing ? (
+                                    <TextField
+                                        label="Invoice Date"
+                                        type="date"
+                                        name="invoiceDate"
+                                        value={editedInvoice?.invoiceDate?.split('T')[0] || ''}
+                                        onChange={handleInputChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                        }}
+                                    />
+                                ) : (
+                                    <Typography align="left">
+                                        Invoice Date:{' '}
+                                        {moment.utc(editedInvoice?.invoiceDate).format('MM-DD-YYYY')}
+                                    </Typography>
+                                )}
+                            </Grid>
+                        </Grid>
                     </Grid>
                     {/* Items */}
                     <Grid item xs={12}>
@@ -269,7 +326,7 @@ export default function ViewOneInvoice() {
                                             spacing={2}
                                             alignItems="center"
                                         >
-                                            <Grid item xs={12} sm={6}>
+                                            <Grid item xs={12} sm={8}>
                                                 <TextField
                                                     label="Description"
                                                     fullWidth
@@ -298,11 +355,6 @@ export default function ViewOneInvoice() {
                                                     }
                                                 />
                                             </Grid>
-                                            <Grid item xs={12} sm={2}>
-                                                <Typography align="left">
-                                                    Total: ${item.price || 0}
-                                                </Typography>
-                                            </Grid>
                                         </Grid>
                                     ) : (
                                         <Typography align="left">
@@ -327,13 +379,13 @@ export default function ViewOneInvoice() {
                         )}
                     </Grid>
                     {/* Subtotal 1 */}
-                    <Grid item xs={12}>
+                    <Grid item xs={2}>
                         <Typography align="left">
                             Subtotal 1: ${editedInvoice?.subTotal1?.toFixed(2)}
                         </Typography>
                     </Grid>
                     {/* Extra Work/Materials */}
-                    <Grid item xs={12}>
+                    <Grid item xs={2}>
                         {isEditing ? (
                             <TextField
                                 label="Extra Work/Materials"
@@ -351,13 +403,30 @@ export default function ViewOneInvoice() {
                         )}
                     </Grid>
                     {/* Subtotal 2 */}
-                    <Grid item xs={12}>
-                        <Typography align="left">
+                    <Grid item xs={2}>
+                        <Typography >
                             Subtotal 2: ${editedInvoice?.subTotal2?.toFixed(2)}
                         </Typography>
                     </Grid>
+                    <Grid item xs={2}>
+                        {isEditing ? (
+                            <TextField
+                                label="Deposit/Adjustment"
+                                name="depositAdjustment"
+                                type="number"
+                                fullWidth
+                                value={editedInvoice.depositAdjustment || ''}
+                                onChange={handleInputChange}
+                            />
+                        ) : (
+                            <Typography align="left">
+                                Deposit/Adjustment: $
+                                {editedInvoice.depositAdjustment || 0}
+                            </Typography>
+                        )}
+                    </Grid>
                     {/* Payment Method */}
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={4}>
                         {isEditing ? (
                             <FormControl fullWidth>
                                 <InputLabel id="payment-method-label">
@@ -406,6 +475,7 @@ export default function ViewOneInvoice() {
                         </Grid>
                     )}
                     {/* Credit Card Fee */}
+
                     {editedInvoice.paymentMethod === 'credit/debit' && (
                         <Grid item xs={12}>
                             <Typography align="left">
@@ -414,24 +484,7 @@ export default function ViewOneInvoice() {
                             </Typography>
                         </Grid>
                     )}
-                    {/* Deposit/Adjustment */}
-                    <Grid item xs={12}>
-                        {isEditing ? (
-                            <TextField
-                                label="Deposit/Adjustment"
-                                name="depositAdjustment"
-                                type="number"
-                                fullWidth
-                                value={editedInvoice.depositAdjustment || ''}
-                                onChange={handleInputChange}
-                            />
-                        ) : (
-                            <Typography align="left">
-                                Deposit/Adjustment: $
-                                {editedInvoice.depositAdjustment || 0}
-                            </Typography>
-                        )}
-                    </Grid>
+
                     {/* Total */}
                     <Grid item xs={12}>
                         <Typography variant="h6" align="left">
@@ -447,14 +500,14 @@ export default function ViewOneInvoice() {
                 <Button variant="contained" onClick={handleEditToggle}>
                     {isEditing ? 'Save' : 'Edit'}
                 </Button>
-                <Button variant="contained" onClick={handleDeleteInvoice} color="error">
+                {!isEditing && <Button variant="contained" onClick={handleDeleteInvoice} color="error">
                     Delete
-                </Button>
+                </Button>}
                 {/* {!isEditing && !editedInvoice.fileUrl && */}
-                <Button variant="contained" onClick={handleCreatePdf}>
+                {!isEditing && <Button variant="contained" onClick={handleCreatePdf}>
                     Create PDF
-                </Button>
-                {editedInvoice.fileUrl && <Button
+                </Button>}
+                {editedInvoice.fileUrl && !isEditing && <Button
                     variant="contained"
                     href={editedInvoice.fileUrl}
                     target="_blank"
@@ -462,7 +515,37 @@ export default function ViewOneInvoice() {
                 >
                     View Invoice
                 </Button>}
+                {editedInvoice.fileUrl && !isEditing && <Button
+                    variant="contained"
+                    onClick={handleSendInvoice}
+                    color="primary"
+                >
+                    Send Invoice
+                </Button>}
             </CardActions>
+            <Modal
+                open={isCreatingPdf}
+                aria-labelledby="creating-pdf-modal"
+                aria-describedby="creating-pdf-description"
+            >
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="20vh"
+                    bgcolor="background.paper"
+                    p={3}
+                    borderRadius={1}
+                    boxShadow={3}
+                >
+                    <Box textAlign="center">
+                        <CircularProgress />
+                        <Typography variant="h6" mt={2}>
+                            Creating Pdf...
+                        </Typography>
+                    </Box>
+                </Box>
+            </Modal>
         </Card >
     );
 }

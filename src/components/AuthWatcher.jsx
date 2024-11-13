@@ -9,6 +9,7 @@ const AuthWatcher = () => {
     useEffect(() => {
         const checkToken = async () => {
             const user = auth.currentUser;
+
             if (!user) {
                 // If there's no authenticated user, navigate to login
                 signOut(auth).then(() => navigate('/login'));

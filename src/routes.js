@@ -17,6 +17,7 @@ import {
   Receipt as ReceiptIcon,
   Description as DescriptionIcon,
   AttachMoney as AttachMoneyIcon,
+  CalendarMonth as CalendarMonthIcon,
 } from '@mui/icons-material';
 import ViewOneInvoice from './views/Invoices/ViewOneInvoice';
 
@@ -73,7 +74,7 @@ export const routes = [
     component: Calendar,
     name: 'Calendar',
     sidebar: true,
-    icon: FavoriteIcon,
+    icon: CalendarMonthIcon,
     protected: true,
   },
   {

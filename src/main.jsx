@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import store from './store'
+import "./assets/css/main.css"
 
 
 createRoot(document.getElementById('root')).render(

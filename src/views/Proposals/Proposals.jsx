@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProposals, addProposal } from '../../store/proposalSlice';
 import { fetchClients } from '../../store/clientSlice';
@@ -20,7 +20,6 @@ import moment from 'moment';
 
 const columns = [
     { field: 'proposalNumber', headerName: 'Proposal #', width: 100, sortable: true, align: 'center' },
-    { field: 'proposalTitle', headerName: 'Title', width: 250, sortable: true },
     { field: 'client', headerName: 'Client', width: 200, sortable: true, valueGetter: (params) => params.name },
     {
         field: 'proposalDate',
@@ -29,7 +28,7 @@ const columns = [
         sortable: true,
         valueFormatter: (params) => moment(params.value).format('MMM DD, YYYY'),
     },
-    { field: 'status', headerName: 'Status', width: 120, sortable: true },
+    { field: 'status', headerName: 'Status', width: 200, sortable: true },
     {
         field: 'packagePrice',
         headerName: 'Total',
@@ -38,6 +37,24 @@ const columns = [
         valueFormatter: (params) => {
             const value = params || 0;
             return `$${value.toFixed(2)}`;
+        },
+    },
+    {
+        field: 'items',
+        headerName: 'Items',
+        width: 300,
+        sortable: false,
+        renderCell: (params) => {
+            const items = params.value || [];
+            return (
+                <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
+                    {items.map((item, index) => (
+                        <li key={index} style={{ lineHeight: '24px' }}>
+                            {item.description}
+                        </li>
+                    ))}
+                </ul>
+            );
         },
     },
 ];
@@ -58,6 +75,7 @@ const modalStyle = {
 const ProposalsPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const location = useLocation();
     const [searchText, setSearchText] = useState('');
     const [filteredProposals, setFilteredProposals] = useState([]);
     const [openModal, setOpenModal] = useState(false);
@@ -77,6 +95,16 @@ const ProposalsPage = () => {
     const clients = useSelector((state) => state.clients.clients);
 
     useEffect(() => {
+        if (location.state?.openAddProposalModal) {
+            setOpenModal(true);
+
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, navigate]);
+
+
+
+    useEffect(() => {
         dispatch(fetchProposals());
         dispatch(fetchClients());
     }, [dispatch]);
@@ -86,6 +114,9 @@ const ProposalsPage = () => {
             proposals.filter((proposal) =>
                 ['proposalNumber', 'proposalTitle', 'clientName', 'status'].some((field) =>
                     proposal[field]?.toLowerCase().includes(searchText.toLowerCase())
+                ) ||
+                proposal?.items?.some((item) =>
+                    item.description.toLowerCase().includes(searchText.toLowerCase())
                 )
             )
         );
@@ -215,8 +246,19 @@ const ProposalsPage = () => {
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     onRowClick={handleRowClick}
-                    sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
                     getRowId={(row) => row._id}
+                    getRowHeight={(params) => {
+                        const minHeight = 60; // Set your desired minimum row height here
+                        const items = params.model.items || [];
+                        // Calculate content height based on the number of items
+                        const contentHeight = items.length > 0 ? items.length * 24 + 16 : minHeight;
+                        return Math.max(contentHeight, minHeight);
+                    }}
+                    sx={{
+                        '& .MuiDataGrid-row': {
+                            cursor: 'pointer',
+                        },
+                    }}
                 />
             </div>
 
@@ -259,16 +301,7 @@ const ProposalsPage = () => {
                                     )}
                                 />
                             </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Proposal Title"
-                                    name="proposalTitle"
-                                    fullWidth
-                                    value={newProposalData.proposalTitle}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </Grid>
+
                             {/* Items */}
                             <Grid item xs={12}>
                                 <Typography variant="h6">Items</Typography>

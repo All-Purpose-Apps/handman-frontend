@@ -27,6 +27,7 @@ export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, {
   } catch (error) {
     console.log(error);
     if (error.response?.status === 401) {
+      await signOut(auth);
       handleGoogleSignIn(auth);
     }
     return rejectWithValue(error.response?.data || 'Something went wrong');
@@ -66,7 +67,7 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
 
 export const updateClient = createAsyncThunk('clients/updateClient', async (client, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`http://localhost:3000/api/clients/${client._id}`, client, {
+    const response = await axios.put(`http://localhost:3000/api/clients/${client.id}`, client, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -78,12 +79,16 @@ export const updateClient = createAsyncThunk('clients/updateClient', async (clie
   }
 });
 
-export const deleteClient = createAsyncThunk('clients/deleteClient', async (clientId, { rejectWithValue }) => {
+export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ resourceName, id }, { rejectWithValue }) => {
   try {
-    await axios.delete(`http://localhost:3000/api/clients/${clientId}`, {
+    await axios.delete(`http://localhost:3000/api/google/contacts`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
+      },
+      params: {
+        resourceName,
+        id,
       },
     });
     return clientId;
@@ -105,6 +110,7 @@ export const syncClients = createAsyncThunk('clients/syncClients', async (client
   } catch (error) {
     console.log('error', error.response);
     if (error.response?.status === 401) {
+      await signOut(auth);
       handleGoogleSignIn(auth);
     }
     return rejectWithValue(error.response?.data || 'Failed to sync clients');
@@ -124,6 +130,7 @@ export const createGoogleContact = createAsyncThunk('clients/createGoogleContact
     return response.data;
   } catch (error) {
     if (error.response?.status === 401) {
+      await signOut(auth);
       handleGoogleSignIn(auth);
     }
     return rejectWithValue(error.response?.data || 'Failed to create Google contact');

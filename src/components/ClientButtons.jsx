@@ -2,7 +2,7 @@ import { Button, Typography } from '@mui/material';
 
 export default function ClientButtons({ lastSyncedAt, handleSyncGoogleContacts, handleOpenModal }) {
     return (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'end' }}>
             <Typography variant="body2" color="textSecondary" style={{ marginRight: '20px' }}>
                 Last Synced: {lastSyncedAt || 'Never'}
             </Typography>

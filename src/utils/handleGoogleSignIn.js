@@ -1,9 +1,17 @@
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
-export const handleGoogleSignIn = async (auth) => {
-  const provider = new GoogleAuthProvider();
-  // Request additional scopes
+// Initialize sign-in progress from localStorage
+let signInInProgress = JSON.parse(localStorage.getItem('signInInProgress')) || false;
 
+export const handleGoogleSignIn = async (auth) => {
+  if (signInInProgress) return; // Prevent multiple popups
+  signInInProgress = true;
+  localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
+  console.log(signInInProgress);
+
+  const provider = new GoogleAuthProvider();
+
+  // Request additional scopes
   provider.addScope('https://www.googleapis.com/auth/contacts');
   provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
   provider.addScope('https://www.googleapis.com/auth/calendar.events');
@@ -23,14 +31,20 @@ export const handleGoogleSignIn = async (auth) => {
     if (credential) {
       // This gives you a Google Access Token.
       const accessToken = credential.accessToken;
-
-      // Store the access token in local storage or state management
       localStorage.setItem('accessToken', accessToken);
     } else {
       console.error('No credential returned from Google sign-in.');
     }
   } catch (error) {
     console.error('Error signing in with Google:', error);
-    // Optionally display an error message to the user
+  } finally {
+    signInInProgress = false; // Reset the flag
+    localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
+    console.log(signInInProgress);
   }
 };
+
+// Listen for the window close or refresh event to reset signInInProgress in localStorage
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('signInInProgress', JSON.stringify(false));
+});

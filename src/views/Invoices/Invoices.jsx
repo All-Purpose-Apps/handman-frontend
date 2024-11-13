@@ -64,6 +64,24 @@ const columns = [
         valueGetter: (params) =>
             moment.utc(params).format('MM/DD/YYYY'),
     },
+    {
+        field: 'items',
+        headerName: 'Items',
+        width: 300,
+        sortable: false,
+        renderCell: (params) => {
+            const items = params.value || [];
+            return (
+                <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
+                    {items.map((item, index) => (
+                        <li key={index} style={{ lineHeight: '24px' }}>
+                            {item.description}
+                        </li>
+                    ))}
+                </ul>
+            );
+        },
+    },
 ];
 
 
@@ -110,15 +128,17 @@ const InvoicesPage = () => {
 
     useEffect(() => {
         setFilteredInvoices(
-            invoices.filter(
-                (invoice) =>
-                    invoice.invoiceNumber
-                        .toLowerCase()
-                        .includes(searchText.toLowerCase()) ||
-                    `${invoice.client.firstName} ${invoice.client.lastName}`
-                        .toLowerCase()
-                        .includes(searchText.toLowerCase())
-            )
+            invoices.filter((invoice) => {
+                const invoiceMatches =
+                    invoice.invoiceNumber.toLowerCase().includes(searchText.toLowerCase()) ||
+                    invoice.client.name.toLowerCase().includes(searchText.toLowerCase());
+
+                const itemsMatch = invoice.items.some((item) =>
+                    item.description.toLowerCase().includes(searchText.toLowerCase())
+                );
+
+                return invoiceMatches || itemsMatch;
+            })
         );
     }, [invoices, searchText]);
 
@@ -290,6 +310,13 @@ const InvoicesPage = () => {
                     rowsPerPageOptions={[5]}
                     onRowClick={(params) => handleGoToInvoice(params.row._id)}
                     getRowId={(row) => row._id}
+                    getRowHeight={(params) => {
+                        const minHeight = 60; // Set your desired minimum row height here
+                        const items = params.model.items || [];
+                        // Calculate content height based on the number of items
+                        const contentHeight = items.length > 0 ? items.length * 24 + 16 : minHeight;
+                        return Math.max(contentHeight, minHeight);
+                    }}
                     sx={{
                         '& .MuiDataGrid-row:hover': {
                             cursor: 'pointer',

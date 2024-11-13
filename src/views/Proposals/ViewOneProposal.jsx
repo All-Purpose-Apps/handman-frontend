@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOneProposal, updateProposal, deleteProposal } from '../../store/proposalSlice';
+import { addInvoice, fetchInvoices } from '../../store/invoiceSlice';
 import { fetchClients } from '../../store/clientSlice';
 import axios from 'axios';
 import {
@@ -25,33 +26,78 @@ import {
     Switch,
     FormControlLabel,
     IconButton,
+    Modal,
+    ListItemButton,
+    ListItemAvatar,
+    Avatar,
+    ListItemText,
 } from '@mui/material';
-import moment from 'moment';
 import DeleteIcon from '@mui/icons-material/Delete';
-import InvoiceModal from '../../components/InvoiceModal'; // Import InvoiceModal component
+import ConvertInvoiceModal from './ConverInvoiceModal';
+import dayjs from 'dayjs';
+import moment from 'moment';
+import { getAuth } from 'firebase/auth';
+import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
+import SignaturePad from 'react-signature-pad-wrapper';
+
 
 const ViewProposal = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const auth = getAuth();
     const { proposal, status, error } = useSelector((state) => state.proposals);
     const { clients } = useSelector((state) => state.clients);
+    const { invoices } = useSelector((state) => state.invoices);
     const [isEditing, setIsEditing] = useState(false);
     const [isEditingClient, setIsEditingClient] = useState(false);
-    const [isInvoiceModalOpen, setInvoiceModalOpen] = useState(false); // State for invoice modal
-    const [invoiceData, setInvoiceData] = useState({}); // State to populate invoice data
+    const [isInvoiceModalOpen, setInvoiceModalOpen] = useState(false);
+    const [isCreatingPdf, setIsCreatingPdf] = useState(false); // New state for loading modal
+    const [invoiceData, setInvoiceData] = useState({
+        invoiceNumber: '',
+        invoiceDate: dayjs().format('YYYY-MM-DD'),
+        client: null,
+        items: [],
+        subTotal1: 0,
+        extraWorkMaterials: 0,
+        subTotal2: 0,
+        paymentMethod: 'awaiting payment',
+        checkNumber: '',
+        creditCardFee: 0,
+        depositAdjustment: 0,
+        total: 0,
+    });
 
     const [editedProposal, setEditedProposal] = useState({
         items: [],
         client: null,
         proposalTitle: '',
         proposalDate: '',
+        packagePrice: 0,
     });
 
     useEffect(() => {
         dispatch(fetchOneProposal(id));
+        dispatch(fetchInvoices());
         dispatch(fetchClients());
     }, [dispatch, id]);
+
+    useEffect(() => {
+        if (invoices.length > 0) {
+            const latestInvoiceNumber = Math.max(
+                ...invoices.map((inv) => parseInt(inv.invoiceNumber, 10))
+            );
+            setInvoiceData((prevData) => ({
+                ...prevData,
+                invoiceNumber: (latestInvoiceNumber + 1).toString(),
+            }));
+        } else {
+            setInvoiceData((prevData) => ({
+                ...prevData,
+                invoiceNumber: '1001',
+            }));
+        }
+    }, [invoices]);
 
     useEffect(() => {
         if (proposal) {
@@ -61,9 +107,25 @@ const ViewProposal = () => {
                 items: proposal.items || [],
                 proposalTitle: proposal.proposalTitle || '',
                 proposalDate: proposal.proposalDate || '',
+                packagePrice: proposal.packagePrice || 0,
             });
         }
     }, [proposal]);
+
+    const calculatePackageTotal = useCallback(() => {
+        const total = editedProposal.items.reduce(
+            (sum, item) => sum + parseFloat(item.discountPrice || 0),
+            0
+        );
+        setEditedProposal((prevData) => ({
+            ...prevData,
+            packagePrice: total,
+        }));
+    }, [editedProposal.items]);
+
+    useEffect(() => {
+        calculatePackageTotal();
+    }, [calculatePackageTotal]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -94,7 +156,10 @@ const ViewProposal = () => {
         if (editedProposal.items.length < 5) {
             setEditedProposal({
                 ...editedProposal,
-                items: [...editedProposal.items, { description: '', regularPrice: '', discountPrice: '' }]
+                items: [
+                    ...editedProposal.items,
+                    { description: '', regularPrice: '', discountPrice: '' },
+                ],
             });
         }
     };
@@ -107,9 +172,11 @@ const ViewProposal = () => {
         });
     };
 
-    const handleEditToggle = () => {
+    const handleEditToggle = async () => {
         if (isEditing) {
-            dispatch(updateProposal({ ...editedProposal, updatedAt: new Date().toISOString() }));
+            await dispatch(
+                updateProposal({ ...editedProposal, fileUrl: '', updatedAt: new Date().toISOString() })
+            );
             dispatch(fetchOneProposal(id));
         }
         setIsEditing(!isEditing);
@@ -117,8 +184,8 @@ const ViewProposal = () => {
     };
 
     const handleCreatePdf = async () => {
+        setIsCreatingPdf(true);
         const accessToken = localStorage.getItem('accessToken');
-
         try {
             const response = await axios.post(
                 'http://localhost:3000/api/proposals/create-pdf',
@@ -127,16 +194,25 @@ const ViewProposal = () => {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },
-                    withCredentials: true,
                 }
             );
 
-            await dispatch(updateProposal({ ...editedProposal, fileUrl: response.data.url, updatedAt: new Date().toISOString() }));
+            await dispatch(
+                updateProposal({
+                    ...editedProposal,
+                    fileUrl: response.data.url,
+                    updatedAt: new Date().toISOString(),
+                })
+            );
             await dispatch(fetchOneProposal(id));
             window.open(response.data.url);
-
         } catch (error) {
+            if (error.response?.status === 401) {
+                handleGoogleSignIn(auth);
+            }
             console.error('Error creating PDF:', error);
+        } finally {
+            setIsCreatingPdf(false);
         }
     };
 
@@ -145,18 +221,27 @@ const ViewProposal = () => {
     };
 
     const handleDeleteProposal = async () => {
-        dispatch(deleteProposal(id));
+        await dispatch(deleteProposal(id));
         navigate('/proposals');
     };
 
-    // Handle opening the Invoice Modal and setting initial data
     const handleOpenInvoiceModal = () => {
         setInvoiceData({
-            ...proposal,
-            invoiceDate: new Date().toISOString().split('T')[0],
-            dueDate: '',
-            items: proposal.items || [],
-            status: 'created',
+            ...invoiceData,
+            invoiceDate: dayjs().format('YYYY-MM-DD'),
+            client: editedProposal.client || null,
+            items: editedProposal.items.map((item) => ({
+                description: item.description,
+                price: item.discountPrice,
+            })),
+            subTotal1: 0,
+            extraWorkMaterials: 0,
+            subTotal2: 0,
+            paymentMethod: 'awaiting payment',
+            checkNumber: '',
+            creditCardFee: 0,
+            depositAdjustment: 0,
+            total: 0,
         });
         setInvoiceModalOpen(true);
     };
@@ -165,25 +250,130 @@ const ViewProposal = () => {
         setInvoiceModalOpen(false);
     };
 
-    const handleAddInvoice = (event) => {
+    const handleAddInvoice = async (event) => {
         event.preventDefault();
-        console.log('Saving invoice:', invoiceData);
-        setInvoiceModalOpen(false);
+
+        try {
+            const response = await dispatch(addInvoice(invoiceData));
+            await dispatch(
+                updateProposal({
+                    ...editedProposal,
+                    status: 'converted to invoice',
+                    invoiceId: response.payload._id,
+                    updatedAt: new Date().toISOString(),
+                })
+            );
+            setInvoiceModalOpen(false);
+            navigate(`/invoices/${response.payload._id}`);
+        } catch (error) {
+            console.error('Error adding invoice:', error);
+        }
     };
 
-    // Loading state
+    const handleGoToInvoice = (invoiceId) => {
+        navigate(`/invoices/${invoiceId}`);
+    };
+
+    const handleSendProposal = async () => {
+        dispatch(updateProposal({ ...editedProposal, status: 'sent to client' }));
+        console.log('Sending proposal to client...');
+        dispatch(fetchOneProposal(id));
+        console.log('Proposal sent');
+    }
+
+    // Invoice Modal Handlers
+    const handleInvoiceInputChange = (e) => {
+        const { name, value } = e.target;
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleInvoiceClientChange = (event, newValue) => {
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            client: newValue || null,
+        }));
+    };
+
+    const handleInvoiceItemChange = (index, field, value) => {
+        const newItems = invoiceData.items.map((item, i) => {
+            return i === index ? { ...item, [field]: value } : item
+        }
+        );
+        setInvoiceData({
+            ...invoiceData,
+            items: newItems,
+        });
+    };
+
+    const handleInvoiceAddItem = () => {
+        setInvoiceData({
+            ...invoiceData,
+            items: [
+                ...invoiceData.items,
+                { description: '', price: '' },
+            ],
+        });
+    };
+
+    const handleInvoiceDeleteItem = (index) => {
+        const newItems = invoiceData.items.filter((_, i) => i !== index);
+        setInvoiceData({
+            ...invoiceData,
+            items: newItems,
+        });
+    };
+
+    const calculateTotals = useCallback(() => {
+        let subTotal1 = invoiceData.items.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+        let subTotal2 = subTotal1 + parseFloat(invoiceData.extraWorkMaterials || 0);
+
+        // Calculate the credit/debit card fee (3% of subTotal2)
+        let creditCardFee = 0;
+        if (invoiceData.paymentMethod === 'credit/debit') {
+            creditCardFee = subTotal2 * 0.03;
+        }
+
+        // Calculate the final total
+        let total = subTotal2 + creditCardFee - parseFloat(invoiceData.depositAdjustment || 0);
+
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            subTotal1,
+            subTotal2,
+            creditCardFee,
+            total,
+        }));
+    }, [invoiceData.items, invoiceData.extraWorkMaterials, invoiceData.depositAdjustment, invoiceData.paymentMethod]);
+    // Call calculateTotals when relevant data changes
+    useEffect(() => {
+        calculateTotals();
+    }, [calculateTotals]);
+
+
     if (status === 'loading' || !proposal) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100vh"
+            >
                 <CircularProgress />
             </Box>
         );
     }
 
-    // Error state
     if (status === 'failed') {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100vh"
+            >
                 <Typography variant="h6" color="error">
                     Error: {error}
                 </Typography>
@@ -191,58 +381,172 @@ const ViewProposal = () => {
         );
     }
 
+    const renderActions = () => {
+        switch (editedProposal?.status) {
+            case 'converted to invoice':
+                return (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate(-1)}
+                        >
+                            Back
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => handleGoToInvoice(editedProposal.invoiceId)}
+                        >
+                            Go to Invoice
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={handleDeleteProposal}
+                        >
+                            Delete
+                        </Button>
+                        <Typography variant="body1" color="error">
+                            This proposal has been converted to an invoice and can no longer
+                            be edited.
+                        </Typography>
+                    </>
+                );
+            case 'accepted':
+                return (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate(-1)}
+                        >
+                            Back
+                        </Button>
+                        {!isEditing && <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpenInvoiceModal}
+                        >
+                            Convert to Invoice
+                        </Button>}
+                        <Button variant="contained" onClick={handleEditToggle}>
+                            {isEditing ? 'Save' : 'Edit'}
+                        </Button>
+                        {!isEditing && (
+                            <Button variant="contained" onClick={handleCreatePdf}>
+                                Create PDF
+                            </Button>
+                        )}
+                        {proposal.fileUrl && (
+                            <Button
+                                variant="contained"
+                                href={proposal.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View Proposal
+                            </Button>
+                        )}
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={handleDeleteProposal}
+                        >
+                            Delete
+                        </Button>
+                    </>
+                );
+            default:
+                return (
+                    <>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate(-1)}
+                        >
+                            Back
+                        </Button>
+                        <Button variant="contained" onClick={handleEditToggle}>
+                            {isEditing ? 'Save' : 'Edit'}
+                        </Button>
+                        {!isEditing && (
+                            <Button variant="contained" onClick={handleCreatePdf}>
+                                Create PDF
+                            </Button>
+                        )}
+                        {proposal.fileUrl && (
+                            <Button
+                                variant="contained"
+                                href={proposal.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View Proposal
+                            </Button>
+                        )}
+                        {proposal.fileUrl && proposal.status == "draft" && (
+                            <Button
+                                variant="contained"
+                                onClick={handleSendProposal}
+                            >
+                                Send To Client
+                            </Button>
+                        )}
+                        {!isEditing && <Button
+                            variant="contained"
+                            color="error"
+                            onClick={handleDeleteProposal}
+                        >
+                            Delete
+                        </Button>}
+                    </>
+                );
+        }
+    };
+
     return (
         <Card elevation={3} style={{ padding: '16px' }}>
             <CardContent>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => navigate(-1)}
-                    style={{ marginBottom: 16 }}
-                >
-                    Back
-                </Button>
+
                 <Typography variant="h6">
                     No. {proposal?.proposalNumber || 'Loading...'}
                 </Typography>
                 <Grid container spacing={4}>
-                    <Grid item xs={12} md={8}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                            {isEditing ? (
-                                <TextField
-                                    name="proposalTitle"
-                                    label="Proposal Title"
-                                    fullWidth
-                                    value={editedProposal.proposalTitle}
-                                    onChange={handleInputChange}
-                                />
-                            ) : (
-                                <Typography variant="h4">
-                                    {proposal?.proposalTitle || 'Loading...'}
-                                </Typography>
-                            )}
-
+                    <Grid item xs={12} md={4}>
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                        >
                             {isEditing ? (
                                 <TextField
                                     name="proposalDate"
                                     label="Proposal Date"
                                     type="date"
                                     fullWidth
-                                    value={moment(editedProposal.proposalDate).format('YYYY-MM-DD')}
+                                    value={dayjs(editedProposal.proposalDate).format(
+                                        'YYYY-MM-DD'
+                                    )}
                                     onChange={handleInputChange}
                                     InputLabelProps={{ shrink: true }}
                                 />
                             ) : (
                                 <Typography variant="body1">
-                                    <strong>Proposal Date:</strong> {moment(proposal?.proposalDate).format('MM/DD/YYYY') || 'Loading...'}
+                                    <strong>Proposal Date:</strong>{' '}
+                                    {dayjs(proposal?.proposalDate).format('MM/DD/YYYY') ||
+                                        'Loading...'}
                                 </Typography>
                             )}
                         </Box>
 
-                        {isEditing && <FormControlLabel
-                            control={<Switch checked={isEditingClient} onChange={toggleClientEdit} />}
-                            label="Edit Client"
-                        />}
+                        {isEditing && (
+                            <FormControlLabel
+                                control={
+                                    <Switch checked={isEditingClient} onChange={toggleClientEdit} />
+                                }
+                                label="Edit Client"
+                            />
+                        )}
 
                         {isEditingClient ? (
                             <Autocomplete
@@ -251,20 +555,35 @@ const ViewProposal = () => {
                                 value={editedProposal.client || null}
                                 onChange={handleClientChange}
                                 renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Select Client"
-                                        fullWidth
-                                    />
+                                    <TextField {...params} label="Select Client" fullWidth />
                                 )}
                             />
                         ) : (
                             <>
+                                <ListItemButton
+                                    onClick={() => navigate(`/clients/${proposal.client._id}`)}
+                                    sx={{
+                                        borderRadius: 2,
+                                        '&:hover': {
+                                            backgroundColor: 'primary.light',
+                                        },
+                                    }}
+                                >
+                                    <ListItemAvatar>
+                                        <Avatar>
+
+                                            {proposal?.client?.name?.charAt(0)}
+                                        </Avatar>
+                                    </ListItemAvatar>
+                                    <ListItemText primary={proposal?.client?.name} secondary="Click to view details" />
+                                </ListItemButton>
                                 <Typography variant="body1" sx={{ marginTop: '10px' }}>
-                                    <strong>Client Name:</strong> {proposal?.client?.name || 'Loading...'}
+                                    <strong>Client Name:</strong>{' '}
+                                    {proposal?.client?.name || 'Loading...'}
                                 </Typography>
                                 <Typography variant="body1">
-                                    <strong>Client Address:</strong> {proposal?.client?.address || 'Loading...'}
+                                    <strong>Client Address:</strong>{' '}
+                                    {proposal?.client?.address || 'Loading...'}
                                 </Typography>
                             </>
                         )}
@@ -275,7 +594,7 @@ const ViewProposal = () => {
 
                         {proposal.fileUrl && (
                             <Typography variant="body2">
-                                updated {moment.utc(proposal.updatedAt).fromNow()} on {moment.utc(proposal.updatedAt).format('MM/DD/YYYY')}
+                                updated {moment.utc(editedProposal.updatedAt).fromNow()} on {moment.utc(editedProposal.updatedAt).format('MM/DD/YYYY')}
                             </Typography>
                         )}
                     </Grid>
@@ -291,7 +610,7 @@ const ViewProposal = () => {
                                         <TableCell>Description</TableCell>
                                         <TableCell>Regular Price</TableCell>
                                         <TableCell>Discount Price</TableCell>
-                                        <TableCell>Actions</TableCell>
+                                        {isEditing && <TableCell>Actions</TableCell>}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -303,7 +622,13 @@ const ViewProposal = () => {
                                                         <TextField
                                                             name="description"
                                                             value={item.description}
-                                                            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleItemChange(
+                                                                    index,
+                                                                    'description',
+                                                                    e.target.value
+                                                                )
+                                                            }
                                                             fullWidth
                                                         />
                                                     </TableCell>
@@ -312,7 +637,13 @@ const ViewProposal = () => {
                                                             name="regularPrice"
                                                             type="number"
                                                             value={item.regularPrice}
-                                                            onChange={(e) => handleItemChange(index, 'regularPrice', e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleItemChange(
+                                                                    index,
+                                                                    'regularPrice',
+                                                                    e.target.value
+                                                                )
+                                                            }
                                                             fullWidth
                                                         />
                                                     </TableCell>
@@ -321,12 +652,21 @@ const ViewProposal = () => {
                                                             name="discountPrice"
                                                             type="number"
                                                             value={item.discountPrice}
-                                                            onChange={(e) => handleItemChange(index, 'discountPrice', e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleItemChange(
+                                                                    index,
+                                                                    'discountPrice',
+                                                                    e.target.value
+                                                                )
+                                                            }
                                                             fullWidth
                                                         />
                                                     </TableCell>
                                                     <TableCell>
-                                                        <IconButton onClick={() => handleDeleteItem(index)}>
+                                                        <IconButton
+                                                            onClick={() => handleDeleteItem(index)}
+                                                            aria-label="Delete Item"
+                                                        >
                                                             <DeleteIcon color="error" />
                                                         </IconButton>
                                                     </TableCell>
@@ -334,8 +674,13 @@ const ViewProposal = () => {
                                             ) : (
                                                 <>
                                                     <TableCell>{item.description}</TableCell>
-                                                    <TableCell>{item.regularPrice}</TableCell>
-                                                    <TableCell>${item.discountPrice.toFixed(2)}</TableCell>
+                                                    <TableCell>${item.regularPrice}</TableCell>
+                                                    <TableCell>
+                                                        $
+                                                        {item.discountPrice
+                                                            ? parseFloat(item.discountPrice).toFixed(2)
+                                                            : '0.00'}
+                                                    </TableCell>
                                                 </>
                                             )}
                                         </TableRow>
@@ -356,52 +701,55 @@ const ViewProposal = () => {
                     <Grid item xs={12} md={6}>
                         <Box mt={2}>
                             <Typography variant="h6">
-                                <strong>Package Total:</strong> ${editedProposal?.packagePrice?.toFixed(2) || 'Loading...'}
+                                <strong>Package Total:</strong>{' '}
+                                ${editedProposal?.packagePrice?.toFixed(2) || '0.00'}
                             </Typography>
                         </Box>
                     </Grid>
                 </Grid>
             </CardContent>
-            <CardActions>
-                <Button variant="contained" onClick={handleEditToggle}>
-                    {isEditing ? 'Save' : 'Edit'}
-                </Button>
-                {!isEditing && (
-                    <Button variant="contained" onClick={handleCreatePdf}>
-                        Create PDF
-                    </Button>
-                )}
-                {proposal.fileUrl && (
-                    <Button
-                        variant="contained"
-                        href={proposal.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        View Proposal
-                    </Button>
-                )}
-                <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleDeleteProposal}
-                >
-                    Delete
-                </Button>
-                {proposal?.status === 'accepted' && (
-                    <Button variant="contained" color="primary" onClick={handleOpenInvoiceModal}>
-                        Convert to Invoice
-                    </Button>
-                )}
-            </CardActions>
+            <CardActions>{renderActions()}</CardActions>
 
-            <InvoiceModal
-                open={isInvoiceModalOpen}
-                onClose={handleCloseInvoiceModal}
-                invoiceData={invoiceData}
-                setInvoiceData={setInvoiceData}
-                handleAddInvoice={handleAddInvoice}
-            />
+            {/* Render the ConvertInvoiceModal */}
+            {isInvoiceModalOpen && (
+                <ConvertInvoiceModal
+                    openModal={isInvoiceModalOpen}
+                    setOpenModal={setInvoiceModalOpen}
+                    newInvoiceData={invoiceData}
+                    handleInputChange={handleInvoiceInputChange}
+                    handleClientChange={handleInvoiceClientChange}
+                    handleItemChange={handleInvoiceItemChange}
+                    handleDeleteItem={handleInvoiceDeleteItem}
+                    handleAddItem={handleInvoiceAddItem}
+                    handleAddInvoice={handleAddInvoice}
+                    clients={clients}
+                />
+            )}
+
+            {/* Loading Modal */}
+            <Modal
+                open={isCreatingPdf}
+                aria-labelledby="creating-pdf-modal"
+                aria-describedby="creating-pdf-description"
+            >
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="20vh"
+                    bgcolor="background.paper"
+                    p={3}
+                    borderRadius={1}
+                    boxShadow={3}
+                >
+                    <Box textAlign="center">
+                        <CircularProgress />
+                        <Typography variant="h6" mt={2}>
+                            Creating Pdf...
+                        </Typography>
+                    </Box>
+                </Box>
+            </Modal>
         </Card>
     );
 };
