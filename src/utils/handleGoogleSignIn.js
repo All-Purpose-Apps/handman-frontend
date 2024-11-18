@@ -43,8 +43,3 @@ export const handleGoogleSignIn = async (auth) => {
     console.log(signInInProgress);
   }
 };
-
-// Listen for the window close or refresh event to reset signInInProgress in localStorage
-window.addEventListener('beforeunload', () => {
-  localStorage.setItem('signInInProgress', JSON.stringify(false));
-});

@@ -31,6 +31,8 @@ import {
 } from '@mui/material';
 import moment from 'moment';
 import axios from 'axios';
+import DeleteIcon from '@mui/icons-material/Delete'; // Import delete icon
+
 
 export default function ViewOneInvoice() {
     const { id } = useParams();
@@ -194,19 +196,45 @@ export default function ViewOneInvoice() {
         }
     };
 
-    const handleSendInvoice = () => {
+    const handleSendInvoice = async () => {
+        const accessToken = localStorage.getItem('accessToken');
         if (editedInvoice.fileUrl) {
-            const subject = encodeURIComponent(`Invoice ${editedInvoice.invoiceNumber}`);
-            const body = encodeURIComponent(`Dear ${editedInvoice.client?.name},\n\nPlease find your invoice here: ${editedInvoice.fileUrl}.\n\nThank you,\nYour Company`);
-            const mailtoLink = `mailto:${editedInvoice.client?.email}?subject=${subject}&body=${body}`;
-
-            // Open mail client with pre-filled data
-            window.location.href = mailtoLink;
+            try {
+                await axios.post(
+                    'http://localhost:3000/api/gmail/send',
+                    {
+                        to: 'joshuapleduc@gmail.com',
+                        subject: `Invoice ${editedInvoice.invoiceNumber}`,
+                        body: `Dear ${editedInvoice.client?.name},<br><br>Please find your invoice attached. You can also access it <a href="${editedInvoice.fileUrl}">here</a>.<br><br>Thank you,<br>Han-D-Man Pro`,
+                        pdfUrl: editedInvoice.fileUrl,
+                        invoice: editedInvoice,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                            withCredentials: true,
+                        },
+                    }
+                );
+                alert('Invoice sent successfully!');
+            } catch (error) {
+                console.error('Error sending invoice:', error);
+                alert('Failed to send invoice.');
+            } finally {
+                dispatch(fetchOneInvoice(id));
+            }
         } else {
             alert('Please create the PDF first before sending.');
         }
     };
 
+    const handleDeleteItem = (index) => {
+        const newItems = editedInvoice.items.filter((_, i) => i !== index);
+        setEditedInvoice({
+            ...editedInvoice,
+            items: newItems,
+        });
+    };
 
     if (status === 'loading') {
         return <div>Loading...</div>;
@@ -303,6 +331,11 @@ export default function ViewOneInvoice() {
                                     </Typography>
                                 )}
                             </Grid>
+                            <Grid item>
+                                <Typography align="left">
+                                    Status: {editedInvoice?.status}
+                                </Typography>
+                            </Grid>
                         </Grid>
                     </Grid>
                     {/* Items */}
@@ -321,12 +354,8 @@ export default function ViewOneInvoice() {
                                     }}
                                 >
                                     {isEditing ? (
-                                        <Grid
-                                            container
-                                            spacing={2}
-                                            alignItems="center"
-                                        >
-                                            <Grid item xs={12} sm={8}>
+                                        <Grid container spacing={2} alignItems="center">
+                                            <Grid item xs={12} sm={7}>
                                                 <TextField
                                                     label="Description"
                                                     fullWidth
@@ -340,7 +369,7 @@ export default function ViewOneInvoice() {
                                                     }
                                                 />
                                             </Grid>
-                                            <Grid item xs={12} sm={4}>
+                                            <Grid item xs={12} sm={3}>
                                                 <TextField
                                                     label="Price"
                                                     type="number"
@@ -355,19 +384,24 @@ export default function ViewOneInvoice() {
                                                     }
                                                 />
                                             </Grid>
+                                            <Grid item xs={12} sm={2}>
+                                                <IconButton
+                                                    color="error"
+                                                    onClick={() => handleDeleteItem(index)}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Grid>
                                         </Grid>
                                     ) : (
                                         <Typography align="left">
-                                            {item.description} (Price: $
-                                            {item.price})
+                                            {item.description} (Price: ${item.price})
                                         </Typography>
                                     )}
                                 </Card>
                             ))
                         ) : (
-                            <Typography align="left">
-                                No items added yet.
-                            </Typography>
+                            <Typography align="left">No items added yet.</Typography>
                         )}
                         {isEditing && editedInvoice.items.length < 5 && (
                             <Button

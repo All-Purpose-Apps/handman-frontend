@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext.jsx';
 import Login from './views/Auth/Login';
 import ProtectedRoute from './views/ProtectedRoute';
 import AuthWatcher from './components/AuthWatcher.jsx';
+import SignDocument from './views/User/SignDocument.jsx';
 export default function App() {
   const getRoutes = () => {
     return routes.map((route, index) => {
@@ -41,6 +42,7 @@ export default function App() {
     <AuthProvider>
       <AuthWatcher />
       <Routes>
+        <Route path="sign/:token" element={<SignDocument />} />
         <Route path="/" element={<MainLayout />}>
           {getRoutes()}
           <Route path="/login" element={<Login />} />

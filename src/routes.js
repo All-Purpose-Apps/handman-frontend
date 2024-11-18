@@ -8,6 +8,7 @@ import Proposals from './views/Proposals/Proposals';
 import ViewOneProposal from './views/Proposals/ViewOneProposal';
 import Calendar from './views/Calendar';
 import Dashboard from './views/Dashboard';
+import SignDocument from './views/User/SignDocument';
 
 import {
   Home as HomeIcon,

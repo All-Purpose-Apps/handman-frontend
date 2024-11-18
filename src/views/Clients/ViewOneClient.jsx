@@ -95,7 +95,7 @@ const ViewClient = () => {
     const getRecentStatus = (statusHistory) => {
         const status =
             statusHistory && statusHistory.length > 0
-                ? statusHistory.sort((a, b) => new Date(b.date) - new Date(a.date))[0].status
+                ? [...statusHistory].sort((a, b) => new Date(b.date) - new Date(a.date))[0].status
                 : 'N/A';
 
         return status.toUpperCase();

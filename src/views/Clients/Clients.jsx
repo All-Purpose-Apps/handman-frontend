@@ -33,8 +33,8 @@ const columns = [
     { field: 'address', headerName: 'Address', width: 250, sortable: true },
     {
         field: 'statusHistory', headerName: 'Status', width: 240, sortable: true, valueFormatter: (params) => {
-            params.sort((a, b) => new Date(b.date) - new Date(a.date));
-            return params[0].status;
+            const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
+            return sortedStatusHistory[0].status;
         }
     },
 ];

@@ -1,13 +1,19 @@
 import { useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const AuthWatcher = () => {
     const auth = getAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
+        const publicPaths = ['/sign']; // Add paths for public routes
+        const isPublicPath = publicPaths.some((path) => location.pathname.startsWith(path));
+
         const checkToken = async () => {
+            if (isPublicPath) return; // Skip checks for public routes
+
             const user = auth.currentUser;
 
             if (!user) {
@@ -19,7 +25,6 @@ const AuthWatcher = () => {
             try {
                 // Attempt to get a valid token, triggering a refresh if needed
                 await user.getIdToken(true);
-
             } catch (error) {
                 console.error("Failed to refresh token:", error);
 
@@ -35,7 +40,7 @@ const AuthWatcher = () => {
         const intervalId = setInterval(checkToken, 5 * 60 * 1000); // Check every 5 minutes
 
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (!user) {
+            if (!user && !isPublicPath) {
                 signOut(auth).then(() => navigate('/login'));
             }
         });
@@ -45,7 +50,7 @@ const AuthWatcher = () => {
             clearInterval(intervalId);
             unsubscribe();
         };
-    }, [auth, navigate]);
+    }, [auth, navigate, location]);
 
     return null;
 };
