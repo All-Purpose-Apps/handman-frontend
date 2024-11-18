@@ -98,7 +98,7 @@ const ClientsPage = () => {
 
         try {
             const response = await axios.get(
-                'http://localhost:3000/api/google/contacts',
+                `${import.meta.env.VITE_BACKEND_URL}/api/google/contacts`,
                 {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,

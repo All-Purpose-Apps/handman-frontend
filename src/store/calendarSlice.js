@@ -20,8 +20,9 @@ export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async 
   if (!accessToken) {
     return rejectWithValue('Access token is missing');
   }
+
   try {
-    const response = await axios.get('http://localhost:3000/api/google/calendar/calendars', {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/calendars`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -43,7 +44,7 @@ export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({
     return rejectWithValue('Access token is missing');
   }
   try {
-    const response = await axios.get(`http://localhost:3000/api/google/calendar/events?calendarId=${calendarId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -64,13 +65,13 @@ export const createCalendarEvent = createAsyncThunk('calendar/createCalendarEven
     return rejectWithValue('Access token is missing');
   }
   try {
-    await axios.post(`http://localhost:3000/api/google/calendar/events?calendarId=${calendarId}`, eventData, {
+    await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, eventData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
       withCredentials: true,
     });
-    const response = await axios.get(`http://localhost:3000/api/google/calendar/events?calendarId=${calendarId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -88,13 +89,13 @@ export const updateCalendarEvent = createAsyncThunk('calendar/updateCalendarEven
     return rejectWithValue('Access token is missing');
   }
   try {
-    await axios.put(`http://localhost:3000/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, eventData, {
+    await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, eventData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
       withCredentials: true,
     });
-    const response = await axios.get(`http://localhost:3000/api/google/calendar/events?calendarId=${calendarId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -112,13 +113,13 @@ export const deleteCalendarEvent = createAsyncThunk('calendar/deleteCalendarEven
     return rejectWithValue('Access token is missing');
   }
   try {
-    await axios.delete(`http://localhost:3000/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, {
+    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
       withCredentials: true,
     });
-    const response = await axios.get(`http://localhost:3000/api/google/calendar/events?calendarId=${calendarId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

@@ -177,7 +177,7 @@ export default function ViewOneInvoice() {
 
         try {
             const response = await axios.post(
-                'http://localhost:3000/api/invoices/create-pdf',
+                `${import.meta.env.VITE_BACKEND_URL}/api/invoices/create-pdf`,
                 { invoice },
                 {
                     headers: {
@@ -201,7 +201,7 @@ export default function ViewOneInvoice() {
         if (editedInvoice.fileUrl) {
             try {
                 await axios.post(
-                    'http://localhost:3000/api/gmail/send',
+                    `${import.meta.env.VITE_BACKEND_URL}/api/gmail/send`,
                     {
                         to: 'joshuapleduc@gmail.com',
                         subject: `Invoice ${editedInvoice.invoiceNumber}`,

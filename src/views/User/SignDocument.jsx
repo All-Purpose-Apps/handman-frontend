@@ -33,7 +33,7 @@ const SignDocument = () => {
             </Typography>
             <Box sx={{ border: '1px solid #ccc', marginBottom: 2, justifyItems: 'center' }}>
                 <Document
-                    file="http://localhost:3000/api/invoices/download-pdf/url?https://storage.googleapis.com/invoicesproposals/invoices/invoice_1001.pdf?t=1731537880822"
+                    file={`${import.meta.env.VITE_BACKEND_URL}/api/invoices/download-pdf/url?https://storage.googleapis.com/invoicesproposals/invoices/invoice_1001.pdf?t=1731537880822`}
                     error={<div>Failed to load PDF</div>}
                     loading={<div>Loading PDF...</div>}
                 >

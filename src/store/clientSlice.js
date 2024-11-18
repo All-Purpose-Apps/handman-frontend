@@ -17,7 +17,7 @@ const initialState = {
 export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, { rejectWithValue }) => {
   const auth = getAuth();
   try {
-    const response = await axios.get('http://localhost:3000/api/clients', {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -37,7 +37,7 @@ export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, {
 // Fetch a single client by ID
 export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (clientId, { rejectWithValue }) => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/clients/${clientId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients/${clientId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -52,7 +52,7 @@ export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (
 // Add a new client
 export const addClient = createAsyncThunk('clients/addClient', async (client, { rejectWithValue }) => {
   try {
-    const response = await axios.post('http://localhost:3000/api/clients', client, {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients`, client, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -67,7 +67,7 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
 
 export const updateClient = createAsyncThunk('clients/updateClient', async (client, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`http://localhost:3000/api/clients/${client.id}`, client, {
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/clients/${client.id}`, client, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -81,7 +81,7 @@ export const updateClient = createAsyncThunk('clients/updateClient', async (clie
 
 export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ resourceName, id }, { rejectWithValue }) => {
   try {
-    await axios.delete(`http://localhost:3000/api/google/contacts`, {
+    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/google/contacts`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -100,7 +100,7 @@ export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ re
 export const syncClients = createAsyncThunk('clients/syncClients', async (clients, { rejectWithValue }) => {
   const auth = getAuth();
   try {
-    const response = await axios.post('http://localhost:3000/api/clients/sync', clients, {
+    const response = await axios.post('${import.meta.env.VITE_BACKEND_URL}/api/clients/sync', clients, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -121,7 +121,7 @@ export const createGoogleContact = createAsyncThunk('clients/createGoogleContact
   const auth = getAuth();
   console.log('contact', contact);
   try {
-    const response = await axios.post('http://localhost:3000/api/google/contacts', contact, {
+    const response = await axios.post('${import.meta.env.VITE_BACKEND_URL}/api/google/contacts', contact, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,

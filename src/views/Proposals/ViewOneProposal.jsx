@@ -188,7 +188,7 @@ const ViewProposal = () => {
         const accessToken = localStorage.getItem('accessToken');
         try {
             const response = await axios.post(
-                'http://localhost:3000/api/proposals/create-pdf',
+                `${import.meta.env.VITE_BACKEND_URL}/api/proposals/create-pdf`,
                 { proposal: editedProposal },
                 {
                     headers: {

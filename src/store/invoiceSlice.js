@@ -13,7 +13,7 @@ const initialState = {
 // Fetch all invoices
 export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get('http://localhost:3000/api/invoices', {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -28,7 +28,7 @@ export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (_
 // Fetch a single invoice by ID
 export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', async (invoiceId, { rejectWithValue }) => {
   try {
-    const response = await axios.get(`http://localhost:3000/api/invoices/${invoiceId}`, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -43,7 +43,7 @@ export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', asyn
 // Add a new invoice
 export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice, { rejectWithValue }) => {
   try {
-    const response = await axios.post('http://localhost:3000/api/invoices', invoice, {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/invoices`, invoice, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -58,7 +58,7 @@ export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice
 export const updateInvoice = createAsyncThunk('invoices/updateInvoice', async ({ id, prevClientId, newClientId, invoiceData }, { rejectWithValue }) => {
   try {
     const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.put(`http://localhost:3000/api/invoices/${id}`, invoiceData, {
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${id}`, invoiceData, {
       params: {
         prevClientId,
         newClientId,
@@ -75,7 +75,7 @@ export const updateInvoice = createAsyncThunk('invoices/updateInvoice', async ({
 
 export const deleteInvoice = createAsyncThunk('invoices/deleteInvoice', async (invoiceId, { rejectWithValue }) => {
   try {
-    const response = await axios.delete(`http://localhost:3000/api/invoices/${invoiceId}`, {
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,

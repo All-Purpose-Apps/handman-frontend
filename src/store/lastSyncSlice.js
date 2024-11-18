@@ -12,7 +12,7 @@ export const fetchLastSync = createAsyncThunk('lastSync/fetchLastSync', async (_
   try {
     const accessToken = localStorage.getItem('accessToken');
 
-    const response = await axios.get('http://localhost:3000/api/last-synced', {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/last-synced`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -29,7 +29,7 @@ export const updateLastSync = createAsyncThunk('lastSync/updateLastSync', async 
   try {
     const accessToken = localStorage.getItem('accessToken');
     const response = await axios.put(
-      `http://localhost:3000/api/last-synced/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/last-synced/${id}`,
       {}, // Empty body if you're not sending data
       {
         headers: {
