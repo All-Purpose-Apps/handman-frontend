@@ -198,6 +198,15 @@ export default function ViewOneInvoice() {
 
     const handleSendInvoice = async () => {
         const accessToken = localStorage.getItem('accessToken');
+        const token = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/create-token`, { invoiceId: editedInvoice._id, data: { invoiceUrl: editedInvoice.fileUrl } }, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                withCredentials: true,
+            },
+        });
+
+        const tokenUrl = `${import.meta.env.VITE_FRONTEND_URL}/sign/${token.data.token}`;
+
         if (editedInvoice.fileUrl) {
             try {
                 await axios.post(
@@ -205,7 +214,7 @@ export default function ViewOneInvoice() {
                     {
                         to: 'joshuapleduc@gmail.com',
                         subject: `Invoice ${editedInvoice.invoiceNumber}`,
-                        body: `Dear ${editedInvoice.client?.name},<br><br>Please find your invoice attached. You can also access it <a href="${editedInvoice.fileUrl}">here</a>.<br><br>Thank you,<br>Han-D-Man Pro`,
+                        body: `Dear ${editedInvoice.client?.name},<br><br>Please find your invoice attached. You can also access it <a href="${tokenUrl}">here</a>.<br><br>Thank you,<br>Han-D-Man Pro`,
                         pdfUrl: editedInvoice.fileUrl,
                         invoice: editedInvoice,
                     },
@@ -243,6 +252,17 @@ export default function ViewOneInvoice() {
     if (status === 'failed') {
         return <div>Error: {error}</div>;
     }
+
+    const statusColorMap = {
+        'CREATED': 'black',
+        'SENT': 'blue',
+        'PAID': 'yellow',
+        'CANCELED': 'red',
+        'SIGNED AND PAID': 'green',
+    };
+
+    const getStatusColor = (status) => statusColorMap[status] || 'black';
+
 
     return (
         <Card elevation={3} style={{ padding: '16px' }}>
@@ -332,8 +352,11 @@ export default function ViewOneInvoice() {
                                 )}
                             </Grid>
                             <Grid item>
-                                <Typography align="left">
-                                    Status: {editedInvoice?.status}
+                                <Typography align="left"
+                                    sx={{ color: getStatusColor(editedInvoice?.status?.toUpperCase()) }}>
+                                    Status: <strong>
+                                        {editedInvoice?.status?.toUpperCase()}
+                                    </strong>
                                 </Typography>
                             </Grid>
                         </Grid>

@@ -86,6 +86,25 @@ export const deleteInvoice = createAsyncThunk('invoices/deleteInvoice', async (i
     return rejectWithValue(error.response?.data || 'Failed to delete invoice');
   }
 });
+
+export const sendInvoiceToClient = createAsyncThunk('invoices/sendInvoiceToClient', async (invoiceId, { rejectWithValue }) => {
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/api/invoices/send-invoice-to-client`,
+      { invoiceId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          withCredentials: true,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || 'Failed to send invoice to client');
+  }
+});
+
 export const invoiceSlice = createSlice({
   name: 'invoices',
   initialState,

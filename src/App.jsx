@@ -1,5 +1,4 @@
-// src/App.jsx
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import NoMatch from './views/NoMatch';
 import { routes } from './routes';
@@ -8,6 +7,7 @@ import Login from './views/Auth/Login';
 import ProtectedRoute from './views/ProtectedRoute';
 import AuthWatcher from './components/AuthWatcher.jsx';
 import SignDocument from './views/User/SignDocument.jsx';
+
 export default function App() {
   const getRoutes = () => {
     return routes.map((route, index) => {
@@ -43,6 +43,7 @@ export default function App() {
       <AuthWatcher />
       <Routes>
         <Route path="sign/:token" element={<SignDocument />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/" element={<MainLayout />}>
           {getRoutes()}
           <Route path="/login" element={<Login />} />

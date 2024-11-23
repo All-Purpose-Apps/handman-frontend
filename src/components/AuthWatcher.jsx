@@ -8,16 +8,16 @@ const AuthWatcher = () => {
     const location = useLocation();
 
     useEffect(() => {
-        const publicPaths = ['/sign']; // Add paths for public routes
+        const publicPaths = ['/login', '/sign']; // Add paths for public routes
         const isPublicPath = publicPaths.some((path) => location.pathname.startsWith(path));
 
         const checkToken = async () => {
-            if (isPublicPath) return; // Skip checks for public routes
+            if (isPublicPath) return; // Allow access to public routes without redirection
 
             const user = auth.currentUser;
 
             if (!user) {
-                // If there's no authenticated user, navigate to login
+                // Redirect to login if the user is not authenticated
                 signOut(auth).then(() => navigate('/login'));
                 return;
             }
@@ -28,20 +28,21 @@ const AuthWatcher = () => {
             } catch (error) {
                 console.error("Failed to refresh token:", error);
 
-                // Sign out and navigate to login on failure to retrieve token
+                // If token refresh fails, redirect to login
                 signOut(auth).then(() => navigate('/login'));
             }
         };
 
-        // Initial token check on mount and on every render
+        // Initial token check on mount and on every route change
         checkToken();
 
         // Set up a periodic token refresh check
         const intervalId = setInterval(checkToken, 5 * 60 * 1000); // Check every 5 minutes
 
+        // Listen for changes in authentication state
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (!user && !isPublicPath) {
-                signOut(auth).then(() => navigate('/login'));
+                navigate('/login');
             }
         });
 

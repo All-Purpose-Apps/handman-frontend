@@ -24,7 +24,7 @@ import ViewOneInvoice from './views/Invoices/ViewOneInvoice';
 
 export const routes = [
   {
-    path: '/',
+    path: '/dashboard',
     component: Dashboard,
     name: 'Dashboard',
     sidebar: true,

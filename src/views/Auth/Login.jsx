@@ -11,7 +11,7 @@ const Login = () => {
 
     const handleClick = async () => {
         await handleGoogleSignIn(auth, navigate);
-        await navigate('/');
+        navigate('/dashboard');
     }
 
     return (

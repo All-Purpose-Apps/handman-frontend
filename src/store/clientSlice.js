@@ -100,7 +100,7 @@ export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ re
 export const syncClients = createAsyncThunk('clients/syncClients', async (clients, { rejectWithValue }) => {
   const auth = getAuth();
   try {
-    const response = await axios.post('${import.meta.env.VITE_BACKEND_URL}/api/clients/sync', clients, {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/sync`, clients, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
