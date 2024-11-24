@@ -256,7 +256,7 @@ const ClientsPage = () => {
                             sortModel: [{ field: 'name', sort: 'asc' }],
                         },
                         pagination: {
-                            paginationModel: { pageSize: 5, page: 0 },
+                            paginationModel: { pageSize: 10, page: 0 },
                         },
                     }}
                     sx={{

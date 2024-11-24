@@ -9,6 +9,8 @@ import {
     CircularProgress,
     Alert,
     AlertTitle,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import SignatureCanvas from 'react-signature-canvas';
 import { makeStyles } from '@mui/styles';
@@ -33,6 +35,10 @@ const SignDocument = () => {
     const [tokenInfo, setTokenInfo] = useState(null);
     const [showAlert, setShowAlert] = useState(false);
     const [signedPdfUrl, setSignedPdfUrl] = useState('');
+
+    // Add theme and media query hooks
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
         const fetchToken = async () => {
@@ -75,6 +81,7 @@ const SignDocument = () => {
             );
 
             const { url } = response.data;
+            console.log(url);
             setSignedPdfUrl(url);
             setShowAlert(true);
         } catch (err) {
@@ -134,15 +141,13 @@ const SignDocument = () => {
         <Box sx={{ maxWidth: 800, margin: '0 auto', padding: 2 }}>
             {showAlert ? (
                 // Success message with link to signed document
-                <Alert
-                    severity="success"
-                    sx={{ mb: 2 }}
-                >
+                <Alert severity="success" sx={{ mb: 2 }}>
                     <AlertTitle>Document Signed Successfully</AlertTitle>
                     Your document has been signed. You can open it{' '}
                     <a href={signedPdfUrl} target="_blank" rel="noopener noreferrer">
                         here
-                    </a>.
+                    </a>
+                    .
                 </Alert>
             ) : (
                 // Signing interface
@@ -166,7 +171,8 @@ const SignDocument = () => {
                         sx={{
                             border: '1px solid #ccc',
                             marginBottom: 2,
-                            justifyItems: 'center',
+                            display: 'flex',
+                            justifyContent: 'center',
                         }}
                     >
                         <Document
@@ -174,7 +180,11 @@ const SignDocument = () => {
                             error={<div>Failed to load PDF</div>}
                             loading={<div>Loading PDF...</div>}
                         >
-                            <Page pageNumber={1} renderTextLayer={false} />
+                            <Page
+                                pageNumber={1}
+                                renderTextLayer={false}
+                                width={isSmallScreen ? 300 : 600}
+                            />
                         </Document>
                     </Box>
 

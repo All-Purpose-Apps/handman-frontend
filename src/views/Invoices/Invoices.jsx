@@ -317,6 +317,15 @@ const InvoicesPage = () => {
                         const contentHeight = items.length > 0 ? items.length * 24 + 16 : minHeight;
                         return Math.max(contentHeight, minHeight);
                     }}
+                    pageSizeOptions={[5, 10, 25]}
+                    initialState={{
+                        sorting: {
+                            sortModel: [{ field: 'name', sort: 'asc' }],
+                        },
+                        pagination: {
+                            paginationModel: { pageSize: 10, page: 0 },
+                        },
+                    }}
                     sx={{
                         '& .MuiDataGrid-row:hover': {
                             cursor: 'pointer',

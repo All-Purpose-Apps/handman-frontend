@@ -237,6 +237,7 @@ export default function ViewOneInvoice() {
         }
     };
 
+
     const handleDeleteItem = (index) => {
         const newItems = editedInvoice.items.filter((_, i) => i !== index);
         setEditedInvoice({
@@ -262,7 +263,6 @@ export default function ViewOneInvoice() {
     };
 
     const getStatusColor = (status) => statusColorMap[status] || 'black';
-
 
     return (
         <Card elevation={3} style={{ padding: '16px' }}>
@@ -572,13 +572,30 @@ export default function ViewOneInvoice() {
                 >
                     View Invoice
                 </Button>}
-                {editedInvoice.fileUrl && !isEditing && <Button
+                {editedInvoice.signedPdfUrl && !isEditing && <Button
+                    variant="contained"
+                    href={editedInvoice.signedPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View Signed Invoice
+                </Button>}
+                {editedInvoice.fileUrl && !editedInvoice.signedPdfUrl && !isEditing && <Button
                     variant="contained"
                     onClick={handleSendInvoice}
                     color="primary"
                 >
                     Send Invoice
                 </Button>}
+                {editedInvoice.signedPdfUrl && !isEditing && <Button
+
+                    variant="contained"
+                    onClick={handleSendInvoice}
+                    color="warning"
+                >
+                    Resend Invoice
+                </Button>}
+
             </CardActions>
             <Modal
                 open={isCreatingPdf}
