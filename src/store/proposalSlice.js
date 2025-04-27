@@ -116,7 +116,7 @@ export const proposalSlice = createSlice({
       })
       .addCase(addProposal.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.proposals.push(action.payload);
+        state.proposals = action.payload;
       })
       .addCase(addProposal.rejected, (state, action) => {
         state.status = 'failed';

@@ -9,41 +9,42 @@ import {
     Menu,
     MenuItem,
 } from '@mui/material';
-import { Menu as MenuIcon, Notifications as NotificationsIcon } from '@mui/icons-material';
+import {
+    Menu as MenuIcon,
+    Notifications as NotificationsIcon,
+} from '@mui/icons-material';
 import { getAuth, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { app } from '../utils/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchNotifications, markNotificationAsRead } from '../store/notificationSlice';
+import dayjs from 'dayjs'; // For formatting timestamps
 
 export default function Topbar() {
     const auth = getAuth(app);
     const navigate = useNavigate();
     const { currentUser } = useAuth();
+    const dispatch = useDispatch();
 
-    // State for notifications
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    // Get notifications from Redux store
+    const notifications = useSelector((state) => state.notifications.notifications);
+    const status = useSelector((state) => state.notifications.status);
+    const error = useSelector((state) => state.notifications.error);
 
     // State for the notification menu
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
-    // Fetch notifications from the backend
+    // Fetch notifications from the Redux store
     useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notifications`); // Replace with your API endpoint
-                setNotifications(response.data);
-                // Assuming each notification has an 'isRead' property
-                setUnreadCount(response.data.filter((n) => !n.isRead).length);
-            } catch (error) {
-                console.error('Error fetching notifications:', error);
-            }
-        };
+        if (status === 'idle') {
+            dispatch(fetchNotifications());
+        }
+    }, [status, dispatch]);
 
-        fetchNotifications();
-    }, []);
+    // Compute unread count dynamically
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
 
     // Handle opening the notification menu
     const handleNotificationClick = (event) => {
@@ -55,6 +56,13 @@ export default function Topbar() {
         setAnchorEl(null);
     };
 
+    // Handle marking a notification as read
+    const handleNotificationRead = (notificationId) => {
+        dispatch(markNotificationAsRead(notificationId));
+        dispatch(fetchNotifications());
+
+    };
+
     // Handle logout
     const handleLogout = async () => {
         try {
@@ -62,7 +70,6 @@ export default function Topbar() {
             navigate('/login');
         } catch (error) {
             console.error('Error signing out:', error);
-            // Optionally display an error message to the user
         }
     };
 
@@ -84,11 +91,11 @@ export default function Topbar() {
                 </Typography>
 
                 {/* Notification Bell Icon */}
-                <IconButton color="inherit" onClick={handleNotificationClick}>
+                {currentUser && <IconButton color="inherit" onClick={handleNotificationClick}>
                     <Badge badgeContent={unreadCount} color="error">
                         <NotificationsIcon />
                     </Badge>
-                </IconButton>
+                </IconButton>}
 
                 {currentUser && (
                     <Button color="inherit" onClick={handleLogout}>
@@ -112,19 +119,28 @@ export default function Topbar() {
                 }}
             >
                 {notifications.length > 0 ? (
-                    notifications.map((notification) => (
-                        <MenuItem
-                            key={notification.id}
-                            onClick={() => {
-                                // Handle notification click (e.g., mark as read, navigate)
-                                handleNotificationClose();
-                            }}
-                        >
-                            {notification.message}
-                        </MenuItem>
-                    ))
+                    [...notifications]
+                        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort notifications by date descending
+                        .map((notification) => (
+                            <MenuItem
+                                key={notification._id}
+                                onClick={() => handleNotificationRead(notification._id)}
+                                style={{
+                                    backgroundColor: notification.isRead ? '#ffffff' : '#f0f0f0',
+                                }}
+                            >
+                                <div>
+                                    <Typography variant="body2">{notification.message}</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {dayjs(notification.date).format('MMM D, YYYY h:mm A')}
+                                    </Typography>
+                                </div>
+                            </MenuItem>
+                        ))
                 ) : (
-                    <MenuItem onClick={handleNotificationClose}>No new notifications</MenuItem>
+                    <MenuItem onClick={handleNotificationClose}>
+                        No new notifications
+                    </MenuItem>
                 )}
             </Menu>
         </AppBar>

@@ -1,5 +1,20 @@
-import React from 'react'
-import { TextField, Typography, Box, Button, Modal, Paper, Grid, Autocomplete, FormControl, InputLabel, Select, MenuItem, IconButton } from '@mui/material'
+import React from 'react';
+import {
+    TextField,
+    Typography,
+    Box,
+    Button,
+    Modal,
+    Paper,
+    Grid,
+    Autocomplete,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    IconButton
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function AddInvoiceModal({
@@ -12,7 +27,8 @@ export default function AddInvoiceModal({
     handleDeleteItem,
     handleAddItem,
     handleAddInvoice,
-    clients }) {
+    clients
+}) {
     const modalStyle = {
         position: 'absolute',
         top: '50%',
@@ -25,22 +41,27 @@ export default function AddInvoiceModal({
         boxShadow: 24,
         p: 4,
     };
+
     return (
         <Modal
             open={openModal}
-            onClose={() => setOpenModal(false)}
+            onClose={(event, reason) => {
+                if (reason !== 'backdropClick') {
+                    setOpenModal(false);
+                }
+            }}
             aria-labelledby="modal-title"
             aria-describedby="modal-description"
         >
             <Paper sx={modalStyle}>
-                <Typography
-                    id="modal-title"
-                    variant="h6"
-                    component="h2"
-                    gutterBottom
-                >
-                    Add New Invoice
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography id="modal-title" variant="h6" component="h2" gutterBottom>
+                        Add New Invoice
+                    </Typography>
+                    <IconButton aria-label="close" onClick={() => setOpenModal(false)}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
                 <form onSubmit={handleAddInvoice}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
@@ -65,41 +86,24 @@ export default function AddInvoiceModal({
                         <Grid item xs={12}>
                             <Autocomplete
                                 options={clients}
-                                getOptionLabel={(client) =>
-                                    `${client.name}`
-                                }
+                                getOptionLabel={(client) => `${client.name}`}
                                 value={newInvoiceData.client}
                                 onChange={handleClientChange}
                                 renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Select Client"
-                                        margin="normal"
-                                        required
-                                    />
+                                    <TextField {...params} label="Select Client" margin="normal" required />
                                 )}
                             />
                         </Grid>
-                        {/* Items */}
                         <Grid item xs={12}>
                             <Typography variant="h6">Items</Typography>
                             {newInvoiceData.items.map((item, index) => (
-                                <Grid
-                                    container
-                                    spacing={2}
-                                    key={index}
-                                    alignItems="center"
-                                >
+                                <Grid container spacing={2} key={index} alignItems="center">
                                     <Grid item xs={12} sm={5}>
                                         <TextField
                                             label="Description"
                                             value={item.description}
                                             onChange={(e) =>
-                                                handleItemChange(
-                                                    index,
-                                                    'description',
-                                                    e.target.value
-                                                )
+                                                handleItemChange(index, 'description', e.target.value)
                                             }
                                             fullWidth
                                             margin="normal"
@@ -112,11 +116,7 @@ export default function AddInvoiceModal({
                                             type="number"
                                             value={item.price}
                                             onChange={(e) =>
-                                                handleItemChange(
-                                                    index,
-                                                    'price',
-                                                    e.target.value
-                                                )
+                                                handleItemChange(index, 'price', e.target.value)
                                             }
                                             fullWidth
                                             margin="normal"
@@ -127,9 +127,7 @@ export default function AddInvoiceModal({
                                         <Grid item xs={12} sm={2}>
                                             <IconButton
                                                 aria-label="delete"
-                                                onClick={() =>
-                                                    handleDeleteItem(index)
-                                                }
+                                                onClick={() => handleDeleteItem(index)}
                                             >
                                                 <DeleteIcon />
                                             </IconButton>
@@ -138,21 +136,16 @@ export default function AddInvoiceModal({
                                 </Grid>
                             ))}
                             {newInvoiceData.items.length < 5 && (
-                                <Button
-                                    variant="contained"
-                                    onClick={handleAddItem}
-                                >
+                                <Button variant="contained" onClick={handleAddItem}>
                                     Add Item
                                 </Button>
                             )}
                         </Grid>
-                        {/* Subtotal 1 */}
                         <Grid item xs={12}>
                             <Typography variant="h6">
                                 Subtotal 1: ${newInvoiceData.subTotal1.toFixed(2)}
                             </Typography>
                         </Grid>
-                        {/* Extra Work/Materials */}
                         <Grid item xs={12}>
                             <TextField
                                 label="Extra Work/Materials"
@@ -163,18 +156,14 @@ export default function AddInvoiceModal({
                                 onChange={handleInputChange}
                             />
                         </Grid>
-                        {/* Subtotal 2 */}
                         <Grid item xs={12}>
                             <Typography variant="h6">
                                 Subtotal 2: ${newInvoiceData.subTotal2.toFixed(2)}
                             </Typography>
                         </Grid>
-                        {/* Payment Method */}
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
-                                <InputLabel id="payment-method-label">
-                                    Payment Method
-                                </InputLabel>
+                                <InputLabel id="payment-method-label">Payment Method</InputLabel>
                                 <Select
                                     labelId="payment-method-label"
                                     name="paymentMethod"
@@ -182,19 +171,14 @@ export default function AddInvoiceModal({
                                     label="Payment Method"
                                     onChange={handleInputChange}
                                 >
-                                    <MenuItem value="awaiting payment">
-                                        Awaiting Payment
-                                    </MenuItem>
+                                    <MenuItem value="awaiting payment">Awaiting Payment</MenuItem>
                                     <MenuItem value="cash">Cash</MenuItem>
                                     <MenuItem value="check">Check</MenuItem>
-                                    <MenuItem value="credit/debit">
-                                        Credit/Debit
-                                    </MenuItem>
+                                    <MenuItem value="credit/debit">Credit/Debit</MenuItem>
                                     <MenuItem value="online">Online</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
-                        {/* Check Number (if payment method is check) */}
                         {newInvoiceData.paymentMethod === 'check' && (
                             <Grid item xs={12} sm={6}>
                                 <TextField
@@ -207,16 +191,13 @@ export default function AddInvoiceModal({
                                 />
                             </Grid>
                         )}
-                        {/* Credit Card Fee */}
                         {newInvoiceData.paymentMethod === 'credit/debit' && (
                             <Grid item xs={12}>
                                 <Typography variant="h6">
-                                    Credit Card Fee (3%): $
-                                    {newInvoiceData.creditCardFee.toFixed(2)}
+                                    Credit Card Fee (3%): ${newInvoiceData.creditCardFee.toFixed(2)}
                                 </Typography>
                             </Grid>
                         )}
-                        {/* Deposit/Adjustment */}
                         <Grid item xs={12}>
                             <TextField
                                 label="Deposit/Adjustment"
@@ -227,18 +208,13 @@ export default function AddInvoiceModal({
                                 onChange={handleInputChange}
                             />
                         </Grid>
-                        {/* Total */}
                         <Grid item xs={12}>
                             <Typography variant="h6">
                                 Total: ${newInvoiceData.total.toFixed(2)}
                             </Typography>
                         </Grid>
                     </Grid>
-                    <Box
-                        display="flex"
-                        justifyContent="flex-end"
-                        marginTop={2}
-                    >
+                    <Box display="flex" justifyContent="flex-end" marginTop={2}>
                         <Button
                             onClick={() => setOpenModal(false)}
                             color="secondary"
@@ -246,16 +222,12 @@ export default function AddInvoiceModal({
                         >
                             Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                        >
+                        <Button type="submit" variant="contained" color="primary">
                             Submit
                         </Button>
                     </Box>
                 </form>
             </Paper>
         </Modal>
-    )
+    );
 }

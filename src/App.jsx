@@ -7,6 +7,7 @@ import Login from './views/Auth/Login';
 import ProtectedRoute from './views/ProtectedRoute';
 import AuthWatcher from './components/AuthWatcher.jsx';
 import SignDocument from './views/User/SignDocument.jsx';
+import { SettingsProvider } from './contexts/SettingsContext.jsx';
 
 export default function App() {
   const getRoutes = () => {
@@ -39,17 +40,19 @@ export default function App() {
   };
 
   return (
-    <AuthProvider>
-      <AuthWatcher />
-      <Routes>
-        <Route path="sign/:token" element={<SignDocument />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/" element={<MainLayout />}>
-          {getRoutes()}
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<NoMatch />} />
-        </Route>
-      </Routes>
-    </AuthProvider>
+    <SettingsProvider>
+      <AuthProvider>
+        <AuthWatcher />
+        <Routes>
+          <Route path="sign/:token" element={<SignDocument />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<MainLayout />}>
+            {getRoutes()}
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<NoMatch />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </SettingsProvider>
   );
 }

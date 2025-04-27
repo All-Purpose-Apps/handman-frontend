@@ -52,7 +52,7 @@ const DashboardPage = () => {
     };
 
     const handleAddProposal = () => {
-        navigate('/proposals', { state: { openAddProposalModal: true } });
+        navigate('/proposals/new');
     };
 
     const handleGoToClient = (id) => () => {
@@ -82,6 +82,7 @@ const DashboardPage = () => {
 
     return (
         <Box sx={{ flexGrow: 1, p: 3 }}>
+
             <Grid container spacing={3}>
                 {/* Info Cards */}
                 <Grid size={{ xs: 12, md: 4 }}>
@@ -177,7 +178,7 @@ const DashboardPage = () => {
                                                 onClick={handleGoToClient(client._id)}
                                             >
                                                 <ListItemText
-                                                    primary={client.name}
+                                                    primary={client.givenName + ' ' + client.familyName}
                                                     secondary={moment(client.updatedAt).format('LL')}
                                                 />
                                                 <Typography variant="body2" color="textSecondary">

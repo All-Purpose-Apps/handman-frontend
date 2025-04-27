@@ -91,6 +91,7 @@ const ClientsPage = () => {
     // Fetch contacts with userEmail as a query param
     const fetchContacts = async () => {
         const accessToken = localStorage.getItem('accessToken');
+
         if (!accessToken || !userEmail) {
             console.error('Access token or user email not found.');
             return;
@@ -106,8 +107,10 @@ const ClientsPage = () => {
                     params: { email: userEmail },
                 }
             );
+
             return response.data;
         } catch (error) {
+            console.error('Error fetching contacts:', error);
             try {
                 await handleGoogleSignIn(auth);
             } catch (error) {

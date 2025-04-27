@@ -6,7 +6,7 @@ export default function AddClientModal({
     handleAddClient,
     openModal,
     handleCloseModal,
-    newClientData,
+    newClientData = { givenName: '', familyName: '', email: '', phone: '', address: '' },
     handleInputChange
 }) {
     const modalStyle = {
@@ -27,6 +27,18 @@ export default function AddClientModal({
                 value: address,
             },
         });
+    };
+
+    const isFormValid = () => {
+        const { givenName = '', familyName = '', email = '', phone = '', address = '' } = newClientData;
+
+        return (
+            givenName.trim() &&
+            familyName.trim() &&
+            email.trim() &&
+            phone.trim() &&
+            address.trim()
+        );
     };
 
     return (
@@ -79,15 +91,17 @@ export default function AddClientModal({
                         onChange={handleAddressChange}
                     />
 
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        style={{ marginTop: 16 }}
-                    >
-                        Save
-                    </Button>
+                    {isFormValid() && (
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            style={{ marginTop: 16 }}
+                        >
+                            Save
+                        </Button>
+                    )}
                 </form>
             </Box>
         </Modal>

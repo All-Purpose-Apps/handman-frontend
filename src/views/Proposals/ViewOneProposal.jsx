@@ -52,7 +52,9 @@ const ViewProposal = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isEditingClient, setIsEditingClient] = useState(false);
     const [isInvoiceModalOpen, setInvoiceModalOpen] = useState(false);
-    const [isCreatingPdf, setIsCreatingPdf] = useState(false); // New state for loading modal
+    const [isCreatingPdf, setIsCreatingPdf] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const [invoiceData, setInvoiceData] = useState({
         invoiceNumber: '',
         invoiceDate: dayjs().format('YYYY-MM-DD'),
@@ -326,6 +328,15 @@ const ViewProposal = () => {
         });
     };
 
+    const handleOpenDeleteModal = () => setIsDeleteModalOpen(true);
+    const handleCloseDeleteModal = () => setIsDeleteModalOpen(false);
+
+    const handleConfirmDelete = async () => {
+        await dispatch(deleteProposal(id));
+        navigate('/proposals');
+        setIsDeleteModalOpen(false);
+    };
+
     const calculateTotals = useCallback(() => {
         let subTotal1 = invoiceData.items.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
         let subTotal2 = subTotal1 + parseFloat(invoiceData.extraWorkMaterials || 0);
@@ -402,7 +413,7 @@ const ViewProposal = () => {
                         <Button
                             variant="contained"
                             color="error"
-                            onClick={handleDeleteProposal}
+                            onClick={handleOpenDeleteModal}
                         >
                             Delete
                         </Button>
@@ -450,7 +461,7 @@ const ViewProposal = () => {
                         <Button
                             variant="contained"
                             color="error"
-                            onClick={handleDeleteProposal}
+                            onClick={handleOpenDeleteModal}
                         >
                             Delete
                         </Button>
@@ -495,7 +506,7 @@ const ViewProposal = () => {
                         {!isEditing && <Button
                             variant="contained"
                             color="error"
-                            onClick={handleDeleteProposal}
+                            onClick={handleOpenDeleteModal}
                         >
                             Delete
                         </Button>}
@@ -747,6 +758,40 @@ const ViewProposal = () => {
                         <Typography variant="h6" mt={2}>
                             Creating Pdf...
                         </Typography>
+                    </Box>
+                </Box>
+            </Modal>
+            <Modal
+                open={isDeleteModalOpen}
+                onClose={handleCloseDeleteModal}
+                aria-labelledby="delete-confirmation-modal"
+                aria-describedby="delete-confirmation-description"
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    bgcolor="background.paper"
+                    p={4}
+                    borderRadius={1}
+                    boxShadow={3}
+                    sx={{ width: { xs: '80%', md: 400 }, margin: 'auto', textAlign: 'center' }}
+                >
+                    <Typography variant="h6" mb={2} id="delete-confirmation-modal">
+                        Are you sure you want to delete this proposal?
+                    </Typography>
+                    <Box display="flex" justifyContent="space-around" width="100%">
+                        <Button variant="contained" onClick={handleCloseDeleteModal}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={handleConfirmDelete}
+                        >
+                            Confirm Delete
+                        </Button>
                     </Box>
                 </Box>
             </Modal>

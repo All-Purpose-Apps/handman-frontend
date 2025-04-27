@@ -9,6 +9,7 @@ import ViewOneProposal from './views/Proposals/ViewOneProposal';
 import Calendar from './views/Calendar';
 import Dashboard from './views/Dashboard';
 import SignDocument from './views/User/SignDocument';
+import Settings from './views/Settings';
 
 import {
   Home as HomeIcon,
@@ -20,7 +21,11 @@ import {
   AttachMoney as AttachMoneyIcon,
   CalendarMonth as CalendarMonthIcon,
 } from '@mui/icons-material';
+import SettingsIcon from '@mui/icons-material/Settings';
 import ViewOneInvoice from './views/Invoices/ViewOneInvoice';
+import PriceComparison from './views/Proposals/PriceComparison';
+import MaterialsListing from './views/Proposals/MaterialsListing';
+import AddProposalForm from './views/Proposals/AddProposalForm';
 
 export const routes = [
   {
@@ -53,6 +58,11 @@ export const routes = [
     protected: true,
   },
   {
+    path: '/proposals/new',
+    component: AddProposalForm,
+    protected: true,
+  },
+  {
     path: '/proposals/:id',
     component: ViewOneProposal,
     protected: true,
@@ -70,6 +80,27 @@ export const routes = [
     component: ViewOneInvoice,
     protected: true,
   },
+  {
+    path: '/settings',
+    component: Settings,
+    name: 'Settings',
+    sidebar: true,
+    icon: SettingsIcon,
+    protected: true,
+  },
+  {
+    path: '/proposal/:id/materials-list',
+    component: MaterialsListing,
+    protected: true,
+  },
+  // {
+  //   path: '/prices',
+  //   component: PriceComparison,
+  //   name: 'Price Comparison',
+  //   sidebar: true,
+  //   icon: AttachMoneyIcon,
+  //   protected: true,
+  // },
   // {
   //   path: '/calendar',
   //   component: Calendar,

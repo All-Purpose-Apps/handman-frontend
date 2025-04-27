@@ -7,7 +7,6 @@ export const handleGoogleSignIn = async (auth) => {
   if (signInInProgress) return; // Prevent multiple popups
   signInInProgress = true;
   localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
-  console.log(signInInProgress);
 
   const provider = new GoogleAuthProvider();
 
@@ -40,6 +39,5 @@ export const handleGoogleSignIn = async (auth) => {
   } finally {
     signInInProgress = false; // Reset the flag
     localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
-    console.log(signInInProgress);
   }
 };
