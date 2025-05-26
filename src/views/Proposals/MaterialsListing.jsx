@@ -165,7 +165,7 @@ const MaterialsListing = () => {
       </form>
 
       {materials.length > 0 && (
-        <> q q
+        <>
           <Table>
             <TableHead>
               <TableRow>

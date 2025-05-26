@@ -495,7 +495,7 @@ const ViewProposal = () => {
                                 View Proposal
                             </Button>
                         )}
-                        {proposal.fileUrl && proposal.status == "draft" && (
+                        {proposal.fileUrl && (
                             <Button
                                 variant="contained"
                                 onClick={handleSendProposal}

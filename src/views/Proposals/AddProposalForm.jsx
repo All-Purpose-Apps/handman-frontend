@@ -34,7 +34,6 @@ export default function AddProposalForm() {
     const [materials, setMaterials] = useState([]);
     const [materialsTotal, setMaterialsTotal] = useState(0);
     const [materialsDiscountPrice, setMaterialsDiscountPrice] = useState(0);
-
     const clients = useSelector((state) => state.clients.clients);
     const proposals = useSelector((state) => state.proposals.proposals);
 
@@ -155,6 +154,7 @@ export default function AddProposalForm() {
             0
         );
         const total = itemsTotal + parseFloat(materialsDiscountPrice || 0);
+        console.log('Materials Discount Price:', materialsDiscountPrice);
         setNewProposalData((prev) => ({
             ...prev,
             packagePrice: total,
@@ -173,8 +173,8 @@ export default function AddProposalForm() {
         if (materials.length > 0) {
             allItems.push({
                 description: 'Materials',
-                regularPrice: materialsTotal.toFixed(2),
-                discountPrice: materialsDiscountPrice.toFixed(2),
+                regularPrice: materialsTotal,
+                discountPrice: materialsDiscountPrice,
             });
         }
 
