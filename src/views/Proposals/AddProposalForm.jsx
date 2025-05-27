@@ -11,8 +11,10 @@ import {
 import { Autocomplete } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { useDispatch, useSelector } from 'react-redux';
 import { addProposal, fetchProposals } from '../../store/proposalSlice';
+import { getMaterialList } from '../../store/materialsSlice';
 import { fetchClients } from '../../store/clientSlice';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -36,10 +38,12 @@ export default function AddProposalForm() {
     const [materialsDiscountPrice, setMaterialsDiscountPrice] = useState(0);
     const clients = useSelector((state) => state.clients.clients);
     const proposals = useSelector((state) => state.proposals.proposals);
+    const materialsList = useSelector((state) => state.materials.materialsList);
 
     useEffect(() => {
         dispatch(fetchClients());
         dispatch(fetchProposals());
+
     }, [dispatch]);
 
     useEffect(() => {
@@ -55,9 +59,12 @@ export default function AddProposalForm() {
                     ...prev,
                     proposalNumber: `${latestNumber + 1}`,
                 }));
+                dispatch(getMaterialList(newProposalData.proposalNumber));
             } else {
                 setNewProposalData((prev) => ({ ...prev, proposalNumber: '9001' }));
+                dispatch(getMaterialList('9001'));
             }
+
         }
     }, [proposals, newProposalData.proposalNumber]);
 
@@ -230,6 +237,15 @@ export default function AddProposalForm() {
         setMaterialsDiscountPrice(value);
     };
 
+    const handleEditMaterialsList = () => {
+        navigate(`/proposal/${newProposalData.proposalNumber}/materials-list`, {
+            state: {
+                isEditing: true,
+                existingMaterials: materialsList,
+            },
+        });;
+    }
+
     return (
         <Paper sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -365,6 +381,14 @@ export default function AddProposalForm() {
                                         required
                                     />
                                 </Grid>
+                                <Grid item xs={12} sm={1}>
+                                    <IconButton
+                                        aria-label="edit"
+                                        onClick={() => handleEditMaterialsList()}
+                                    >
+                                        <EditIcon />
+                                    </IconButton>
+                                </Grid>
                             </Grid>
                         )}
                         {newProposalData.items.length < 5 && (
@@ -410,6 +434,6 @@ export default function AddProposalForm() {
                     </Button>
                 </Box>
             </form>
-        </Paper>
+        </Paper >
     );
 }

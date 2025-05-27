@@ -13,18 +13,20 @@ import {
   Autocomplete,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
-import { useParams, useNavigate } from 'react-router-dom';
-import PriceComparison from './PriceComparison';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllMaterials } from '../../store/materialsSlice';
-import axios from 'axios';
+import { getAllMaterials, createMaterialsList, getMaterialList } from '../../store/materialsSlice';
 
 const MaterialsListing = () => {
   const { id: proposalNumber } = useParams(); // Get proposal number from route
+  const location = useLocation();
+  const isEditing = location.state?.isEditing;
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const listOfMaterials = useSelector((state) => state.materials.items);
+  const materialList = useSelector((state) => state.materials.materialList);
 
   const [materials, setMaterials] = useState([]);
   const [materialInput, setMaterialInput] = useState({
@@ -36,6 +38,16 @@ const MaterialsListing = () => {
 
   useEffect(() => {
     dispatch(getAllMaterials());
+    dispatch(getMaterialList(proposalNumber)).then((response) => {
+      if (response.meta.requestStatus === 'fulfilled') {
+        const existingMaterials = response.payload.materials || [];
+        console.log('Existing materials:', existingMaterials);
+        setMaterials(existingMaterials);
+      } else {
+        console.error('Failed to fetch materials list');
+      }
+    });
+
   }, [dispatch]);
 
   // Load materials associated with this proposal number
@@ -94,34 +106,25 @@ const MaterialsListing = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const total = materials.reduce((acc, item) => acc + item.total, 0);
+
+    dispatch(
+      createMaterialsList({
+        proposal: proposalNumber,
+        materials,
+        total
+      })
+    ).then((response) => {
+
+      if (response.meta.requestStatus === 'fulfilled') {
+        alert('Materials submitted successfully!');
+      } else {
+        alert('Failed to submit materials. Please try again.');
+      }
+    });
     navigate(-1); // Go back to the previous page
   };
 
-  const [openModal, setOpenModal] = useState(false);
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-  };
-
-  const handleImportProduct = (product) => {
-    const quantity = 1;
-    const price = parseFloat(product.price);
-    const total = quantity * price;
-
-    const updatedMaterials = [
-      ...materials,
-      {
-        material: product.name,
-        quantity,
-        price,
-        total,
-      },
-    ];
-
-    setMaterials(updatedMaterials);
-
-    setOpenModal(false); // Close the modal after importing
-  };
 
   const grandTotal = materials.reduce((acc, item) => acc + item.total, 0);
 
@@ -191,9 +194,6 @@ const MaterialsListing = () => {
             <Button variant="contained" type="submit" fullWidth sx={{ marginBottom: '2px' }}>
               Add Material
             </Button>
-            {/* <Button variant="contained" onClick={() => setOpenModal(true)} fullWidth>
-              Import Material
-            </Button> */}
           </Grid>
         </Grid>
       </form>
@@ -246,11 +246,6 @@ const MaterialsListing = () => {
           </Button>
         </>
       )}
-      <PriceComparison
-        open={openModal}
-        onClose={handleCloseModal}
-        onImport={handleImportProduct}
-      />
     </div>
   );
 };

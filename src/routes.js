@@ -23,7 +23,6 @@ import {
 } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ViewOneInvoice from './views/Invoices/ViewOneInvoice';
-import PriceComparison from './views/Proposals/PriceComparison';
 import MaterialsListing from './views/Proposals/MaterialsListing';
 import AddProposalForm from './views/Proposals/AddProposalForm';
 
@@ -93,14 +92,6 @@ export const routes = [
     component: MaterialsListing,
     protected: true,
   },
-  // {
-  //   path: '/prices',
-  //   component: PriceComparison,
-  //   name: 'Price Comparison',
-  //   sidebar: true,
-  //   icon: AttachMoneyIcon,
-  //   protected: true,
-  // },
   // {
   //   path: '/calendar',
   //   component: Calendar,

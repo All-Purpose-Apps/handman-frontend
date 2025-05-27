@@ -5,18 +5,10 @@ const accessToken = localStorage.getItem('accessToken');
 
 const initialState = {
   items: [],
+  materialsList: [],
   loading: false,
   error: null,
 };
-
-export const fetchMaterials = createAsyncThunk('materials/fetchMaterials', async (_, { rejectWithValue }) => {
-  try {
-    const response = await axios.get('/api/materials');
-    return response.data;
-  } catch (err) {
-    return rejectWithValue(err.response?.data || err.message);
-  }
-});
 
 export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', async (_, { rejectWithValue }) => {
   try {
@@ -32,28 +24,43 @@ export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', asy
   }
 });
 
-export const addMaterial = createAsyncThunk('materials/addMaterial', async (material, { rejectWithValue }) => {
+export const createMaterialsList = createAsyncThunk('materials/createMaterialsList', async (materials, { rejectWithValue }) => {
   try {
-    const response = await axios.post('/api/materials', material);
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/create-materials-list`, materials, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || err.message);
   }
 });
 
-export const updateMaterial = createAsyncThunk('materials/updateMaterial', async ({ id, updates }, { rejectWithValue }) => {
+export const getMaterialList = createAsyncThunk('materials/getMaterialList', async (proposalNumber, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`/api/materials/${id}`, updates);
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list/${proposalNumber}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || err.message);
   }
 });
 
-export const deleteMaterial = createAsyncThunk('materials/deleteMaterial', async (id, { rejectWithValue }) => {
+export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsList', async ({ proposalNumber, materials }, { rejectWithValue }) => {
   try {
-    await axios.delete(`/api/materials/${id}`);
-    return id;
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/materials/update-materials-list/${proposalNumber}`, materials, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || err.message);
   }
@@ -65,30 +72,6 @@ const materialsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchMaterials.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchMaterials.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = action.payload;
-      })
-      .addCase(fetchMaterials.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(addMaterial.fulfilled, (state, action) => {
-        state.items.push(action.payload);
-      })
-      .addCase(updateMaterial.fulfilled, (state, action) => {
-        const index = state.items.findIndex((m) => m.id === action.payload.id);
-        if (index !== -1) {
-          state.items[index] = action.payload;
-        }
-      })
-      .addCase(deleteMaterial.fulfilled, (state, action) => {
-        state.items = state.items.filter((m) => m.id !== action.payload);
-      })
       .addCase(getAllMaterials.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -98,6 +81,42 @@ const materialsSlice = createSlice({
         state.items = action.payload;
       })
       .addCase(getAllMaterials.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createMaterialsList.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createMaterialsList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.materialsList = action.payload;
+      })
+      .addCase(createMaterialsList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getMaterialList.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getMaterialList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.materialsList = action.payload;
+      })
+      .addCase(getMaterialList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateMaterialsList.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateMaterialsList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.materialsList = action.payload;
+      })
+      .addCase(updateMaterialsList.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
