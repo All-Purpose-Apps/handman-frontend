@@ -5,6 +5,7 @@ import lastSyncReducer from './lastSyncSlice';
 import invoiceReducer from './invoiceSlice';
 import notificationReducer from './notificationSlice';
 import productReducer from './productSlice';
+import materialsReducer from './materialsSlice';
 
 export default configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export default configureStore({
     invoices: invoiceReducer,
     notifications: notificationReducer,
     products: productReducer,
+    materials: materialsReducer,
   },
 });

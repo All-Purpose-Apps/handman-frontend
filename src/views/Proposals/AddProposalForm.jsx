@@ -154,7 +154,7 @@ export default function AddProposalForm() {
             0
         );
         const total = itemsTotal + parseFloat(materialsDiscountPrice || 0);
-        console.log('Materials Discount Price:', materialsDiscountPrice);
+
         setNewProposalData((prev) => ({
             ...prev,
             packagePrice: total,

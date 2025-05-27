@@ -10,14 +10,21 @@ import {
   IconButton,
   Typography,
   Grid,
+  Autocomplete,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import PriceComparison from './PriceComparison';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllMaterials } from '../../store/materialsSlice';
+import axios from 'axios';
 
 const MaterialsListing = () => {
   const { id: proposalNumber } = useParams(); // Get proposal number from route
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const listOfMaterials = useSelector((state) => state.materials.items);
 
   const [materials, setMaterials] = useState([]);
   const [materialInput, setMaterialInput] = useState({
@@ -25,6 +32,11 @@ const MaterialsListing = () => {
     quantity: '',
     price: '',
   });
+
+
+  useEffect(() => {
+    dispatch(getAllMaterials());
+  }, [dispatch]);
 
   // Load materials associated with this proposal number
   useEffect(() => {
@@ -40,6 +52,7 @@ const MaterialsListing = () => {
       `materials_${proposalNumber}`,
       JSON.stringify(materials)
     );
+
   }, [materials, proposalNumber]);
 
   const handleChange = (e) => {
@@ -120,13 +133,34 @@ const MaterialsListing = () => {
       <form onSubmit={handleAddMaterial} style={{ marginBottom: '1rem' }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={7}>
-            <TextField
-              label="Material"
-              name="material"
+            <Autocomplete
+              freeSolo
+              options={[...new Set(listOfMaterials.map((m) => m.name))]}
               value={materialInput.material}
-              onChange={handleChange}
-              required
-              fullWidth
+              onChange={(event, newValue) => {
+                const selectedMaterial = listOfMaterials.find(m => m.name === newValue);
+                setMaterialInput({
+                  ...materialInput,
+                  material: newValue || '',
+                  price: selectedMaterial ? selectedMaterial.price : '',
+                });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Material"
+                  name="material"
+                  onChange={(e) => {
+                    setMaterialInput({
+                      ...materialInput,
+                      material: e.target.value,
+
+                    });
+                  }}
+                  required
+                  fullWidth
+                />
+              )}
             />
           </Grid>
           <Grid item xs={6} md={1}>
@@ -178,11 +212,11 @@ const MaterialsListing = () => {
             </TableHead>
             <TableBody>
               {materials.map((item, index) => (
-                <TableRow key={index}>
+                <TableRow key={`${item.material}-${index}`}>
                   <TableCell>{item.material}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
-                  <TableCell>{item.price}</TableCell>
-                  <TableCell>{item.total}</TableCell>
+                  <TableCell>${parseFloat(item.price).toFixed(2)}</TableCell>
+                  <TableCell>${parseFloat(item.total).toFixed(2)}</TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleDeleteMaterial(index)}>
                       <Delete />
@@ -195,7 +229,7 @@ const MaterialsListing = () => {
                   <strong>Grand Total:</strong>
                 </TableCell>
                 <TableCell>
-                  <strong>{grandTotal.toFixed(2)}</strong>
+                  <strong>${grandTotal.toFixed(2)}</strong>
                 </TableCell>
                 <TableCell></TableCell>
               </TableRow>

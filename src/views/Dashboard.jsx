@@ -113,6 +113,28 @@ const DashboardPage = () => {
                             variant="contained"
                             color="primary"
                             fullWidth
+                            onClick={handleAddProposal}
+                        >
+                            Add Proposal
+                        </Button>
+                        <Card onClick={handleNavigate('/proposals')} sx={{ cursor: 'pointer' }}>
+                            <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
+                                <DescriptionIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
+                                <Box>
+                                    <Typography variant="h5">{proposals.length}</Typography>
+                                    <Typography color="textSecondary">Total Proposals</Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Box>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                    <Box sx={{ mb: 2 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
                             onClick={handleAddInvoice}
                         >
                             Add Invoice
@@ -129,27 +151,7 @@ const DashboardPage = () => {
                     </Box>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <Box sx={{ mb: 2 }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            onClick={handleAddProposal}
-                        >
-                            Add Proposal
-                        </Button>
-                        <Card onClick={handleNavigate('/proposals')} sx={{ cursor: 'pointer' }}>
-                            <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
-                                <DescriptionIcon color="primary" sx={{ fontSize: 40, mr: 2 }} />
-                                <Box>
-                                    <Typography variant="h5">{proposals.length}</Typography>
-                                    <Typography color="textSecondary">Total Proposals</Typography>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Box>
-                </Grid>
+
 
                 {/* Recent Clients */}
                 <Grid size={{ xs: 12, md: 6 }}>
