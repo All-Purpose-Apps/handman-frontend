@@ -172,8 +172,10 @@ const ClientsPage = () => {
     };
 
     const handleOpenModal = () => setOpenModal(true);
-    const handleCloseModal = () => {
-        setOpenModal(false);
+    const handleCloseModal = (event, reason) => {
+        if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
+            setOpenModal(false);
+        }
         setNewClientData({
             givenName: '',
             familyName: '',

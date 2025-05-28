@@ -9,6 +9,8 @@ export default function AddClientModal({
     newClientData = { givenName: '', familyName: '', email: '', phone: '', address: '' },
     handleInputChange
 }) {
+    const [selectedFromAutocomplete, setSelectedFromAutocomplete] = useState(false);
+
     const modalStyle = {
         position: 'absolute',
         top: '50%',
@@ -20,7 +22,8 @@ export default function AddClientModal({
         p: 4,
     };
 
-    const handleAddressChange = (address) => {
+    const handleAddressChange = (address, isValidSelection) => {
+        setSelectedFromAutocomplete(isValidSelection);
         handleInputChange({
             target: {
                 name: 'address',
@@ -33,6 +36,7 @@ export default function AddClientModal({
         const { givenName = '', familyName = '', email = '', phone = '', address = '' } = newClientData;
 
         return (
+            selectedFromAutocomplete &&
             givenName.trim() &&
             familyName.trim() &&
             email.trim() &&
@@ -42,12 +46,22 @@ export default function AddClientModal({
     };
 
     return (
-        <Modal open={openModal} onClose={handleCloseModal}>
+        <Modal
+            open={openModal}
+            onClose={handleCloseModal}
+        >
             <Box sx={modalStyle}>
                 <Typography variant="h6" component="h2" gutterBottom>
                     Add New Client
                 </Typography>
-                <form onSubmit={handleAddClient}>
+                <form
+                    onSubmit={handleAddClient}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                        }
+                    }}
+                >
                     <TextField
                         label="First Name"
                         name="givenName"
@@ -89,6 +103,7 @@ export default function AddClientModal({
                     <AddressAutocomplete
                         value={newClientData.address}
                         onChange={handleAddressChange}
+
                     />
 
                     {isFormValid() && (

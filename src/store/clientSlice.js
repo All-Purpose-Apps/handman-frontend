@@ -52,6 +52,7 @@ export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (
 // Add a new client
 export const addClient = createAsyncThunk('clients/addClient', async (client, { rejectWithValue }) => {
   const accessToken = localStorage.getItem('accessToken');
+  console.log('Adding client:', client);
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients`, client, {
       headers: {
