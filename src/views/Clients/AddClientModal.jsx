@@ -51,6 +51,20 @@ export default function AddClientModal({
             onClose={handleCloseModal}
         >
             <Box sx={modalStyle}>
+                <Button
+                    onClick={handleCloseModal}
+                    style={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        minWidth: 'auto',
+                        padding: '6px 10px',
+                        fontSize: '2rem',
+                        lineHeight: 1,
+                    }}
+                >
+                    ×
+                </Button>
                 <Typography variant="h6" component="h2" gutterBottom>
                     Add New Client
                 </Typography>

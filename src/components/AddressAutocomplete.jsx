@@ -24,15 +24,18 @@ const AddressAutocomplete = ({ value, onChange }) => {
     };
 
     return isLoaded ? (
-        <div
-            onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }}
+        <Autocomplete
+            onLoad={onLoad}
+            onPlaceChanged={onPlaceChanged}
         >
-            <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
+            <div
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }}
+            >
                 <input
                     type="text"
                     placeholder="Enter address"
@@ -42,15 +45,24 @@ const AddressAutocomplete = ({ value, onChange }) => {
                         setAddress(e.target.value);
                         onChange(e.target.value, false);
                     }}
+                    autoComplete="off"
                     style={{
                         width: '100%',
                         padding: '20px',
                         zIndex: 1300,
-                        position: 'relative'
+                        position: 'relative',
+                    }}
+                    onFocus={(e) => {
+                        // Optional: select text on focus
+                        e.target.select();
+                    }}
+                    onClick={(e) => {
+                        // Optional: prevent bubbling
+                        e.stopPropagation();
                     }}
                 />
-            </Autocomplete>
-        </div>
+            </div>
+        </Autocomplete>
     ) : (
         <p>Loading...</p>
     );
