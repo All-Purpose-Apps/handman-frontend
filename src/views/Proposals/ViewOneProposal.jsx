@@ -1,10 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOneProposal, updateProposal, deleteProposal } from '../../store/proposalSlice';
-import { addInvoice, fetchInvoices } from '../../store/invoiceSlice';
-import { fetchClients } from '../../store/clientSlice';
-import axios from 'axios';
 import {
     CircularProgress,
     Typography,
@@ -33,20 +29,33 @@ import {
     ListItemText,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ConvertInvoiceModal from './ConverInvoiceModal';
-import dayjs from 'dayjs';
+import EditIcon from '@mui/icons-material/Edit';
 import moment from 'moment';
 import { getAuth } from 'firebase/auth';
+import axios from 'axios';
+import ConvertInvoiceModal from './ConverInvoiceModal';
+import {
+    fetchOneProposal,
+    updateProposal,
+    deleteProposal
+} from '../../store/proposalSlice';
+import { addInvoice, fetchInvoices } from '../../store/invoiceSlice';
+import { fetchClients } from '../../store/clientSlice';
+import { getMaterialListById, updateMaterialsList } from '../../store/materialsSlice';
 import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
-import SignaturePad from 'react-signature-pad-wrapper';
 
 
 const ViewProposal = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
-    const navigate = useNavigate();
+
     const auth = getAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+
     const { proposal, status, error } = useSelector((state) => state.proposals);
+    const { materialsList } = useSelector((state) => state.materials);
     const { clients } = useSelector((state) => state.clients);
     const { invoices } = useSelector((state) => state.invoices);
     const [isEditing, setIsEditing] = useState(false);
@@ -54,10 +63,12 @@ const ViewProposal = () => {
     const [isInvoiceModalOpen, setInvoiceModalOpen] = useState(false);
     const [isCreatingPdf, setIsCreatingPdf] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [materialsListDiscount, setMaterialsListDiscount] = useState(0);
+
 
     const [invoiceData, setInvoiceData] = useState({
         invoiceNumber: '',
-        invoiceDate: dayjs().format('YYYY-MM-DD'),
+        invoiceDate: moment().format('YYYY-MM-DD'),
         client: null,
         items: [],
         subTotal1: 0,
@@ -76,29 +87,36 @@ const ViewProposal = () => {
         proposalTitle: '',
         proposalDate: '',
         packagePrice: 0,
+        materialsIncludedPrice: 0,
     });
 
+
+
     useEffect(() => {
-        dispatch(fetchOneProposal(id));
+        dispatch(fetchOneProposal(id)).then((response) => {
+            if (response.meta.requestStatus === 'fulfilled') {
+                dispatch(getMaterialListById(response.payload.materialsListId)).then((materialsResponse) => {
+                    if (materialsResponse.meta.requestStatus === 'fulfilled') {
+                        setMaterialsListDiscount(materialsResponse.payload.discountTotal);
+                    }
+                });
+            } else {
+                console.error('Failed to fetch proposal:', response.error);
+            }
+        });
         dispatch(fetchInvoices());
         dispatch(fetchClients());
+        // Fetch the proposal data when the component mounts        
     }, [dispatch, id]);
 
     useEffect(() => {
-        if (invoices.length > 0) {
-            const latestInvoiceNumber = Math.max(
-                ...invoices.map((inv) => parseInt(inv.invoiceNumber, 10))
-            );
-            setInvoiceData((prevData) => ({
-                ...prevData,
-                invoiceNumber: (latestInvoiceNumber + 1).toString(),
-            }));
-        } else {
-            setInvoiceData((prevData) => ({
-                ...prevData,
-                invoiceNumber: '1001',
-            }));
-        }
+        const latestNumber = invoices.length > 0
+            ? Math.max(...invoices.map((inv) => parseInt(inv.invoiceNumber || 0, 10)))
+            : 1000;
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            invoiceNumber: (latestNumber + 1).toString(),
+        }));
     }, [invoices]);
 
     useEffect(() => {
@@ -115,15 +133,16 @@ const ViewProposal = () => {
     }, [proposal]);
 
     const calculatePackageTotal = useCallback(() => {
+        materialsListDiscount
         const total = editedProposal.items.reduce(
             (sum, item) => sum + parseFloat(item.discountPrice || 0),
             0
-        );
+        ) + parseFloat(materialsListDiscount || 0);
         setEditedProposal((prevData) => ({
             ...prevData,
             packagePrice: total,
         }));
-    }, [editedProposal.items]);
+    }, [editedProposal.items, editedProposal.materialsIncludedPrice, materialsListDiscount]);
 
     useEffect(() => {
         calculatePackageTotal();
@@ -154,6 +173,10 @@ const ViewProposal = () => {
         });
     };
 
+    const handleMaterialsDiscountChange = (value) => {
+        setMaterialsListDiscount(value);
+    }
+
     const handleAddItem = () => {
         if (editedProposal.items.length < 5) {
             setEditedProposal({
@@ -177,8 +200,14 @@ const ViewProposal = () => {
     const handleEditToggle = async () => {
         if (isEditing) {
             await dispatch(
-                updateProposal({ ...editedProposal, fileUrl: '', updatedAt: new Date().toISOString() })
+                updateProposal({ ...editedProposal, fileUrl: '', updatedAt: moment().toISOString() })
             );
+            await dispatch(
+                updateMaterialsList({
+                    id: materialsList._id,
+                    discountTotal: materialsListDiscount,
+                })
+            )
             dispatch(fetchOneProposal(id));
         }
         setIsEditing(!isEditing);
@@ -198,12 +227,11 @@ const ViewProposal = () => {
                     },
                 }
             );
-
             await dispatch(
                 updateProposal({
                     ...editedProposal,
                     fileUrl: response.data.url,
-                    updatedAt: new Date().toISOString(),
+                    updatedAt: moment().toISOString(),
                 })
             );
             await dispatch(fetchOneProposal(id));
@@ -222,22 +250,17 @@ const ViewProposal = () => {
         setIsEditingClient(event.target.checked);
     };
 
-    const handleDeleteProposal = async () => {
-        await dispatch(deleteProposal(id));
-        navigate('/proposals');
-    };
-
     const handleOpenInvoiceModal = () => {
         setInvoiceData({
             ...invoiceData,
-            invoiceDate: dayjs().format('YYYY-MM-DD'),
+            invoiceDate: moment().format('YYYY-MM-DD'),
             client: editedProposal.client || null,
             items: editedProposal.items.map((item) => ({
                 description: item.description,
                 price: item.discountPrice,
             })),
             subTotal1: 0,
-            extraWorkMaterials: 0,
+            extraWorkMaterials: materialsListDiscount,
             subTotal2: 0,
             paymentMethod: 'awaiting payment',
             checkNumber: '',
@@ -254,7 +277,6 @@ const ViewProposal = () => {
 
     const handleAddInvoice = async (event) => {
         event.preventDefault();
-
         try {
             const response = await dispatch(addInvoice(invoiceData));
             await dispatch(
@@ -262,7 +284,7 @@ const ViewProposal = () => {
                     ...editedProposal,
                     status: 'converted to invoice',
                     invoiceId: response.payload._id,
-                    updatedAt: new Date().toISOString(),
+                    updatedAt: moment().toISOString(),
                 })
             );
             setInvoiceModalOpen(false);
@@ -277,11 +299,53 @@ const ViewProposal = () => {
     };
 
     const handleSendProposal = async () => {
-        dispatch(updateProposal({ ...editedProposal, status: 'sent to client' }));
-        console.log('Sending proposal to client...');
-        dispatch(fetchOneProposal(id));
-        console.log('Proposal sent');
-    }
+        const accessToken = localStorage.getItem('accessToken');
+        // const token = await axios.post(
+        //     `${import.meta.env.VITE_BACKEND_URL}/api/invoices/create-token`,
+        //     {
+        //         invoiceId: editedInvoice._id,
+        //         data: { invoiceUrl: editedInvoice.fileUrl },
+        //     },
+        //     {
+        //         headers: {
+        //             Authorization: `Bearer ${accessToken}`,
+        //             withCredentials: true,
+        //         },
+        //     }
+        // );
+
+        // const tokenUrl = `${import.meta.env.VITE_FRONTEND_URL}/sign/${token.data.token}`;
+
+        if (editedProposal.fileUrl) {
+
+            try {
+                await axios.post(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/gmail/send-proposal`,
+                    {
+                        to: editedProposal.client?.email,
+                        subject: `Proposal ${editedProposal.proposalNumber}`,
+                        body: `Dear ${editedProposal.client?.name},<br><br>Please find your proposal attached.<br><br>Thank you,<br>Han-D-Man Pro`,
+                        pdfUrl: editedProposal.fileUrl,
+                        proposal: editedProposal,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                            withCredentials: true,
+                        },
+                    }
+                );
+                alert('Proposal sent successfully!');
+            } catch (error) {
+                console.error('Error sending proposal:', error);
+                alert('Failed to send proposal.');
+            } finally {
+                dispatch(fetchOneProposal(id));
+            }
+        } else {
+            alert('Please create the PDF first before sending.');
+        }
+    };
 
     // Invoice Modal Handlers
     const handleInvoiceInputChange = (e) => {
@@ -362,6 +426,26 @@ const ViewProposal = () => {
     useEffect(() => {
         calculateTotals();
     }, [calculateTotals]);
+
+
+
+    const handleEditMaterialsList = () => {
+
+        if (!materialsList || !materialsList.proposal) {
+            console.error('No materials list found for this proposal.');
+            return;
+        }
+
+        navigate(`/proposal/${materialsList.proposal}/materials-list`, {
+            state: {
+                isEditing: true,
+                existingMaterials: materialsList,
+            },
+        });;
+    }
+
+
+
 
 
     if (status === 'loading' || !proposal) {
@@ -516,7 +600,7 @@ const ViewProposal = () => {
     };
 
     return (
-        <Card elevation={3} style={{ padding: '16px' }}>
+        <Card elevation={3} sx={{ p: 2 }}>
             <CardContent>
 
                 <Typography variant="h6">
@@ -535,7 +619,7 @@ const ViewProposal = () => {
                                     label="Proposal Date"
                                     type="date"
                                     fullWidth
-                                    value={dayjs(editedProposal.proposalDate).format(
+                                    value={moment(editedProposal.proposalDate).format(
                                         'YYYY-MM-DD'
                                     )}
                                     onChange={handleInputChange}
@@ -544,7 +628,7 @@ const ViewProposal = () => {
                             ) : (
                                 <Typography variant="body1">
                                     <strong>Proposal Date:</strong>{' '}
-                                    {dayjs(proposal?.proposalDate).format('MM/DD/YYYY') ||
+                                    {moment(proposal?.proposalDate).format('MM/DD/YYYY') ||
                                         'Loading...'}
                                 </Typography>
                             )}
@@ -605,7 +689,7 @@ const ViewProposal = () => {
 
                         {proposal.fileUrl && (
                             <Typography variant="body2">
-                                updated {moment.utc(editedProposal.updatedAt).fromNow()} on {moment.utc(editedProposal.updatedAt).format('MM/DD/YYYY')}
+                                updated {moment(editedProposal.updatedAt).fromNow()} on {moment(editedProposal.updatedAt).format('MM/DD/YYYY')}
                             </Typography>
                         )}
                     </Grid>
@@ -625,6 +709,45 @@ const ViewProposal = () => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
+                                    {materialsList && !isEditing && (
+                                        <TableRow>
+                                            <TableCell><strong>Materials Included</strong></TableCell>
+                                            <TableCell>
+                                                ${materialsList?.materials?.reduce((sum, mat) => sum + (mat.total || 0), 0).toFixed(2)}
+                                            </TableCell>
+                                            <TableCell>
+                                                ${materialsList?.discountTotal}
+                                            </TableCell>
+                                        </TableRow>)}
+                                    {isEditing && materialsList && (
+                                        <TableRow>
+                                            <TableCell><strong>Materials Included</strong></TableCell>
+                                            <TableCell>
+                                                ${materialsList?.materials?.reduce((sum, mat) => sum + (mat.total || 0), 0).toFixed(2)}
+                                            </TableCell>
+                                            <TableCell>
+                                                <TextField
+                                                    name="discountPrice"
+                                                    type="number"
+                                                    value={materialsListDiscount}
+                                                    onChange={(e) =>
+                                                        handleMaterialsDiscountChange(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <IconButton
+                                                    aria-label="edit"
+                                                    onClick={() => handleEditMaterialsList()}
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                     {editedProposal.items.map((item, index) => (
                                         <TableRow key={index}>
                                             {isEditing ? (
@@ -799,4 +922,4 @@ const ViewProposal = () => {
     );
 };
 
-export default ViewProposal;
+export default ViewProposal;    

@@ -20,11 +20,13 @@ import {
   Description as DescriptionIcon,
   AttachMoney as AttachMoneyIcon,
   CalendarMonth as CalendarMonthIcon,
+  FileCopy as FileIcon,
 } from '@mui/icons-material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ViewOneInvoice from './views/Invoices/ViewOneInvoice';
 import MaterialsListing from './views/Proposals/MaterialsListing';
 import AddProposalForm from './views/Proposals/AddProposalForm';
+import FilesExplore from './views/FilesExplorer';
 
 export const routes = [
   {
@@ -35,6 +37,7 @@ export const routes = [
     icon: HomeIcon,
     protected: true,
   },
+
   {
     path: '/clients',
     component: Clients,
@@ -85,6 +88,14 @@ export const routes = [
     name: 'Settings',
     sidebar: true,
     icon: SettingsIcon,
+    protected: true,
+  },
+  {
+    path: '/files',
+    component: FilesExplore,
+    name: 'Files',
+    sidebar: true,
+    icon: FileIcon,
     protected: true,
   },
   {

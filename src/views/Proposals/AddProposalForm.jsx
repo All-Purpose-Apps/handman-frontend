@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     Button,
@@ -14,23 +14,29 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useDispatch, useSelector } from 'react-redux';
 import { addProposal, fetchProposals } from '../../store/proposalSlice';
-import { getMaterialList } from '../../store/materialsSlice';
+import { getMaterialList, updateMaterialsList } from '../../store/materialsSlice';
 import { fetchClients } from '../../store/clientSlice';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+
 
 export default function AddProposalForm() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { proposalNumber: routeProposalNumber } = useParams();
+    const location = useLocation();
 
+
+    const { proposalNumber: routeProposalNumber } = useParams();
     const [newProposalData, setNewProposalData] = useState({
         proposalNumber: routeProposalNumber || '',
         proposalDate: new Date().toISOString().split('T')[0],
         proposalTitle: '',
+        items: [
+            { description: '', regularPrice: '', discountPrice: '' },
+        ],
         client: null,
-        items: [],
         packagePrice: 0,
         fileUrl: '',
+        materialsListId: null,
     });
 
     const [materials, setMaterials] = useState([]);
@@ -41,13 +47,6 @@ export default function AddProposalForm() {
     const materialsList = useSelector((state) => state.materials.materialsList);
 
     useEffect(() => {
-        dispatch(fetchClients());
-        dispatch(fetchProposals());
-
-    }, [dispatch]);
-
-    useEffect(() => {
-        // Generate the next proposal number if not provided
         if (!newProposalData.proposalNumber) {
             if (proposals.length > 0) {
                 const latestNumber = Math.max(
@@ -59,57 +58,57 @@ export default function AddProposalForm() {
                     ...prev,
                     proposalNumber: `${latestNumber + 1}`,
                 }));
-                dispatch(getMaterialList(newProposalData.proposalNumber));
             } else {
                 setNewProposalData((prev) => ({ ...prev, proposalNumber: '9001' }));
-                dispatch(getMaterialList('9001'));
             }
 
         }
     }, [proposals, newProposalData.proposalNumber]);
 
     useEffect(() => {
-        // Load materials associated with this proposal number
-        const storedMaterials = JSON.parse(
-            localStorage.getItem(`materials_${newProposalData.proposalNumber}`)
-        ) || [];
-        setMaterials(storedMaterials);
-        const total = storedMaterials.reduce((acc, item) => acc + item.total, 0);
-        setMaterialsTotal(total);
-
-        // Load items from localStorage
-        const storedItems = JSON.parse(
-            localStorage.getItem(`items_${newProposalData.proposalNumber}`)
-        ) || [{ description: '', regularPrice: '', discountPrice: '' }];
-        setNewProposalData((prev) => ({
-            ...prev,
-            items: storedItems,
-        }));
-
-        // Load materials discount price
-        const storedMaterialsDiscountPrice = localStorage.getItem(
-            `materialsDiscountPrice_${newProposalData.proposalNumber}`
-        );
-        if (storedMaterialsDiscountPrice !== null) {
-            setMaterialsDiscountPrice(parseFloat(storedMaterialsDiscountPrice));
-        } else {
-            setMaterialsDiscountPrice(total); // Default to total if no discount price set
+        dispatch(fetchClients());
+        dispatch(fetchProposals());
+        const storedClient = localStorage.getItem('proposalClient');
+        const storedItems = localStorage.getItem('proposalItems');
+        if (storedClient) {
+            setNewProposalData((prev) => ({
+                ...prev,
+                client: JSON.parse(storedClient),
+            }));
         }
-    }, [newProposalData.proposalNumber]);
+        if (storedItems) {
+            setNewProposalData((prev) => ({
+                ...prev,
+                items: JSON.parse(storedItems),
+            }));
+        }
+    }, [dispatch]);
 
     useEffect(() => {
-        if (!newProposalData.client) {
-            const storedClient = JSON.parse(
-                localStorage.getItem(`client_${newProposalData.proposalNumber}`)
-            );
-            if (storedClient) {
+        const fetchMaterials = async () => {
+            const response = await dispatch(getMaterialList(newProposalData.proposalNumber));
+            if (response.meta.requestStatus === 'fulfilled') {
+                const existingMaterials = response.payload.materials || [];
+
+                setMaterials(existingMaterials);
+                const total = existingMaterials.reduce(
+                    (acc, material) => acc + (material.price * material.quantity || 0),
+                    0
+                );
+                setMaterialsTotal(total);
+                setMaterialsDiscountPrice(total);
                 setNewProposalData((prev) => ({
                     ...prev,
-                    client: storedClient,
+                    materialsListId: response.payload._id
                 }));
+            } else {
+                console.error('Failed to fetch materials list');
             }
+        };
+        if (newProposalData.proposalNumber) {
+            fetchMaterials();
         }
-    }, [newProposalData.client, newProposalData.proposalNumber]);
+    }, [dispatch, newProposalData.proposalNumber]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -155,6 +154,55 @@ export default function AddProposalForm() {
         }));
     };
 
+    const handleClose = () => {
+        localStorage.removeItem('proposalClient');
+        localStorage.removeItem('proposalItems');
+        setNewProposalData({
+            proposalNumber: '',
+            proposalDate: new Date().toISOString().split('T')[0],
+            proposalTitle: '',
+            items: [{ description: '', regularPrice: '', discountPrice: '' }],
+            client: null,
+            packagePrice: 0,
+            fileUrl: '',
+            materialsListId: null,
+        });
+        navigate('/proposals');
+    };
+
+    const handleAddProposal = async (event) => {
+        event.preventDefault();
+
+        await dispatch(addProposal(newProposalData));
+        await dispatch(updateMaterialsList({
+            id: newProposalData.materialsListId,
+            materials,
+            total: materialsTotal,
+            discountTotal: materialsDiscountPrice,
+        }));
+        localStorage.removeItem('proposalClient');
+        localStorage.removeItem('proposalItems');
+
+        navigate('/proposals');
+    };
+
+    const handleAddMaterials = () => {
+        localStorage.setItem('proposalClient', JSON.stringify(newProposalData.client));
+        localStorage.setItem('proposalItems', JSON.stringify(newProposalData.items));
+        navigate(`/proposal/${newProposalData.proposalNumber}/materials-list`,
+            {
+                state: {
+                    isEditing: false,
+                },
+            }
+        );
+    };
+
+    const handleMaterialsDiscountPriceChange = async (e) => {
+        const value = parseFloat(e.target.value);
+        setMaterialsDiscountPrice(value);
+    };
+
     const calculateTotals = () => {
         const itemsTotal = newProposalData.items.reduce(
             (acc, item) => acc + parseFloat(item.discountPrice || 0),
@@ -172,70 +220,6 @@ export default function AddProposalForm() {
         calculateTotals();
     }, [newProposalData.items, materialsDiscountPrice]);
 
-    const handleAddProposal = async (event) => {
-        event.preventDefault();
-
-        // Include materials as an item
-        const allItems = [...newProposalData.items];
-        if (materials.length > 0) {
-            allItems.push({
-                description: 'Materials',
-                regularPrice: materialsTotal,
-                discountPrice: materialsDiscountPrice,
-            });
-        }
-
-        const proposalData = {
-            ...newProposalData,
-            items: allItems,
-            materials, // Optionally include materials details
-        };
-
-        await dispatch(addProposal(proposalData));
-
-        // Clear localStorage
-        localStorage.removeItem(`materials_${newProposalData.proposalNumber}`);
-        localStorage.removeItem(`client_${newProposalData.proposalNumber}`);
-        localStorage.removeItem(`items_${newProposalData.proposalNumber}`);
-        localStorage.removeItem(
-            `materialsDiscountPrice_${newProposalData.proposalNumber}`
-        );
-
-        navigate('/proposals');
-    };
-
-    const handleAddMaterials = () => {
-        // Save the current client and items to localStorage with proposalNumber
-        localStorage.setItem(
-            `client_${newProposalData.proposalNumber}`,
-            JSON.stringify(newProposalData.client)
-        );
-        localStorage.setItem(
-            `items_${newProposalData.proposalNumber}`,
-            JSON.stringify(newProposalData.items)
-        );
-        localStorage.setItem(
-            `materialsDiscountPrice_${newProposalData.proposalNumber}`,
-            materialsDiscountPrice.toString()
-        );
-        navigate(`/proposal/${newProposalData.proposalNumber}/materials-list`);
-    };
-
-    const handleClose = () => {
-        // Clear localStorage
-        localStorage.removeItem(`client_${newProposalData.proposalNumber}`);
-        localStorage.removeItem(`materials_${newProposalData.proposalNumber}`);
-        localStorage.removeItem(`items_${newProposalData.proposalNumber}`);
-        localStorage.removeItem(
-            `materialsDiscountPrice_${newProposalData.proposalNumber}`
-        );
-        navigate('/proposals');
-    };
-
-    const handleMaterialsDiscountPriceChange = (e) => {
-        const value = e.target.value;
-        setMaterialsDiscountPrice(value);
-    };
 
     const handleEditMaterialsList = () => {
         navigate(`/proposal/${newProposalData.proposalNumber}/materials-list`, {
@@ -400,7 +384,7 @@ export default function AddProposalForm() {
                                 Add Item
                             </Button>
                         )}
-                        {newProposalData.client && (
+                        {newProposalData.client && !newProposalData.materials && (
                             <Button
                                 variant="contained"
                                 onClick={handleAddMaterials}

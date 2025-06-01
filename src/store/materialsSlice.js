@@ -24,6 +24,49 @@ export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', asy
   }
 });
 
+export const addMaterial = createAsyncThunk('materials/addMaterial', async (material, { rejectWithValue }) => {
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/add-material-to-list`, material, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
+export const deleteMaterial = createAsyncThunk('materials/deleteMaterial', async (id, { rejectWithValue }) => {
+  try {
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-material-from-list/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
+export const updateMaterial = createAsyncThunk('materials/updateMaterial', async (material, { rejectWithValue }) => {
+  try {
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/materials/update-material-in-list/${material._id}`, material, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error updating material:', err);
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
 export const createMaterialsList = createAsyncThunk('materials/createMaterialsList', async (materials, { rejectWithValue }) => {
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/create-materials-list`, materials, {
@@ -52,9 +95,9 @@ export const getMaterialList = createAsyncThunk('materials/getMaterialList', asy
   }
 });
 
-export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsList', async ({ proposalNumber, materials }, { rejectWithValue }) => {
+export const getMaterialListById = createAsyncThunk('materials/getMaterialListById', async (id, { rejectWithValue }) => {
   try {
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/materials/update-materials-list/${proposalNumber}`, materials, {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list-by-id/${id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         withCredentials: true,
@@ -62,6 +105,25 @@ export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsLi
     });
     return response.data;
   } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
+export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsList', async ({ id, materials, total, discountTotal }, { rejectWithValue }) => {
+  try {
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/api/materials/update-materials-list/${id}`,
+      { materials, total, discountTotal },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          withCredentials: true,
+        },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error('Error updating materials list:', err);
     return rejectWithValue(err.response?.data || err.message);
   }
 });
@@ -117,6 +179,18 @@ const materialsSlice = createSlice({
         state.materialsList = action.payload;
       })
       .addCase(updateMaterialsList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getMaterialListById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getMaterialListById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.materialsList = action.payload;
+      })
+      .addCase(getMaterialListById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

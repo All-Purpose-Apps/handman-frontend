@@ -60,14 +60,23 @@ const columns = [
         sortable: false,
         renderCell: (params) => {
             const items = params.value || [];
+            const hasMaterials = !!params.row.materialsListId;
+
             return (
-                <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
-                    {items.map((item, index) => (
-                        <li key={index} style={{ lineHeight: '24px' }}>
-                            {item.description}
-                        </li>
-                    ))}
-                </ul>
+                <Box>
+                    <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
+                        {items.map((item, index) => (
+                            <li key={index} style={{ lineHeight: '24px' }}>
+                                {item.description}
+                            </li>
+                        ))}
+                    </ul>
+                    {hasMaterials && (
+                        <Typography variant="body2" color="text.secondary" style={{ paddingLeft: 20 }}>
+                            Includes materials
+                        </Typography>
+                    )}
+                </Box>
             );
         },
     },

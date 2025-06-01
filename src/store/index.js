@@ -6,6 +6,7 @@ import invoiceReducer from './invoiceSlice';
 import notificationReducer from './notificationSlice';
 import productReducer from './productSlice';
 import materialsReducer from './materialsSlice';
+import filesReducer from './filesSlice';
 
 export default configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export default configureStore({
     notifications: notificationReducer,
     products: productReducer,
     materials: materialsReducer,
+    files: filesReducer,
   },
 });

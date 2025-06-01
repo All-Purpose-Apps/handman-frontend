@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -15,10 +15,10 @@ import {
 import { Delete } from '@mui/icons-material';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllMaterials, createMaterialsList, getMaterialList } from '../../store/materialsSlice';
+import { getAllMaterials, createMaterialsList, getMaterialList, updateMaterialsList } from '../../store/materialsSlice';
 
 const MaterialsListing = () => {
-  const { id: proposalNumber } = useParams(); // Get proposal number from route
+  const { id: proposalNumber } = useParams();
   const location = useLocation();
   const isEditing = location.state?.isEditing;
 
@@ -26,9 +26,9 @@ const MaterialsListing = () => {
   const dispatch = useDispatch();
 
   const listOfMaterials = useSelector((state) => state.materials.items);
-  const materialList = useSelector((state) => state.materials.materialList);
 
   const [materials, setMaterials] = useState([]);
+  const [materialsList, setMaterialsList] = useState({});
   const [materialInput, setMaterialInput] = useState({
     material: '',
     quantity: '',
@@ -40,8 +40,8 @@ const MaterialsListing = () => {
     dispatch(getAllMaterials());
     dispatch(getMaterialList(proposalNumber)).then((response) => {
       if (response.meta.requestStatus === 'fulfilled') {
+        setMaterialsList(response.payload);
         const existingMaterials = response.payload.materials || [];
-        console.log('Existing materials:', existingMaterials);
         setMaterials(existingMaterials);
       } else {
         console.error('Failed to fetch materials list');
@@ -50,22 +50,6 @@ const MaterialsListing = () => {
 
   }, [dispatch]);
 
-  // Load materials associated with this proposal number
-  useEffect(() => {
-    const storedMaterials = JSON.parse(
-      localStorage.getItem(`materials_${proposalNumber}`)
-    ) || [];
-    setMaterials(storedMaterials);
-  }, [proposalNumber]);
-
-  // Save materials to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem(
-      `materials_${proposalNumber}`,
-      JSON.stringify(materials)
-    );
-
-  }, [materials, proposalNumber]);
 
   const handleChange = (e) => {
     setMaterialInput({
@@ -104,29 +88,66 @@ const MaterialsListing = () => {
     setMaterials(updatedMaterials);
   };
 
+  const grandTotal = materials.reduce((acc, item) => acc + item.total, 0);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const total = materials.reduce((acc, item) => acc + item.total, 0);
 
-    dispatch(
-      createMaterialsList({
-        proposal: proposalNumber,
-        materials,
-        total
-      })
-    ).then((response) => {
-
-      if (response.meta.requestStatus === 'fulfilled') {
-        alert('Materials submitted successfully!');
-      } else {
-        alert('Failed to submit materials. Please try again.');
+    if (isEditing) {
+      dispatch(
+        updateMaterialsList({
+          id: materialsList._id,
+          materials,
+          total: grandTotal
+        })
+      ).then((response) => {
+        if (response.meta.requestStatus === 'fulfilled') {
+          alert('Materials updated successfully!');
+        } else {
+          alert('Failed to update materials. Please try again.');
+        }
       }
-    });
+      );
+    } else {
+      // If not editing, create a new materials list
+      if (materials.length === 0) {
+        alert('Please add at least one material before submitting.');
+        return;
+      }
+      if (grandTotal <= 0) {
+        alert('Total must be greater than zero.');
+        return;
+      }
+      // Dispatch the action to create materials list
+      if (!proposalNumber) {
+        alert('Proposal number is required to submit materials.');
+        return;
+      }
+      if (materials.some(item => !item.material || item.quantity <= 0 || item.price <= 0)) {
+        alert('Please ensure all fields are filled correctly.');
+        return;
+      }
+      console.log('Creating new materials list');
+      dispatch(
+        createMaterialsList({
+          proposal: proposalNumber,
+          materials,
+          total: grandTotal
+        })
+      ).then((response) => {
+
+        if (response.meta.requestStatus === 'fulfilled') {
+          alert('Materials submitted successfully!');
+        } else {
+          alert('Failed to submit materials. Please try again.');
+        }
+      });
+    }
     navigate(-1); // Go back to the previous page
   };
 
 
-  const grandTotal = materials.reduce((acc, item) => acc + item.total, 0);
+
 
   return (
     <div>
