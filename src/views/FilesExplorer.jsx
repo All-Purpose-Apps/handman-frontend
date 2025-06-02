@@ -1,26 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Typography,
     CircularProgress,
-    List,
-    ListItem,
-    ListItemText,
-    ListItemIcon,
     Link,
     Paper,
+    TextField,
+    InputAdornment,
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import SearchIcon from '@mui/icons-material/Search';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchFiles } from '../store/filesSlice'
-
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
 
 const FilesExplorer = () => {
-    console.log('FilesExplorer rendered');
     const dispatch = useDispatch();
     const { items: files, loading, error } = useSelector((state) => state.files);
-    console.log(JSON.stringify(files, null, 2));
+    const [searchTerm, setSearchTerm] = useState('');
+
     useEffect(() => {
         dispatch(fetchFiles())
     }, [dispatch]);
@@ -46,36 +46,46 @@ const FilesExplorer = () => {
             <Typography variant="h5" gutterBottom>
                 File Explorer
             </Typography>
-            <Paper elevation={3}>
-                <List>
-                    {Object.entries(files).flatMap(([folder, fileList]) =>
-                        fileList.map((file, index) => (
-                            <ListItem key={`${folder}-${index}`} divider>
-                                <ListItemIcon>
-                                    {file.isFolder ? <FolderIcon /> : <InsertDriveFileIcon />}
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={
-                                        file.isFolder ? (
-                                            file.name
-                                        ) : (
-                                            <Link href={file.url} target="_blank" rel="noopener">
-                                                {file.name}
-                                            </Link>
-                                        )
-                                    }
-                                    secondary={
-                                        file.isFolder
-                                            ? 'Folder'
-                                            : `Size: ${(file.size / 1024).toFixed(2)} KB | Type: ${file.contentType} | Updated: ${new Date(file.updated).toLocaleString()}`
-                                    }
-                                />
-                            </ListItem>
-                        ))
-                    )}
-                </List>
+            <Paper elevation={3} sx={{ p: 2 }}>
+                <TextField
+                    label="Search files"
+                    variant="outlined"
+                    fullWidth
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon />
+                            </InputAdornment>
+                        ),
+                    }}
+                    sx={{ mb: 2 }}
+                />
+                <SimpleTreeView sx={{ flexGrow: 1, overflowY: 'auto' }}>
+                    {Object.keys(files).map((folderKey, folderIndex) => {
+                        return (
+                            < TreeItem key={folderKey} itemId={`folder-${folderIndex}`} label={folderKey}>
+                                {files[folderKey]
+                                    .filter(file => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                    .map((file, fileIndex) => (
+                                        <TreeItem
+                                            key={`${folderKey}-${fileIndex}`}
+                                            itemId={`${folderKey}-${fileIndex}`}
+                                            label={
+                                                <Link href={file.url} target="_blank" rel="noopener" underline="hover">
+                                                    {file.name.split('/').pop()}
+                                                </Link>
+                                            }
+                                        />
+                                    ))}
+                            </TreeItem>
+                        );
+                    })}
+                </SimpleTreeView>
             </Paper>
-        </Box>
+        </Box >
     );
 };
 

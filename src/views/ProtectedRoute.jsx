@@ -1,12 +1,34 @@
 import { Dialog, DialogTitle, DialogContent, Typography } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import useAutoLogout from '../hooks/useAutoLogout';
+import { getIdTokenResult, getAuth } from 'firebase/auth';
+
+import { handleGoogleSignIn } from '../utils/handleGoogleSignIn'; // Adjust path if needed
 
 const ProtectedRoute = ({ children }) => {
-    const { showCountdown, countdown } = useAutoLogout(); // Set auto logout timeout to 15 minutes
+    const { showCountdown, countdown } = useAutoLogout(); // Auto logout countdown
     const { currentUser } = useAuth();
+    const auth = getAuth();
+
+    useEffect(() => {
+        const validateToken = async () => {
+            try {
+                if (auth.currentUser) {
+                    await getIdTokenResult(auth.currentUser, true); // force refresh
+                }
+            } catch (err) {
+                console.warn('Access token invalid or expired, re-signing in...');
+                try {
+                    await handleGoogleSignIn(auth);
+                } catch (signInErr) {
+                    console.error('Failed to re-authenticate:', signInErr);
+                }
+            }
+        };
+        validateToken();
+    }, []);
 
     if (!currentUser) {
         return <Navigate to="/login" replace />;

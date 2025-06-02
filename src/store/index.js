@@ -7,6 +7,7 @@ import notificationReducer from './notificationSlice';
 import productReducer from './productSlice';
 import materialsReducer from './materialsSlice';
 import filesReducer from './filesSlice';
+import userReducer from './userSlice';
 
 export default configureStore({
   reducer: {
@@ -18,5 +19,6 @@ export default configureStore({
     products: productReducer,
     materials: materialsReducer,
     files: filesReducer,
+    user: userReducer,
   },
 });

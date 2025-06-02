@@ -155,10 +155,22 @@ const SettingsPage = () => {
                     </Button>
                     <List dense sx={{ maxHeight: 300, overflowY: 'auto' }}>
                         {filteredMaterials.map((mat) => (
-                            <ListItem button onClick={() => handleSelectMaterial(mat)} key={mat._id}>
-                                <ListItemText
-                                    primary={`${mat.name} - $${mat.price.toFixed(2)}`}
-                                />
+                            <ListItem
+                                onClick={() => handleSelectMaterial(mat)}
+                                key={mat._id}
+                                sx={{
+                                    cursor: 'pointer',
+                                    '&:hover': {
+                                        backgroundColor: 'action.hover',
+                                    },
+                                }}
+                            >
+                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                    <Typography variant="body1">{mat.name}</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        ${mat.price.toFixed(2)}
+                                    </Typography>
+                                </Box>
                             </ListItem>
                         ))}
                     </List>

@@ -709,7 +709,7 @@ const ViewProposal = () => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {materialsList && !isEditing && (
+                                    {materialsList?._id && !isEditing && (
                                         <TableRow>
                                             <TableCell><strong>Materials Included</strong></TableCell>
                                             <TableCell>
@@ -719,7 +719,7 @@ const ViewProposal = () => {
                                                 ${materialsList?.discountTotal}
                                             </TableCell>
                                         </TableRow>)}
-                                    {isEditing && materialsList && (
+                                    {isEditing && materialsList?._id && (
                                         <TableRow>
                                             <TableCell><strong>Materials Included</strong></TableCell>
                                             <TableCell>

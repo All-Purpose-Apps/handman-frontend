@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 export const fetchFiles = createAsyncThunk('files/fetchFiles', async (_, { rejectWithValue }) => {
-  console.log('Fetching files...');
   const accessToken = localStorage.getItem('accessToken');
   try {
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/files`, {
@@ -11,7 +10,6 @@ export const fetchFiles = createAsyncThunk('files/fetchFiles', async (_, { rejec
         withCredentials: true,
       },
     });
-    console.log('Fetched files:', response.data);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch files:', error);
