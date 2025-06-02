@@ -4,8 +4,13 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 let signInInProgress = JSON.parse(localStorage.getItem('signInInProgress')) || false;
 
 export const handleGoogleSignIn = async (auth) => {
-  if (signInInProgress) return; // Prevent multiple popups
+  console.log('Starting Google sign-in...');
+  if (signInInProgress) {
+    console.log('Sign-in already in progress, exiting.');
+    return; // Prevent multiple popups
+  }
   signInInProgress = true;
+  console.log('Sign-in flag set, opening popup...');
   localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
 
   const provider = new GoogleAuthProvider();
@@ -23,6 +28,7 @@ export const handleGoogleSignIn = async (auth) => {
 
   try {
     const result = await signInWithPopup(auth, provider);
+    console.log('Popup sign-in result:', result);
 
     // Get the OAuth credential
     const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -31,13 +37,17 @@ export const handleGoogleSignIn = async (auth) => {
       // This gives you a Google Access Token.
       const accessToken = credential.accessToken;
       localStorage.setItem('accessToken', accessToken);
+      console.log('Access token received and stored.');
     } else {
       console.error('No credential returned from Google sign-in.');
+      console.log('No OAuth credential returned.');
     }
   } catch (error) {
     console.error('Error signing in with Google:', error);
+    console.log('Sign-in error details:', error);
   } finally {
     signInInProgress = false; // Reset the flag
     localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
+    console.log('Sign-in process complete, flag reset.');
   }
 };
