@@ -8,6 +8,7 @@ import productReducer from './productSlice';
 import materialsReducer from './materialsSlice';
 import filesReducer from './filesSlice';
 import userReducer from './userSlice';
+import calendarReducer from './calendarSlice';
 
 export default configureStore({
   reducer: {
@@ -20,5 +21,6 @@ export default configureStore({
     materials: materialsReducer,
     files: filesReducer,
     user: userReducer,
+    calendar: calendarReducer,
   },
 });

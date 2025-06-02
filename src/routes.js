@@ -83,22 +83,6 @@ export const routes = [
     protected: true,
   },
   {
-    path: '/settings',
-    component: Settings,
-    name: 'Settings',
-    sidebar: true,
-    icon: SettingsIcon,
-    protected: true,
-  },
-  {
-    path: '/files',
-    component: FilesExplore,
-    name: 'Files',
-    sidebar: true,
-    icon: FileIcon,
-    protected: true,
-  },
-  {
     path: '/proposal/:id/materials-list',
     component: MaterialsListing,
     protected: true,
@@ -111,6 +95,23 @@ export const routes = [
   //   icon: CalendarMonthIcon,
   //   protected: true,
   // },
+  {
+    path: '/files',
+    component: FilesExplore,
+    name: 'Files',
+    sidebar: true,
+    icon: FileIcon,
+    protected: true,
+  },
+  {
+    path: '/settings',
+    component: Settings,
+    name: 'Settings',
+    sidebar: true,
+    icon: SettingsIcon,
+    protected: true,
+  },
+
   // {
   //   path: '/about',
   //   component: About,

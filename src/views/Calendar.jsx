@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
     Dialog, DialogActions, DialogContent, DialogTitle,
-    Button, TextField
+    Button, TextField, Paper, Grid, Typography, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
 
 import {
@@ -15,8 +17,6 @@ import {
     updateCalendarEvent,
     deleteCalendarEvent
 } from '../store/calendarSlice';
-
-const localizer = momentLocalizer(moment);
 
 const MyCalendar = () => {
     const dispatch = useDispatch();
@@ -72,11 +72,6 @@ const MyCalendar = () => {
         }
     };
 
-    const handleEventSelect = (event) => {
-        setSelectedEvent(event);
-        setIsModalOpen(true);
-    };
-
     const handleEditEvent = async () => {
         const updatedEvent = {
             ...selectedEvent,
@@ -112,49 +107,84 @@ const MyCalendar = () => {
         <div style={{ height: '100vh', padding: '20px' }}>
             <h1>My Calendar</h1>
 
-            <div style={{ marginBottom: '20px' }}>
-                <h3>Select a Calendar</h3>
-                <select value={selectedCalendarId} onChange={handleCalendarChange}>
-                    {calendars && calendars.map((calendar) => (
-                        <option key={calendar.id} value={calendar.id}>
-                            {calendar.summary}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            <Paper sx={{ p: 2, mb: 3 }}>
+                <Typography variant="h6" gutterBottom>Select a Calendar</Typography>
+                <FormControl fullWidth>
+                    <InputLabel id="calendar-select-label">Calendar</InputLabel>
+                    <Select
+                        labelId="calendar-select-label"
+                        value={selectedCalendarId}
+                        label="Calendar"
+                        onChange={handleCalendarChange}
+                    >
+                        {calendars && calendars.map((calendar) => (
+                            <MenuItem key={calendar.id} value={calendar.id}>
+                                {calendar.summary}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Paper>
 
-            <div style={{ marginBottom: '20px' }}>
-                <h3>Create a New Event</h3>
-                <input
-                    type="text"
-                    placeholder="Event Title"
-                    value={newEventTitle}
-                    onChange={(e) => setNewEventTitle(e.target.value)}
-                    style={{ marginRight: '10px' }}
-                />
-                <input
-                    type="datetime-local"
-                    value={newEventDate}
-                    onChange={(e) => setNewEventDate(e.target.value)}
-                    style={{ marginRight: '10px' }}
-                />
-                <button onClick={handleCreateEvent}>Create Event</button>
-            </div>
+            <Paper sx={{ p: 2, mb: 3 }}>
+                <Typography variant="h6" gutterBottom>Create a New Event</Typography>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={5}>
+                        <TextField
+                            fullWidth
+                            label="Event Title"
+                            value={newEventTitle}
+                            onChange={(e) => setNewEventTitle(e.target.value)}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={5}>
+                        <TextField
+                            fullWidth
+                            type="datetime-local"
+                            label="Date & Time"
+                            InputLabelProps={{ shrink: true }}
+                            value={newEventDate}
+                            onChange={(e) => setNewEventDate(e.target.value)}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={2}>
+                        <Button variant="contained" color="primary" fullWidth sx={{ height: '100%' }} onClick={handleCreateEvent}>
+                            Create
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Paper>
 
-            <Calendar
-                localizer={localizer}
+            <FullCalendar
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                headerToolbar={{
+                    start: 'prev,next today',
+                    center: 'title',
+                    end: 'dayGridMonth,timeGridWeek,timeGridDay',
+                }}
+                editable
+                selectable
                 events={
                     events ? events.map((event) => ({
-                        ...event,
+                        id: event.id,
                         title: event.summary,
-                        start: new Date(event.start.dateTime || event.start.date),
-                        end: new Date(event.end.dateTime || event.end.date),
+                        start: event.start.dateTime || event.start.date,
+                        end: event.end?.dateTime || event.end?.date,
                     })) : []
                 }
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: 500 }}
-                onSelectEvent={handleEventSelect}
+                eventClick={(info) => {
+                    setSelectedEvent({
+                        id: info.event.id,
+                        title: info.event.title,
+                        start: info.event.start.toISOString(),
+                        end: info.event.end?.toISOString(),
+                    });
+                    setIsModalOpen(true);
+                }}
+                dateClick={(info) => {
+                    setNewEventDate(info.dateStr);
+                }}
             />
 
             <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -169,7 +199,7 @@ const MyCalendar = () => {
                     <TextField
                         label="Event Date"
                         type="datetime-local"
-                        value={selectedEvent ? new Date(selectedEvent.start).toISOString().slice(0, -8) : ''}
+                        value={selectedEvent ? selectedEvent.start.slice(0, 16) : ''}
                         onChange={(e) =>
                             setSelectedEvent({
                                 ...selectedEvent,
