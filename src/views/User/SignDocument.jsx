@@ -93,7 +93,7 @@ const SignDocument = () => {
             );
 
             const { url } = response.data;
-            console.log(url);
+
             setSignedPdfUrl(url);
             setShowAlert(true);
         } catch (err) {
@@ -211,6 +211,8 @@ const SignDocument = () => {
                         <SignatureCanvas
                             ref={sigCanvas}
                             penColor="black"
+                            minWidth={4}
+                            maxWidth={4}
                             canvasProps={{ className: classes.sigCanvas }}
                         />
                         <Button
