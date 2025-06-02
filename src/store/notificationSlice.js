@@ -53,6 +53,22 @@ export const markNotificationAsRead = createAsyncThunk('notifications/markNotifi
   }
 });
 
+export const clearNotifications = createAsyncThunk('notifications/clearNotifications', async (_, { rejectWithValue }) => {
+  const accessToken = await localStorage.getItem('accessToken');
+  try {
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/clear`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return rejectWithValue(error.response?.data || 'Failed to clear notifications');
+  }
+});
+
 export const notificationSlice = createSlice({
   name: 'notifications',
   initialState,
