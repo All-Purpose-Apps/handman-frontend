@@ -34,6 +34,7 @@ import {
     deleteClient,
     fetchClients,
     updateClient,
+    clearClientHistory
 } from '../../store/clientSlice';
 import {
     ArrowBack as ArrowBackIcon,
@@ -163,24 +164,45 @@ const ViewClient = () => {
 
     // Status color mapping
     const statusColorMap = {
-        'ACTIVE': 'green',
-        'CREATED BY USER': 'blue',
-        'INQUIRY RECEIVED': 'orange',
-        'IMPORTED FROM GOOGLE': 'purple',
-        'INACTIVE': 'gray',
-        'WORK IN PROGRESS': 'teal',
-        'COMPLETED': 'green',
-        'ARCHIVED': 'darkgray',
-        'INVOICE SENT': 'lightblue',
-        'PROPOSAL SENT': 'lightgreen',
-        'INVOICE PAID': 'gold',
-        'PROPOSAL ACCEPTED': 'limegreen',
-        'PROPOSAL REJECTED': 'red',
-        'APPOINTMENT SCHEDULED': 'cornflowerblue',
-        'TASK ASSIGNED': 'slateblue',
-        'PAID': 'forestgreen',
-        'CANCELED': 'maroon',
-        'FOLLOW-UP': 'lightcoral',
+        // General Statuses
+        'ACTIVE': '#388e3c', // green
+        'INACTIVE': '#757575', // gray
+        'ARCHIVED': '#616161', // dark gray
+        'WORK IN PROGRESS': '#1976d2', // blue
+        'COMPLETED': '#388e3c', // green
+        'CANCELED': '#b71c1c', // dark red
+        'FOLLOW-UP': '#fbc02d', // yellow
+
+        // Creation/Import
+        'CREATED BY USER': '#0288d1', // light blue
+        'IMPORTED FROM GOOGLE': '#7b1fa2', // purple
+        'INQUIRY RECEIVED': '#fbc02d', // yellow
+
+        // Proposal Statuses
+        'PROPOSAL CREATED': '#0288d1', // light blue
+        'PROPOSAL SENT': '#fbc02d', // yellow
+        'PROPOSAL UPDATED': '#0288d1', // light blue
+        'PROPOSAL ACCEPTED': '#388e3c', // green
+        'PROPOSAL SIGNED': '#388e3c', // green
+        'PROPOSAL REJECTED': '#b71c1c', // dark red
+        'PROPOSAL DELETED': '#757575', // gray
+
+        // Invoice Statuses
+        'INVOICE CREATED': '#0288d1', // light blue
+        'INVOICE SENT': '#fbc02d', // yellow
+        'INVOICE UPDATED': '#0288d1', // light blue
+        'INVOICE APPROVED': '#388e3c', // green
+        'INVOICE REJECTED': '#b71c1c', // dark red
+        'INVOICE PAID': '#ffd600', // gold
+        'INVOICE PAID AND SIGNED': '#ffd600', // gold
+        'INVOICE DELETED': '#757575', // gray
+
+        // Appointment/Task
+        'APPOINTMENT SCHEDULED': '#1976d2', // blue
+        'TASK ASSIGNED': '#1976d2', // blue
+
+        // Review Statuses
+        'REVIEW REQUESTED': '#fbc02d', // yellow
     };
 
     const getStatusColor = (status) => statusColorMap[status] || 'black';
@@ -283,21 +305,107 @@ const ViewClient = () => {
                                 </>
                             ) : (
                                 <>
-                                    <Typography variant="body1">
-                                        <strong>Email:</strong> {client.email || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        <strong>Phone:</strong> {formatPhoneNumber(client.phone) || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        <strong>Address:</strong> {client.address || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        <strong>Status:</strong>{' '}
-                                        <span style={{ color: getStatusColor(getRecentStatus(client.statusHistory)) }}>
-                                            {getRecentStatus(client.statusHistory)}
-                                        </span>
-                                    </Typography>
+                                    <Box mb={1}>
+                                        <Typography variant="body1">
+                                            <strong>Email:</strong> {client.email || 'N/A'}
+                                        </Typography>
+                                    </Box>
+                                    <Box mb={1}>
+                                        <Typography variant="body1">
+                                            <strong>Phone:</strong> {formatPhoneNumber(client.phone) || 'N/A'}
+                                        </Typography>
+                                    </Box>
+                                    <Box mb={1}>
+                                        <Typography variant="body1">
+                                            <strong>Address:</strong> {client.address || 'N/A'}
+                                        </Typography>
+                                    </Box>
+                                    {/* Status Circles Block */}
+                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                        {['proposal', 'invoice', 'review'].map((category, index, categories) => {
+                                            const recentStatus = client.statusHistory
+                                                ?.filter((s) => s.status?.toLowerCase().includes(category))
+                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                                            let color = 'gray';
+                                            let tooltipText = 'No activity';
+                                            let date = '';
+
+                                            if (recentStatus) {
+                                                const lowerStatus = recentStatus.status.toLowerCase();
+                                                if (['accepted', 'paid', 'signed', 'approved'].some(k => lowerStatus.includes(k))) {
+                                                    color = 'green';
+                                                    tooltipText = `Signed: ${recentStatus.status}`;
+                                                } else if (lowerStatus.includes('sent')) {
+                                                    color = 'gold';
+                                                    tooltipText = `Sent: ${recentStatus.status}`;
+                                                } else if (lowerStatus.includes('deleted')) {
+                                                    color = 'blue';
+                                                    tooltipText = `Deleted: ${recentStatus.status}`;
+                                                } else if (lowerStatus.includes('created')) {
+                                                    color = 'red';
+                                                    tooltipText = `Created: ${recentStatus.status}`;
+                                                }
+                                                date = recentStatus.date;
+                                            }
+
+                                            // Reset logic if future categories have no newer status
+                                            const laterStatuses = client.statusHistory?.filter((s) =>
+                                                categories.slice(index + 1).some(c => s.status?.toLowerCase().includes(c))
+                                            );
+                                            const hasNewerLaterStatus = laterStatuses?.some(s => new Date(s.date) > new Date(recentStatus?.date || 0));
+                                            if (recentStatus && hasNewerLaterStatus === false) {
+                                                // valid, keep color
+                                            } else if (!recentStatus || hasNewerLaterStatus) {
+                                                color = 'gray';
+                                                tooltipText = 'No activity';
+                                                date = '';
+                                            }
+
+                                            return (
+                                                <Tooltip
+                                                    title={`${tooltipText}${date ? ` on ${moment(date).format('MM/DD/YYYY')}` : ''}`}
+                                                    key={category}
+                                                >
+                                                    <Box display="flex" flexDirection="column" alignItems="center">
+                                                        <Box
+                                                            sx={{
+                                                                width: 64,
+                                                                height: 64,
+                                                                borderRadius: '50%',
+                                                                backgroundColor: color,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                color: 'white',
+                                                                fontWeight: 'bold',
+                                                                mb: 1,
+                                                            }}
+                                                        >
+                                                            {category.charAt(0).toUpperCase()}
+                                                        </Box>
+                                                        <Typography variant="caption" fontWeight="bold">
+                                                            {category.toUpperCase()}
+                                                        </Typography>
+                                                    </Box>
+                                                </Tooltip>
+                                            );
+                                        })}
+                                    </Box>
+                                    <Box
+                                        sx={{
+                                            padding: 1,
+                                            borderRadius: 1,
+                                            display: 'inline-block',
+                                            fontWeight: 'bold',
+                                            fontSize: '1.1rem',
+                                            color: 'white',
+                                            backgroundColor: getStatusColor(getRecentStatus(client.statusHistory)),
+                                            marginBottom: 1,
+                                        }}
+                                    >
+                                        Status: {getRecentStatus(client.statusHistory)}
+                                    </Box>
                                 </>
                             )}
                             <Divider sx={{ marginY: 1 }} />
@@ -492,6 +600,18 @@ const ViewClient = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => {
+                            dispatch(clearClientHistory(id)).then(() => {
+                                handleCloseStatusHistory();
+                                dispatch(fetchOneClient(id));
+                            })
+                        }}
+                    >
+                        Clear History
+                    </Button>
                     <Button onClick={handleCloseStatusHistory} color="primary">
                         Close
                     </Button>

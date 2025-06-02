@@ -97,7 +97,9 @@ const ViewProposal = () => {
             if (response.meta.requestStatus === 'fulfilled') {
                 dispatch(getMaterialListById(response.payload.materialsListId)).then((materialsResponse) => {
                     if (materialsResponse.meta.requestStatus === 'fulfilled') {
-                        setMaterialsListDiscount(materialsResponse.payload.discountTotal);
+                        if (materialsResponse.payload) {
+                            setMaterialsListDiscount(materialsResponse.payload.discountTotal);
+                        }
                     }
                 });
             } else {
@@ -198,16 +200,19 @@ const ViewProposal = () => {
     };
 
     const handleEditToggle = async () => {
+
         if (isEditing) {
             await dispatch(
-                updateProposal({ ...editedProposal, fileUrl: '', updatedAt: moment().toISOString() })
+                updateProposal({ ...editedProposal, fileUrl: '', updatedAt: moment().toISOString(), status: 'draft' })
             );
-            await dispatch(
-                updateMaterialsList({
-                    id: materialsList._id,
-                    discountTotal: materialsListDiscount,
-                })
-            )
+            if (materialsList && materialsList._id) {
+                await dispatch(
+                    updateMaterialsList({
+                        id: materialsList._id,
+                        discountTotal: materialsListDiscount,
+                    })
+                )
+            }
             dispatch(fetchOneProposal(id));
         }
         setIsEditing(!isEditing);
@@ -300,50 +305,71 @@ const ViewProposal = () => {
 
     const handleSendProposal = async () => {
         const accessToken = localStorage.getItem('accessToken');
-        // const token = await axios.post(
-        //     `${import.meta.env.VITE_BACKEND_URL}/api/invoices/create-token`,
-        //     {
-        //         invoiceId: editedInvoice._id,
-        //         data: { invoiceUrl: editedInvoice.fileUrl },
-        //     },
-        //     {
-        //         headers: {
-        //             Authorization: `Bearer ${accessToken}`,
-        //             withCredentials: true,
-        //         },
-        //     }
-        // );
 
-        // const tokenUrl = `${import.meta.env.VITE_FRONTEND_URL}/sign/${token.data.token}`;
-
-        if (editedProposal.fileUrl) {
-
-            try {
-                await axios.post(
-                    `${import.meta.env.VITE_BACKEND_URL}/api/gmail/send-proposal`,
-                    {
-                        to: editedProposal.client?.email,
-                        subject: `Proposal ${editedProposal.proposalNumber}`,
-                        body: `Dear ${editedProposal.client?.name},<br><br>Please find your proposal attached.<br><br>Thank you,<br>Han-D-Man Pro`,
-                        pdfUrl: editedProposal.fileUrl,
-                        proposal: editedProposal,
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                            withCredentials: true,
-                        },
-                    }
-                );
-                alert('Proposal sent successfully!');
-            } catch (error) {
-                console.error('Error sending proposal:', error);
-                alert('Failed to send proposal.');
-            } finally {
-                dispatch(fetchOneProposal(id));
-            }
-        } else {
+        if (!editedProposal.fileUrl) {
             alert('Please create the PDF first before sending.');
+            return;
+        }
+
+        try {
+            const token = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/api/proposals/create-token`,
+                {
+                    proposalId: editedProposal._id,
+                    data: { proposalUrl: editedProposal.fileUrl },
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        withCredentials: true,
+                    },
+                }
+            );
+
+            const tokenUrl = `${import.meta.env.VITE_FRONTEND_URL}/sign/${token.data.token}`;
+
+            await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/api/gmail/send-proposal`,
+                {
+                    to: editedProposal.client?.email,
+                    subject: `Proposal ${editedProposal.proposalNumber}`,
+                    body: `
+                        <p>Hello ${editedProposal.client?.name},</p>
+                        <p>Please find the attached estimate for the job that we talked about recently.</p>
+                        <p>You can sign and accept the proposal <a href="${tokenUrl}">here</a>.</p>
+                        <p>
+                          Here is the link to our Blinq page. This will give you access to our website, and all of our social media:
+                          <br />
+                          <a href="https://blinq.me/hdwTW00U0I7wvwwm79oV?bs=db" target="_blank">
+                            Social Media Links
+                          </a>
+                        </p>
+                        <p><strong>NOTE:</strong> We also offer the service of picking up the materials for the job, with a minimum charge of $75.00, depending on the quantity of materials and the distance from the store.</p>
+                        <br />
+                        <p>Thank you,</p>
+                        <p>
+                          Armando Rivera<br />
+                          <strong>Han-D-Man Pro</strong><br />
+                          (813) 360-1819
+                        </p>
+                    `,
+                    pdfUrl: editedProposal.fileUrl,
+                    proposal: editedProposal,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        withCredentials: true,
+                    },
+                }
+            );
+
+            alert('Proposal sent successfully!');
+        } catch (error) {
+            console.error('Error sending proposal:', error);
+            alert('Failed to send proposal.');
+        } finally {
+            dispatch(fetchOneProposal(id));
         }
     };
 

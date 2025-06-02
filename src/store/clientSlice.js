@@ -142,6 +142,30 @@ export const createGoogleContact = createAsyncThunk('clients/createGoogleContact
   }
 });
 
+export const clearClientHistory = createAsyncThunk('clients/clearClientHistory', async (clientId, { rejectWithValue }) => {
+  const auth = getAuth();
+
+  const accessToken = localStorage.getItem('accessToken');
+
+  // Clear the client history by making a DELETE request to the backend with the client ID in the body
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/api/clients/clear-status-history`,
+      { clientId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          withCredentials: true,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return rejectWithValue(error.response?.data || 'Failed to clear client history');
+  }
+});
+
 export const clientSlice = createSlice({
   name: 'clients',
   initialState,

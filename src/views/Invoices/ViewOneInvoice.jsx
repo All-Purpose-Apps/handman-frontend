@@ -222,7 +222,21 @@ export default function ViewOneInvoice() {
                     {
                         to: editedInvoice.client?.email,
                         subject: `Invoice ${editedInvoice.invoiceNumber}`,
-                        body: `Dear ${editedInvoice.client?.name},<br><br>Please find your invoice attached. You can also access it <a href="${tokenUrl}">here</a>.<br><br>Thank you,<br>Han-D-Man Pro`,
+                        body: `Hello ${editedInvoice.client?.name},<br><br>
+
+Attached please find the final invoice No. ${editedInvoice.invoiceNumber}. We have three new ways to make payments more secure:<br><br>
+
+Zelle at <strong>813-361-2297</strong><br>
+Cash App at <strong>$winrivera</strong><br>
+Venmo at <strong>@EdwinA-Rivera-3</strong><br><br>
+
+If you prefer to make the payment through Credit Card with a 3% transaction fee, let me know so I can send you the link.<br><br>
+<p>You can sign the invoice <a href="${tokenUrl}">here</a>.</p>
+Thank you,<br><br>
+
+Armando Rivera<br>
+Han-D-Man Pro<br>
+(813) 360-1819`,
                         pdfUrl: editedInvoice.fileUrl,
                         invoice: editedInvoice,
                     },

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 import {
   TextField,
   Button,
@@ -36,19 +38,26 @@ const MaterialsListing = () => {
   });
 
 
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
+
   useEffect(() => {
     dispatch(getAllMaterials());
+
+    if (!proposalNumber || proposalNumber === 'null') {
+      console.warn('MaterialsListing: Invalid proposal number. Skipping materials list fetch.');
+      return;
+    }
+
     dispatch(getMaterialList(proposalNumber)).then((response) => {
-      if (response.meta.requestStatus === 'fulfilled') {
+      if (response.meta.requestStatus === 'fulfilled' && response.payload) {
         setMaterialsList(response.payload);
         const existingMaterials = response.payload.materials || [];
         setMaterials(existingMaterials);
-      } else {
-        console.error('Failed to fetch materials list');
       }
     });
-
-  }, [dispatch]);
+  }, [dispatch, proposalNumber]);
 
 
   const handleChange = (e) => {
@@ -102,29 +111,29 @@ const MaterialsListing = () => {
         })
       ).then((response) => {
         if (response.meta.requestStatus === 'fulfilled') {
-          alert('Materials updated successfully!');
+          setSnackbar({ open: true, message: 'Materials updated successfully!', severity: 'success' });
         } else {
-          alert('Failed to update materials. Please try again.');
+          setSnackbar({ open: true, message: 'Failed to update materials. Please try again.', severity: 'error' });
         }
       }
       );
     } else {
       // If not editing, create a new materials list
       if (materials.length === 0) {
-        alert('Please add at least one material before submitting.');
+        setSnackbar({ open: true, message: 'Please add at least one material before submitting.', severity: 'error' });
         return;
       }
       if (grandTotal <= 0) {
-        alert('Total must be greater than zero.');
+        setSnackbar({ open: true, message: 'Total must be greater than zero.', severity: 'error' });
         return;
       }
       // Dispatch the action to create materials list
       if (!proposalNumber) {
-        alert('Proposal number is required to submit materials.');
+        setSnackbar({ open: true, message: 'Proposal number is required to submit materials.', severity: 'error' });
         return;
       }
       if (materials.some(item => !item.material || item.quantity <= 0 || item.price <= 0)) {
-        alert('Please ensure all fields are filled correctly.');
+        setSnackbar({ open: true, message: 'Please ensure all fields are filled correctly.', severity: 'error' });
         return;
       }
       console.log('Creating new materials list');
@@ -137,9 +146,9 @@ const MaterialsListing = () => {
       ).then((response) => {
 
         if (response.meta.requestStatus === 'fulfilled') {
-          alert('Materials submitted successfully!');
+          setSnackbar({ open: true, message: 'Materials submitted successfully!', severity: 'success' });
         } else {
-          alert('Failed to submit materials. Please try again.');
+          setSnackbar({ open: true, message: 'Failed to submit materials. Please try again.', severity: 'error' });
         }
       });
     }
@@ -267,6 +276,11 @@ const MaterialsListing = () => {
           </Button>
         </>
       )}
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <MuiAlert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} elevation={6} variant="filled">
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
 };

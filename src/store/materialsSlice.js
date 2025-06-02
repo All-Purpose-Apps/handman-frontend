@@ -129,6 +129,21 @@ export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsLi
   }
 });
 
+export const deleteMaterialsList = createAsyncThunk('materials/deleteMaterialsList', async (id, { rejectWithValue }) => {
+  try {
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-materials-list/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error deleting materials list:', err);
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
 const materialsSlice = createSlice({
   name: 'materials',
   initialState,
@@ -192,6 +207,17 @@ const materialsSlice = createSlice({
         state.materialsList = action.payload;
       })
       .addCase(getMaterialListById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteMaterialsList.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteMaterialsList.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(deleteMaterialsList.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

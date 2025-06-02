@@ -14,10 +14,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useDispatch, useSelector } from 'react-redux';
 import { addProposal, fetchProposals } from '../../store/proposalSlice';
-import { getMaterialList, updateMaterialsList } from '../../store/materialsSlice';
+import { getMaterialList, updateMaterialsList, deleteMaterialsList } from '../../store/materialsSlice';
 import { fetchClients } from '../../store/clientSlice';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 
 export default function AddProposalForm() {
     const dispatch = useDispatch();
@@ -84,12 +86,14 @@ export default function AddProposalForm() {
         }
     }, [dispatch]);
 
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
     useEffect(() => {
         const fetchMaterials = async () => {
             const response = await dispatch(getMaterialList(newProposalData.proposalNumber));
-            if (response.meta.requestStatus === 'fulfilled') {
+            if (response.meta.requestStatus === 'fulfilled' && response.payload) {
                 const existingMaterials = response.payload.materials || [];
-
                 setMaterials(existingMaterials);
                 const total = existingMaterials.reduce(
                     (acc, material) => acc + (material.price * material.quantity || 0),
@@ -101,8 +105,12 @@ export default function AddProposalForm() {
                     ...prev,
                     materialsListId: response.payload._id
                 }));
-            } else {
-                console.error('Failed to fetch materials list');
+                // Snackbar logic: show after fetching or creating materials list
+                if (existingMaterials.length === 0) {
+                    setSnackbar({ open: true, message: 'Materials submitted successfully!', severity: 'success' });
+                } else {
+                    setSnackbar({ open: true, message: 'Materials updated successfully!', severity: 'success' });
+                }
             }
         };
         if (newProposalData.proposalNumber) {
@@ -157,6 +165,7 @@ export default function AddProposalForm() {
     const handleClose = () => {
         localStorage.removeItem('proposalClient');
         localStorage.removeItem('proposalItems');
+        dispatch(deleteMaterialsList(newProposalData.materialsListId));
         setNewProposalData({
             proposalNumber: '',
             proposalDate: new Date().toISOString().split('T')[0],
@@ -231,193 +240,204 @@ export default function AddProposalForm() {
     }
 
     return (
-        <Paper sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" component="h2" gutterBottom>
-                    Add New Proposal
-                </Typography>
-                <IconButton aria-label="close" onClick={handleClose}>
-                    <CloseIcon />
-                </IconButton>
-            </Box>
-            <form onSubmit={handleAddProposal}>
-                <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                        <Typography variant="h6">
-                            Proposal Number: {newProposalData.proposalNumber}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                        <TextField
-                            label="Proposal Date"
-                            name="proposalDate"
-                            type="date"
-                            fullWidth
-                            value={newProposalData.proposalDate}
-                            onChange={handleInputChange}
-                            required
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Autocomplete
-                            options={clients}
-                            getOptionLabel={(client) => `${client.name}`}
-                            value={newProposalData.client}
-                            onChange={handleClientChange}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Select Client"
-                                    margin="normal"
-                                    required
-                                />
-                            )}
-                        />
-                    </Grid>
+        <>
+            <Paper sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography variant="h6" component="h2" gutterBottom>
+                        Add New Proposal
+                    </Typography>
+                    <IconButton aria-label="close" onClick={handleClose}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <form onSubmit={handleAddProposal}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <Typography variant="h6">
+                                Proposal Number: {newProposalData.proposalNumber}
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label="Proposal Date"
+                                name="proposalDate"
+                                type="date"
+                                fullWidth
+                                value={newProposalData.proposalDate}
+                                onChange={handleInputChange}
+                                required
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Autocomplete
+                                options={clients}
+                                getOptionLabel={(client) => `${client.name}`}
+                                value={newProposalData.client}
+                                onChange={handleClientChange}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select Client"
+                                        margin="normal"
+                                        required
+                                    />
+                                )}
+                            />
+                        </Grid>
 
-                    {/* Items */}
-                    <Grid item xs={12}>
-                        <Typography variant="h6">Items</Typography>
-                        {newProposalData.items.map((item, index) => (
-                            <Grid container spacing={2} key={index} alignItems="center">
-                                <Grid item xs={12} sm={5}>
-                                    <TextField
-                                        label="Description"
-                                        value={item.description}
-                                        onChange={(e) =>
-                                            handleItemChange(index, 'description', e.target.value)
-                                        }
-                                        fullWidth
-                                        margin="normal"
-                                        required
-                                    />
+                        {/* Items */}
+                        <Grid item xs={12}>
+                            <Typography variant="h6">Items</Typography>
+                            {newProposalData.items.map((item, index) => (
+                                <Grid container spacing={2} key={index} alignItems="center">
+                                    <Grid item xs={12} sm={5}>
+                                        <TextField
+                                            label="Description"
+                                            value={item.description}
+                                            onChange={(e) =>
+                                                handleItemChange(index, 'description', e.target.value)
+                                            }
+                                            fullWidth
+                                            margin="normal"
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <TextField
+                                            label="Regular Price"
+                                            type="number"
+                                            value={item.regularPrice}
+                                            onChange={(e) =>
+                                                handleItemChange(index, 'regularPrice', e.target.value)
+                                            }
+                                            fullWidth
+                                            margin="normal"
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <TextField
+                                            label="Discount Price"
+                                            type="number"
+                                            value={item.discountPrice}
+                                            onChange={(e) =>
+                                                handleItemChange(index, 'discountPrice', e.target.value)
+                                            }
+                                            fullWidth
+                                            margin="normal"
+                                            required
+                                        />
+                                    </Grid>
+                                    {newProposalData.items.length > 1 && (
+                                        <Grid item xs={12} sm={1}>
+                                            <IconButton
+                                                aria-label="delete"
+                                                onClick={() => handleDeleteItem(index)}
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Grid>
+                                    )}
                                 </Grid>
-                                <Grid item xs={12} sm={3}>
-                                    <TextField
-                                        label="Regular Price"
-                                        type="number"
-                                        value={item.regularPrice}
-                                        onChange={(e) =>
-                                            handleItemChange(index, 'regularPrice', e.target.value)
-                                        }
-                                        fullWidth
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={3}>
-                                    <TextField
-                                        label="Discount Price"
-                                        type="number"
-                                        value={item.discountPrice}
-                                        onChange={(e) =>
-                                            handleItemChange(index, 'discountPrice', e.target.value)
-                                        }
-                                        fullWidth
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                                {newProposalData.items.length > 1 && (
+                            ))}
+                            {/* Materials Line Item */}
+                            {materials.length > 0 && (
+                                <Grid container spacing={2} alignItems="center">
+                                    <Grid item xs={12} sm={5}>
+                                        <TextField
+                                            label="Description"
+                                            value="Materials"
+                                            disabled
+                                            fullWidth
+                                            margin="normal"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <TextField
+                                            label="Regular Price"
+                                            value={materialsTotal.toFixed(2)}
+                                            disabled
+                                            fullWidth
+                                            margin="normal"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <TextField
+                                            label="Discount Price"
+                                            type="number"
+                                            value={materialsDiscountPrice}
+                                            onChange={handleMaterialsDiscountPriceChange}
+                                            fullWidth
+                                            margin="normal"
+                                            required
+                                        />
+                                    </Grid>
                                     <Grid item xs={12} sm={1}>
                                         <IconButton
-                                            aria-label="delete"
-                                            onClick={() => handleDeleteItem(index)}
+                                            aria-label="edit"
+                                            onClick={() => handleEditMaterialsList()}
                                         >
-                                            <DeleteIcon />
+                                            <EditIcon />
                                         </IconButton>
                                     </Grid>
-                                )}
-                            </Grid>
-                        ))}
-                        {/* Materials Line Item */}
-                        {materials.length > 0 && (
-                            <Grid container spacing={2} alignItems="center">
-                                <Grid item xs={12} sm={5}>
-                                    <TextField
-                                        label="Description"
-                                        value="Materials"
-                                        disabled
-                                        fullWidth
-                                        margin="normal"
-                                    />
                                 </Grid>
-                                <Grid item xs={12} sm={3}>
-                                    <TextField
-                                        label="Regular Price"
-                                        value={materialsTotal.toFixed(2)}
-                                        disabled
-                                        fullWidth
-                                        margin="normal"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={3}>
-                                    <TextField
-                                        label="Discount Price"
-                                        type="number"
-                                        value={materialsDiscountPrice}
-                                        onChange={handleMaterialsDiscountPriceChange}
-                                        fullWidth
-                                        margin="normal"
-                                        required
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={1}>
-                                    <IconButton
-                                        aria-label="edit"
-                                        onClick={() => handleEditMaterialsList()}
-                                    >
-                                        <EditIcon />
-                                    </IconButton>
-                                </Grid>
-                            </Grid>
-                        )}
-                        {newProposalData.items.length < 5 && (
-                            <Button
-                                variant="contained"
-                                onClick={handleAddItem}
-                                sx={{ float: 'right', mt: 2 }}
-                            >
-                                Add Item
-                            </Button>
-                        )}
-                        {newProposalData.client && !newProposalData.materials && (
-                            <Button
-                                variant="contained"
-                                onClick={handleAddMaterials}
-                                sx={{ mt: 2, ml: 2 }}
-                            >
-                                Add Materials
-                            </Button>
-                        )}
+                            )}
+                            {newProposalData.items.length < 5 && (
+                                <Button
+                                    variant="contained"
+                                    onClick={handleAddItem}
+                                    sx={{ float: 'right', mt: 2 }}
+                                >
+                                    Add Item
+                                </Button>
+                            )}
+                            {newProposalData.client && !newProposalData.materials && (
+                                <Button
+                                    variant="contained"
+                                    onClick={handleAddMaterials}
+                                    sx={{ mt: 2, ml: 2 }}
+                                >
+                                    Add Materials
+                                </Button>
+                            )}
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="h6">
+                                Total Package Price: ${newProposalData.packagePrice.toFixed(2)}
+                            </Typography>
+                        </Grid>
                     </Grid>
-                    <Grid item xs={12}>
-                        <Typography variant="h6">
-                            Total Package Price: ${newProposalData.packagePrice.toFixed(2)}
-                        </Typography>
-                    </Grid>
-                </Grid>
-                <Box display="flex" justifyContent="flex-end" mt={2}>
-                    <Button
-                        color="secondary"
-                        sx={{ marginRight: 2 }}
-                        onClick={handleClose}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={!newProposalData.client}
-                    >
-                        Submit
-                    </Button>
-                </Box>
-            </form>
-        </Paper >
+                    <Box display="flex" justifyContent="flex-end" mt={2}>
+                        <Button
+                            color="secondary"
+                            sx={{ marginRight: 2 }}
+                            onClick={handleClose}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            disabled={!newProposalData.client}
+                        >
+                            Submit
+                        </Button>
+                    </Box>
+                </form>
+            </Paper >
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={handleCloseSnackbar}
+            >
+                <MuiAlert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} elevation={6} variant="filled">
+                    {snackbar.message}
+                </MuiAlert>
+            </Snackbar>
+        </>
     );
 }

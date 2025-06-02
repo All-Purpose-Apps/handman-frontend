@@ -7,7 +7,7 @@ export const handleGoogleSignIn = async (auth) => {
   console.log('Starting Google sign-in...');
   const lastSignInTimestamp = parseInt(localStorage.getItem('lastSignInTimestamp'), 10);
   const now = Date.now();
-  const timeout = 2 * 60 * 1000; // 2 minutes
+  const timeout = 2 * 1000; // 2 seconds
 
   if (signInInProgress && (!lastSignInTimestamp || now - lastSignInTimestamp > timeout)) {
     console.warn('Sign-in flag reset due to timeout.');
