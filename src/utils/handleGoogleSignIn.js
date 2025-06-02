@@ -5,6 +5,16 @@ let signInInProgress = JSON.parse(localStorage.getItem('signInInProgress')) || f
 
 export const handleGoogleSignIn = async (auth) => {
   console.log('Starting Google sign-in...');
+  const lastSignInTimestamp = parseInt(localStorage.getItem('lastSignInTimestamp'), 10);
+  const now = Date.now();
+  const timeout = 2 * 60 * 1000; // 2 minutes
+
+  if (signInInProgress && (!lastSignInTimestamp || now - lastSignInTimestamp > timeout)) {
+    console.warn('Sign-in flag reset due to timeout.');
+    signInInProgress = false;
+    localStorage.setItem('signInInProgress', 'false');
+  }
+
   if (signInInProgress) {
     console.log('Sign-in already in progress, exiting.');
     return; // Prevent multiple popups
@@ -12,6 +22,7 @@ export const handleGoogleSignIn = async (auth) => {
   signInInProgress = true;
   console.log('Sign-in flag set, opening popup...');
   localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
+  localStorage.setItem('lastSignInTimestamp', Date.now().toString());
 
   const provider = new GoogleAuthProvider();
 
@@ -48,6 +59,7 @@ export const handleGoogleSignIn = async (auth) => {
   } finally {
     signInInProgress = false; // Reset the flag
     localStorage.setItem('signInInProgress', JSON.stringify(signInInProgress));
+    localStorage.removeItem('lastSignInTimestamp');
     console.log('Sign-in process complete, flag reset.');
   }
 };
