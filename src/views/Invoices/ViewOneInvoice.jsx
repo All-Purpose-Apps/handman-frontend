@@ -215,7 +215,6 @@ export default function ViewOneInvoice() {
         const tokenUrl = `${import.meta.env.VITE_FRONTEND_URL}/sign/${token.data.token}`;
 
         if (editedInvoice.fileUrl) {
-            console.log(editedInvoice.client?.email)
             try {
                 await axios.post(
                     `${import.meta.env.VITE_BACKEND_URL}/api/gmail/send`,

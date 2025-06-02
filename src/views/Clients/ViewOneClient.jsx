@@ -70,7 +70,7 @@ const ViewClient = () => {
 
     useEffect(() => {
         dispatch(fetchOneClient(id));
-    }, [dispatch, id]);
+    }, [dispatch, id, navigate]);
 
     useEffect(() => {
         if (client) {
@@ -321,77 +321,109 @@ const ViewClient = () => {
                                         </Typography>
                                     </Box>
                                     {/* Status Circles Block */}
-                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                                        {['proposal', 'invoice', 'review'].map((category, index, categories) => {
-                                            const recentStatus = client.statusHistory
-                                                ?.filter((s) => s.status?.toLowerCase().includes(category))
-                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                    {(() => {
+                                        // Enhanced status logic for proposal, invoice, review chain
+                                        const statusHistory = client.statusHistory || [];
 
-                                            let color = 'gray';
-                                            let tooltipText = 'No activity';
-                                            let date = '';
+                                        const proposalStatus = [...statusHistory]
+                                            .filter(s => s.status?.toLowerCase().includes('proposal'))
+                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-                                            if (recentStatus) {
-                                                const lowerStatus = recentStatus.status.toLowerCase();
-                                                if (['accepted', 'paid', 'signed', 'approved'].some(k => lowerStatus.includes(k))) {
-                                                    color = 'green';
-                                                    tooltipText = `Signed: ${recentStatus.status}`;
-                                                } else if (lowerStatus.includes('sent')) {
-                                                    color = 'gold';
-                                                    tooltipText = `Sent: ${recentStatus.status}`;
-                                                } else if (lowerStatus.includes('deleted')) {
-                                                    color = 'blue';
-                                                    tooltipText = `Deleted: ${recentStatus.status}`;
-                                                } else if (lowerStatus.includes('created')) {
-                                                    color = 'red';
-                                                    tooltipText = `Created: ${recentStatus.status}`;
-                                                }
-                                                date = recentStatus.date;
-                                            }
+                                        const invoiceStatus = [...statusHistory]
+                                            .filter(s => s.status?.toLowerCase().includes('invoice'))
+                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-                                            // Reset logic if future categories have no newer status
-                                            const laterStatuses = client.statusHistory?.filter((s) =>
-                                                categories.slice(index + 1).some(c => s.status?.toLowerCase().includes(c))
-                                            );
-                                            const hasNewerLaterStatus = laterStatuses?.some(s => new Date(s.date) > new Date(recentStatus?.date || 0));
-                                            if (recentStatus && hasNewerLaterStatus === false) {
-                                                // valid, keep color
-                                            } else if (!recentStatus || hasNewerLaterStatus) {
-                                                color = 'gray';
-                                                tooltipText = 'No activity';
-                                                date = '';
-                                            }
+                                        const reviewStatus = [...statusHistory]
+                                            .filter(s => s.status?.toLowerCase().includes('review'))
+                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-                                            return (
-                                                <Tooltip
-                                                    title={`${tooltipText}${date ? ` on ${moment(date).format('MM/DD/YYYY')}` : ''}`}
-                                                    key={category}
-                                                >
-                                                    <Box display="flex" flexDirection="column" alignItems="center">
-                                                        <Box
-                                                            sx={{
-                                                                width: 64,
-                                                                height: 64,
-                                                                borderRadius: '50%',
-                                                                backgroundColor: color,
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                color: 'white',
-                                                                fontWeight: 'bold',
-                                                                mb: 1,
-                                                            }}
-                                                        >
-                                                            {category.charAt(0).toUpperCase()}
-                                                        </Box>
-                                                        <Typography variant="caption" fontWeight="bold">
-                                                            {category.toUpperCase()}
-                                                        </Typography>
-                                                    </Box>
-                                                </Tooltip>
-                                            );
-                                        })}
-                                    </Box>
+                                        return (
+                                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                                {['proposal', 'invoice', 'review'].map((category) => {
+                                                    let color = 'gray';
+                                                    let tooltipText = 'No activity';
+                                                    let date = '';
+
+                                                    if (category === 'proposal' && proposalStatus) {
+                                                        const pStatus = proposalStatus.status.toLowerCase();
+                                                        const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
+                                                        const invoiceValid = invoiceStatus && ['created', 'paid', 'approved'].some(k => invoiceStatus.status.toLowerCase().includes(k)) && new Date(invoiceStatus.date) > new Date(proposalStatus.date);
+                                                        const invoiceRejected = invoiceStatus && ['rejected', 'deleted'].some(k => invoiceStatus.status.toLowerCase().includes(k));
+
+                                                        if (validProposal && invoiceValid) {
+                                                            color = 'green';
+                                                            tooltipText = `Proposal: ${proposalStatus.status}`;
+                                                            date = proposalStatus.date;
+                                                        } else if (validProposal && invoiceRejected) {
+                                                            color = 'gray';
+                                                            tooltipText = `Proposal invalidated by invoice: ${invoiceStatus.status}`;
+                                                            date = proposalStatus.date;
+                                                        } else if (validProposal) {
+                                                            color = 'gold';
+                                                            tooltipText = `Proposal accepted, awaiting invoice`;
+                                                            date = proposalStatus.date;
+                                                        }
+                                                    }
+
+                                                    if (category === 'invoice' && invoiceStatus) {
+                                                        const iStatus = invoiceStatus.status.toLowerCase();
+                                                        if (iStatus.includes('paid')) {
+                                                            color = 'green';
+                                                            tooltipText = `Invoice: ${invoiceStatus.status}`;
+                                                            date = invoiceStatus.date;
+                                                        } else if (iStatus.includes('rejected') || iStatus.includes('deleted')) {
+                                                            color = 'gray';
+                                                            tooltipText = `Invoice: ${invoiceStatus.status}`;
+                                                            date = invoiceStatus.date;
+                                                        } else if (iStatus.includes('created') || iStatus.includes('sent')) {
+                                                            color = 'red';
+                                                            tooltipText = `Invoice: ${invoiceStatus.status}`;
+                                                            date = invoiceStatus.date;
+                                                        }
+                                                    }
+
+                                                    if (category === 'review' && reviewStatus) {
+                                                        const iStatus = invoiceStatus?.status?.toLowerCase() || '';
+                                                        if (iStatus.includes('paid')) {
+                                                            color = 'blue';
+                                                            tooltipText = `Review: ${reviewStatus.status}`;
+                                                            date = reviewStatus.date;
+                                                        } else {
+                                                            color = 'gray';
+                                                            tooltipText = 'Review inactive (invoice unpaid)';
+                                                            date = '';
+                                                        }
+                                                    }
+
+                                                    return (
+                                                        <Tooltip title={`${tooltipText}${date ? ` on ${moment(date).format('MM/DD/YYYY')}` : ''}`} key={category}>
+                                                            <Box display="flex" flexDirection="column" alignItems="center">
+                                                                <Box
+                                                                    sx={{
+                                                                        width: 64,
+                                                                        height: 64,
+                                                                        borderRadius: '50%',
+                                                                        backgroundColor: color,
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        color: 'white',
+                                                                        fontWeight: 'bold',
+                                                                        mb: 1,
+                                                                    }}
+                                                                >
+                                                                    {category.charAt(0).toUpperCase()}
+                                                                </Box>
+                                                                <Typography variant="caption" fontWeight="bold">
+                                                                    {category.toUpperCase()}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Tooltip>
+                                                    );
+                                                })}
+                                            </Box>
+                                        );
+                                    })()}
                                     <Box
                                         sx={{
                                             padding: 1,
@@ -458,6 +490,40 @@ const ViewClient = () => {
                                         >
                                             Google Contacts
                                         </Button>
+                                        {/* Send Review Request Button (conditional) */}
+                                        {(() => {
+                                            const statusHistory = client.statusHistory || [];
+
+                                            const proposalStatus = [...statusHistory]
+                                                .filter(s => s.status?.toLowerCase().includes('proposal'))
+                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                                            const invoiceStatus = [...statusHistory]
+                                                .filter(s => s.status?.toLowerCase().includes('invoice'))
+                                                .filter(s => !s.status.toLowerCase().includes('deleted'))
+                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                                            const pStatus = proposalStatus?.status?.toLowerCase() || '';
+                                            const iStatus = invoiceStatus?.status?.toLowerCase() || '';
+
+                                            const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
+                                            const validInvoice = ['paid', 'approved'].some(k => iStatus.includes(k)) && new Date(invoiceStatus?.date) > new Date(proposalStatus?.date);
+
+                                            if (validProposal && validInvoice) {
+                                                return (
+                                                    <Button
+                                                        variant="contained"
+                                                        color="success"
+                                                        sx={{ mt: 1 }}
+                                                        onClick={() => console.log('Send review request')} // Replace with real function
+                                                    >
+                                                        Send Review Request
+                                                    </Button>
+                                                );
+                                            }
+
+                                            return null;
+                                        })()}
                                     </>
                                 )}
                             </Box>
