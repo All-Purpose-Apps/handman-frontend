@@ -20,6 +20,7 @@ export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', asy
     });
     return response.data;
   } catch (err) {
+    console.error('Error fetching materials:', err);
     return rejectWithValue(err.response?.data || err.message);
   }
 });
