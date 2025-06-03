@@ -27,6 +27,8 @@ import {
     ListItemAvatar,
     Avatar,
     ListItemText,
+    Fade,
+    Backdrop,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -64,6 +66,10 @@ const ViewProposal = () => {
     const [isCreatingPdf, setIsCreatingPdf] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [materialsListDiscount, setMaterialsListDiscount] = useState(0);
+    // Modal states for alerts
+    const [missingPdfModalOpen, setMissingPdfModalOpen] = useState(false);
+    const [sendSuccessModalOpen, setSendSuccessModalOpen] = useState(false);
+    const [sendFailureModalOpen, setSendFailureModalOpen] = useState(false);
 
 
     const [invoiceData, setInvoiceData] = useState({
@@ -307,7 +313,7 @@ const ViewProposal = () => {
         const accessToken = localStorage.getItem('accessToken');
 
         if (!editedProposal.fileUrl) {
-            alert('Please create the PDF first before sending.');
+            setMissingPdfModalOpen(true);
             return;
         }
 
@@ -364,10 +370,10 @@ const ViewProposal = () => {
                 }
             );
 
-            alert('Proposal sent successfully!');
+            setSendSuccessModalOpen(true);
         } catch (error) {
             console.error('Error sending proposal:', error);
-            alert('Failed to send proposal.');
+            setSendFailureModalOpen(true);
         } finally {
             dispatch(fetchOneProposal(id));
         }
@@ -626,351 +632,459 @@ const ViewProposal = () => {
     };
 
     return (
-        <Card elevation={3} sx={{ p: 2 }}>
-            <CardContent>
+        <>
+            <Card elevation={3} sx={{ p: 2 }}>
+                <CardContent>
 
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6">
-                        No. {proposal?.proposalNumber || 'Loading...'}
-                    </Typography>
-                    <Box mt={2} mb={2}>
-                        <Typography
-                            variant="subtitle1"
-                            sx={{
-                                display: 'inline-block',
-                                px: 2,
-                                py: 1,
-                                borderRadius: 2,
-                                fontWeight: 'bold',
-                                color: '#fff',
-                                backgroundColor:
-                                    proposal?.status === 'accepted'
-                                        ? 'success.main'
-                                        : proposal?.status === 'converted to invoice'
-                                            ? 'info.main'
-                                            : proposal?.status === 'draft'
-                                                ? 'warning.main'
-                                                : proposal?.status === 'rejected'
-                                                    ? 'error.main'
-                                                    : 'grey.700',
-                                letterSpacing: 1,
-                                fontSize: '1.1rem',
-                            }}
-                        >
-                            Status: {proposal?.status?.toUpperCase() || 'Loading...'}
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="h6">
+                            No. {proposal?.proposalNumber || 'Loading...'}
                         </Typography>
+                        <Box mt={2} mb={2}>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    display: 'inline-block',
+                                    px: 2,
+                                    py: 1,
+                                    borderRadius: 2,
+                                    fontWeight: 'bold',
+                                    color: '#fff',
+                                    backgroundColor:
+                                        proposal?.status === 'accepted'
+                                            ? 'success.main'
+                                            : proposal?.status === 'converted to invoice'
+                                                ? 'info.main'
+                                                : proposal?.status === 'draft'
+                                                    ? 'warning.main'
+                                                    : proposal?.status === 'rejected'
+                                                        ? 'error.main'
+                                                        : 'grey.700',
+                                    letterSpacing: 1,
+                                    fontSize: '1.1rem',
+                                }}
+                            >
+                                Status: {proposal?.status?.toUpperCase() || 'Loading...'}
+                            </Typography>
+                        </Box>
                     </Box>
-                </Box>
-                <Grid container spacing={4}>
-                    <Grid item xs={12} md={4}>
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                        >
-                            {isEditing ? (
-                                <TextField
-                                    name="proposalDate"
-                                    label="Proposal Date"
-                                    type="date"
-                                    fullWidth
-                                    value={moment(editedProposal.proposalDate).format(
-                                        'YYYY-MM-DD'
+                    <Grid container spacing={4}>
+                        <Grid item xs={12} md={4}>
+                            <Box
+                                display="flex"
+                                justifyContent="space-between"
+                                alignItems="center"
+                            >
+                                {isEditing ? (
+                                    <TextField
+                                        name="proposalDate"
+                                        label="Proposal Date"
+                                        type="date"
+                                        fullWidth
+                                        value={moment(editedProposal.proposalDate).format(
+                                            'YYYY-MM-DD'
+                                        )}
+                                        onChange={handleInputChange}
+                                        InputLabelProps={{ shrink: true }}
+                                    />
+                                ) : (
+                                    <Typography variant="body1">
+                                        <strong>Proposal Date:</strong>{' '}
+                                        {moment(proposal?.proposalDate).format('MM/DD/YYYY') ||
+                                            'Loading...'}
+                                    </Typography>
+                                )}
+                            </Box>
+
+                            {isEditing && (
+                                <FormControlLabel
+                                    control={
+                                        <Switch checked={isEditingClient} onChange={toggleClientEdit} />
+                                    }
+                                    label="Edit Client"
+                                />
+                            )}
+
+                            {isEditingClient ? (
+                                <Autocomplete
+                                    options={clients}
+                                    getOptionLabel={(client) => client.name || ''}
+                                    value={editedProposal.client || null}
+                                    onChange={handleClientChange}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Select Client" fullWidth />
                                     )}
-                                    onChange={handleInputChange}
-                                    InputLabelProps={{ shrink: true }}
                                 />
                             ) : (
-                                <Typography variant="body1">
-                                    <strong>Proposal Date:</strong>{' '}
-                                    {moment(proposal?.proposalDate).format('MM/DD/YYYY') ||
-                                        'Loading...'}
+                                <>
+                                    <ListItemButton
+                                        onClick={() => navigate(`/clients/${proposal.client._id}`)}
+                                        sx={{
+                                            borderRadius: 2,
+                                            '&:hover': {
+                                                backgroundColor: 'primary.light',
+                                            },
+                                        }}
+                                    >
+                                        <ListItemAvatar>
+                                            <Avatar>
+
+                                                {proposal?.client?.name?.charAt(0)}
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText primary={proposal?.client?.name} secondary="Click to view details" />
+                                    </ListItemButton>
+                                    <Typography variant="body1" sx={{ marginTop: '10px' }}>
+                                        <strong>Client Name:</strong>{' '}
+                                        {proposal?.client?.name || 'Loading...'}
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        <strong>Client Address:</strong>{' '}
+                                        {proposal?.client?.address || 'Loading...'}
+                                    </Typography>
+                                </>
+                            )}
+
+
+                            {proposal.fileUrl && (
+                                <Typography variant="body2">
+                                    updated {moment(editedProposal.updatedAt).fromNow()} on {moment(editedProposal.updatedAt).format('MM/DD/YYYY')}
                                 </Typography>
                             )}
-                        </Box>
+                        </Grid>
 
-                        {isEditing && (
-                            <FormControlLabel
-                                control={
-                                    <Switch checked={isEditingClient} onChange={toggleClientEdit} />
-                                }
-                                label="Edit Client"
-                            />
-                        )}
-
-                        {isEditingClient ? (
-                            <Autocomplete
-                                options={clients}
-                                getOptionLabel={(client) => client.name || ''}
-                                value={editedProposal.client || null}
-                                onChange={handleClientChange}
-                                renderInput={(params) => (
-                                    <TextField {...params} label="Select Client" fullWidth />
-                                )}
-                            />
-                        ) : (
-                            <>
-                                <ListItemButton
-                                    onClick={() => navigate(`/clients/${proposal.client._id}`)}
-                                    sx={{
-                                        borderRadius: 2,
-                                        '&:hover': {
-                                            backgroundColor: 'primary.light',
-                                        },
-                                    }}
-                                >
-                                    <ListItemAvatar>
-                                        <Avatar>
-
-                                            {proposal?.client?.name?.charAt(0)}
-                                        </Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText primary={proposal?.client?.name} secondary="Click to view details" />
-                                </ListItemButton>
-                                <Typography variant="body1" sx={{ marginTop: '10px' }}>
-                                    <strong>Client Name:</strong>{' '}
-                                    {proposal?.client?.name || 'Loading...'}
-                                </Typography>
-                                <Typography variant="body1">
-                                    <strong>Client Address:</strong>{' '}
-                                    {proposal?.client?.address || 'Loading...'}
-                                </Typography>
-                            </>
-                        )}
-
-
-                        {proposal.fileUrl && (
-                            <Typography variant="body2">
-                                updated {moment(editedProposal.updatedAt).fromNow()} on {moment(editedProposal.updatedAt).format('MM/DD/YYYY')}
+                        <Grid item xs={12}>
+                            <Typography variant="h5" gutterBottom>
+                                Items
                             </Typography>
-                        )}
-                    </Grid>
-
-                    <Grid item xs={12}>
-                        <Typography variant="h5" gutterBottom>
-                            Items
-                        </Typography>
-                        <TableContainer component={Paper}>
-                            <Table aria-label="items table">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Description</TableCell>
-                                        <TableCell>Regular Price</TableCell>
-                                        <TableCell>Discount Price</TableCell>
-                                        {isEditing && <TableCell>Actions</TableCell>}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {materialsList?._id && !isEditing && (
+                            <TableContainer component={Paper}>
+                                <Table aria-label="items table">
+                                    <TableHead>
                                         <TableRow>
-                                            <TableCell><strong>Materials Included</strong></TableCell>
-                                            <TableCell>
-                                                ${materialsList?.materials?.reduce((sum, mat) => sum + (mat.total || 0), 0).toFixed(2)}
-                                            </TableCell>
-                                            <TableCell>
-                                                ${materialsList?.discountTotal}
-                                            </TableCell>
-                                        </TableRow>)}
-                                    {isEditing && materialsList?._id && (
-                                        <TableRow>
-                                            <TableCell><strong>Materials Included</strong></TableCell>
-                                            <TableCell>
-                                                ${materialsList?.materials?.reduce((sum, mat) => sum + (mat.total || 0), 0).toFixed(2)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <TextField
-                                                    name="discountPrice"
-                                                    type="number"
-                                                    value={materialsListDiscount}
-                                                    onChange={(e) =>
-                                                        handleMaterialsDiscountChange(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <IconButton
-                                                    aria-label="edit"
-                                                    onClick={() => handleEditMaterialsList()}
-                                                >
-                                                    <EditIcon />
-                                                </IconButton>
-                                            </TableCell>
+                                            <TableCell>Description</TableCell>
+                                            <TableCell>Regular Price</TableCell>
+                                            <TableCell>Discount Price</TableCell>
+                                            {isEditing && <TableCell>Actions</TableCell>}
                                         </TableRow>
-                                    )}
-                                    {editedProposal.items.map((item, index) => (
-                                        <TableRow key={index}>
-                                            {isEditing ? (
-                                                <>
-                                                    <TableCell>
-                                                        <TextField
-                                                            name="description"
-                                                            value={item.description}
-                                                            onChange={(e) =>
-                                                                handleItemChange(
-                                                                    index,
-                                                                    'description',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                            fullWidth
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            name="regularPrice"
-                                                            type="number"
-                                                            value={item.regularPrice}
-                                                            onChange={(e) =>
-                                                                handleItemChange(
-                                                                    index,
-                                                                    'regularPrice',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                            fullWidth
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <TextField
-                                                            name="discountPrice"
-                                                            type="number"
-                                                            value={item.discountPrice}
-                                                            onChange={(e) =>
-                                                                handleItemChange(
-                                                                    index,
-                                                                    'discountPrice',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                            fullWidth
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <IconButton
-                                                            onClick={() => handleDeleteItem(index)}
-                                                            aria-label="Delete Item"
-                                                        >
-                                                            <DeleteIcon color="error" />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <TableCell>{item.description}</TableCell>
-                                                    <TableCell>${item.regularPrice}</TableCell>
-                                                    <TableCell>
-                                                        $
-                                                        {item.discountPrice
-                                                            ? parseFloat(item.discountPrice).toFixed(2)
-                                                            : '0.00'}
-                                                    </TableCell>
-                                                </>
-                                            )}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                    </TableHead>
+                                    <TableBody>
+                                        {materialsList?._id && !isEditing && (
+                                            <TableRow>
+                                                <TableCell><strong>Materials Included</strong></TableCell>
+                                                <TableCell>
+                                                    ${materialsList?.materials?.reduce((sum, mat) => sum + (mat.total || 0), 0).toFixed(2)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    ${materialsList?.discountTotal}
+                                                </TableCell>
+                                            </TableRow>)}
+                                        {isEditing && materialsList?._id && (
+                                            <TableRow>
+                                                <TableCell><strong>Materials Included</strong></TableCell>
+                                                <TableCell>
+                                                    ${materialsList?.materials?.reduce((sum, mat) => sum + (mat.total || 0), 0).toFixed(2)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <TextField
+                                                        name="discountPrice"
+                                                        type="number"
+                                                        value={materialsListDiscount}
+                                                        onChange={(e) =>
+                                                            handleMaterialsDiscountChange(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        fullWidth
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <IconButton
+                                                        aria-label="edit"
+                                                        onClick={() => handleEditMaterialsList()}
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                        {editedProposal.items.map((item, index) => (
+                                            <TableRow key={index}>
+                                                {isEditing ? (
+                                                    <>
+                                                        <TableCell>
+                                                            <TextField
+                                                                name="description"
+                                                                value={item.description}
+                                                                onChange={(e) =>
+                                                                    handleItemChange(
+                                                                        index,
+                                                                        'description',
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                fullWidth
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                name="regularPrice"
+                                                                type="number"
+                                                                value={item.regularPrice}
+                                                                onChange={(e) =>
+                                                                    handleItemChange(
+                                                                        index,
+                                                                        'regularPrice',
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                fullWidth
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                name="discountPrice"
+                                                                type="number"
+                                                                value={item.discountPrice}
+                                                                onChange={(e) =>
+                                                                    handleItemChange(
+                                                                        index,
+                                                                        'discountPrice',
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                fullWidth
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <IconButton
+                                                                onClick={() => handleDeleteItem(index)}
+                                                                aria-label="Delete Item"
+                                                            >
+                                                                <DeleteIcon color="error" />
+                                                            </IconButton>
+                                                        </TableCell>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <TableCell>{item.description}</TableCell>
+                                                        <TableCell>${item.regularPrice}</TableCell>
+                                                        <TableCell>
+                                                            $
+                                                            {item.discountPrice
+                                                                ? parseFloat(item.discountPrice).toFixed(2)
+                                                                : '0.00'}
+                                                        </TableCell>
+                                                    </>
+                                                )}
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
 
-                        {isEditing && editedProposal.items.length < 5 && (
-                            <Box sx={{ marginTop: '10px', textAlign: 'left' }}>
-                                <Button variant="contained" onClick={handleAddItem}>
-                                    Add Item
-                                </Button>
+                            {isEditing && editedProposal.items.length < 5 && (
+                                <Box sx={{ marginTop: '10px', textAlign: 'left' }}>
+                                    <Button variant="contained" onClick={handleAddItem}>
+                                        Add Item
+                                    </Button>
+                                </Box>
+                            )}
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                            <Box mt={2}>
+                                <Typography variant="h6">
+                                    <strong>Package Total:</strong>{' '}
+                                    ${editedProposal?.packagePrice?.toFixed(2) || '0.00'}
+                                </Typography>
                             </Box>
-                        )}
+                        </Grid>
                     </Grid>
+                </CardContent>
+                <CardActions>{renderActions()}</CardActions>
 
-                    <Grid item xs={12} md={6}>
-                        <Box mt={2}>
-                            <Typography variant="h6">
-                                <strong>Package Total:</strong>{' '}
-                                ${editedProposal?.packagePrice?.toFixed(2) || '0.00'}
+                {/* Render the ConvertInvoiceModal */}
+                {isInvoiceModalOpen && (
+                    <ConvertInvoiceModal
+                        openModal={isInvoiceModalOpen}
+                        setOpenModal={setInvoiceModalOpen}
+                        newInvoiceData={invoiceData}
+                        handleInputChange={handleInvoiceInputChange}
+                        handleClientChange={handleInvoiceClientChange}
+                        handleItemChange={handleInvoiceItemChange}
+                        handleDeleteItem={handleInvoiceDeleteItem}
+                        handleAddItem={handleInvoiceAddItem}
+                        handleAddInvoice={handleAddInvoice}
+                        clients={clients}
+                    />
+                )}
+
+                {/* Loading Modal */}
+                <Modal
+                    open={isCreatingPdf}
+                    aria-labelledby="creating-pdf-modal"
+                    aria-describedby="creating-pdf-description"
+                >
+                    <Box
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        height="20vh"
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                    >
+                        <Box textAlign="center">
+                            <CircularProgress />
+                            <Typography variant="h6" mt={2}>
+                                Creating Pdf...
                             </Typography>
                         </Box>
-                    </Grid>
-                </Grid>
-            </CardContent>
-            <CardActions>{renderActions()}</CardActions>
-
-            {/* Render the ConvertInvoiceModal */}
-            {isInvoiceModalOpen && (
-                <ConvertInvoiceModal
-                    openModal={isInvoiceModalOpen}
-                    setOpenModal={setInvoiceModalOpen}
-                    newInvoiceData={invoiceData}
-                    handleInputChange={handleInvoiceInputChange}
-                    handleClientChange={handleInvoiceClientChange}
-                    handleItemChange={handleInvoiceItemChange}
-                    handleDeleteItem={handleInvoiceDeleteItem}
-                    handleAddItem={handleInvoiceAddItem}
-                    handleAddInvoice={handleAddInvoice}
-                    clients={clients}
-                />
-            )}
-
-            {/* Loading Modal */}
-            <Modal
-                open={isCreatingPdf}
-                aria-labelledby="creating-pdf-modal"
-                aria-describedby="creating-pdf-description"
-            >
-                <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    height="20vh"
-                    bgcolor="background.paper"
-                    p={3}
-                    borderRadius={1}
-                    boxShadow={3}
+                    </Box>
+                </Modal>
+                <Modal
+                    open={isDeleteModalOpen}
+                    onClose={handleCloseDeleteModal}
+                    aria-labelledby="delete-confirmation-modal"
+                    aria-describedby="delete-confirmation-description"
                 >
-                    <Box textAlign="center">
-                        <CircularProgress />
-                        <Typography variant="h6" mt={2}>
-                            Creating Pdf...
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{ width: { xs: '80%', md: 400 }, margin: 'auto', textAlign: 'center' }}
+                    >
+                        <Typography variant="h6" mb={2} id="delete-confirmation-modal">
+                            Are you sure you want to delete this proposal?
                         </Typography>
+                        <Box display="flex" justifyContent="space-around" width="100%">
+                            <Button variant="contained" onClick={handleCloseDeleteModal}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={handleConfirmDelete}
+                            >
+                                Confirm Delete
+                            </Button>
+                        </Box>
                     </Box>
-                </Box>
+                </Modal>
+            </Card>
+
+            <Modal
+                open={missingPdfModalOpen}
+                onClose={() => setMissingPdfModalOpen(false)}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{ backdrop: { timeout: 300 } }}
+            >
+                <Fade in={missingPdfModalOpen}>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '80%', md: 400 },
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Typography variant="h6" mb={2}>
+                            Please create the PDF first before sending.
+                        </Typography>
+                        <Button variant="contained" onClick={() => setMissingPdfModalOpen(false)}>
+                            Close
+                        </Button>
+                    </Box>
+                </Fade>
             </Modal>
             <Modal
-                open={isDeleteModalOpen}
-                onClose={handleCloseDeleteModal}
-                aria-labelledby="delete-confirmation-modal"
-                aria-describedby="delete-confirmation-description"
+                open={sendSuccessModalOpen}
+                onClose={() => setSendSuccessModalOpen(false)}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{ backdrop: { timeout: 300 } }}
             >
-                <Box
-                    display="flex"
-                    flexDirection="column"
-                    justifyContent="center"
-                    alignItems="center"
-                    bgcolor="background.paper"
-                    p={4}
-                    borderRadius={1}
-                    boxShadow={3}
-                    sx={{ width: { xs: '80%', md: 400 }, margin: 'auto', textAlign: 'center' }}
-                >
-                    <Typography variant="h6" mb={2} id="delete-confirmation-modal">
-                        Are you sure you want to delete this proposal?
-                    </Typography>
-                    <Box display="flex" justifyContent="space-around" width="100%">
-                        <Button variant="contained" onClick={handleCloseDeleteModal}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={handleConfirmDelete}
-                        >
-                            Confirm Delete
+                <Fade in={sendSuccessModalOpen}>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '80%', md: 400 },
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Typography variant="h6" mb={2}>
+                            Proposal sent successfully!
+                        </Typography>
+                        <Button variant="contained" onClick={() => setSendSuccessModalOpen(false)}>
+                            Close
                         </Button>
                     </Box>
-                </Box>
+                </Fade>
             </Modal>
-        </Card>
+            <Modal
+                open={sendFailureModalOpen}
+                onClose={() => setSendFailureModalOpen(false)}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{ backdrop: { timeout: 300 } }}
+            >
+                <Fade in={sendFailureModalOpen}>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '80%', md: 400 },
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Typography variant="h6" mb={2}>
+                            Failed to send proposal.
+                        </Typography>
+                        <Button variant="contained" onClick={() => setSendFailureModalOpen(false)}>
+                            Close
+                        </Button>
+                    </Box>
+                </Fade>
+            </Modal>
+        </>
     );
 };
 

@@ -23,6 +23,8 @@ import {
     Modal,
     Box,
     CircularProgress,
+    Fade,
+    Backdrop,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import moment from 'moment';
@@ -40,6 +42,11 @@ export default function ViewOneInvoice() {
     const [prevClientId, setPrevClientId] = useState(null);
     const [isCreatingPdf, setIsCreatingPdf] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    // Modal states for send invoice and missing PDF
+    const [missingPdfModalOpen, setMissingPdfModalOpen] = useState(false);
+    const [sendSuccessModalOpen, setSendSuccessModalOpen] = useState(false);
+    const [sendFailureModalOpen, setSendFailureModalOpen] = useState(false);
 
     const [editedInvoice, setEditedInvoice] = useState({
         items: [],
@@ -246,15 +253,15 @@ Han-D-Man Pro<br>
                         },
                     }
                 );
-                alert('Invoice sent successfully!');
+                setSendSuccessModalOpen(true);
             } catch (error) {
                 console.error('Error sending invoice:', error);
-                alert('Failed to send invoice.');
+                setSendFailureModalOpen(true);
             } finally {
                 dispatch(fetchOneInvoice(id));
             }
         } else {
-            alert('Please create the PDF first before sending.');
+            setMissingPdfModalOpen(true);
         }
     };
 
@@ -307,416 +314,529 @@ Han-D-Man Pro<br>
     }
 
     return (
-        <Card elevation={3}>
-            <CardContent>
-                <Grid
-                    container
-                    spacing={2}
-                    justifyContent="space-between"
-                    alignItems="center"
-                    sx={{ padding: '10px' }}
-                >
-                    <Grid item>
-                        <IconButton onClick={handleBack}>
-                            <ArrowBackIcon />
-                        </IconButton>
-                    </Grid>
-                    <Grid item>
-                        <Box display="flex" gap={2}>
-                            {editedInvoice.fileUrl && !isEditing && (
-                                <Button
-                                    variant="contained"
-                                    href={editedInvoice.fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    View Invoice
-                                </Button>
-                            )}
-                            {editedInvoice.signedPdfUrl && !isEditing && (
-                                <Button
-                                    variant="contained"
-                                    href={editedInvoice.signedPdfUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    View Signed Invoice
-                                </Button>
-                            )}
-                        </Box>
-                    </Grid>
-                </Grid>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6">
-                        No. {editedInvoice?.invoiceNumber || 'Loading...'}
-                    </Typography>
-                    <Box mt={2} mb={2}>
-                        <Typography
-                            variant="subtitle1"
-                            sx={{
-                                display: 'inline-block',
-                                px: 2,
-                                py: 1,
-                                borderRadius: 2,
-                                fontWeight: 'bold',
-                                color: '#fff',
-                                backgroundColor:
-                                    editedInvoice?.status === 'signed and paid'
-                                        ? 'success.main'
-                                        : editedInvoice?.status === 'paid'
-                                            ? 'success.main'
-                                            : editedInvoice?.status === 'sent'
-                                                ? 'info.main'
-                                                : editedInvoice?.status === 'created'
-                                                    ? 'warning.main'
-                                                    : editedInvoice?.status === 'canceled'
-                                                        ? 'error.main'
-                                                        : 'grey.700',
-                                letterSpacing: 1,
-                                fontSize: '1.1rem',
-                            }}
-                        >
-                            Status: {editedInvoice?.status?.toUpperCase() || 'Loading...'}
-                        </Typography>
-                    </Box>
-                </Box>
-                <Grid container spacing={2} alignItems="flex-start">
-                    <Grid item xs={12} md={4}>
-                        {isEditing ? (
-                            clients && clients.length > 0 ? (
-                                <Autocomplete
-                                    options={clients}
-                                    getOptionLabel={(client) => (client ? client.name : '')}
-                                    value={editedInvoice.client || null}
-                                    onChange={handleClientChange}
-                                    isOptionEqualToValue={(option, value) => option.id === value?.id}
-                                    renderInput={(params) => (
-                                        <TextField {...params} label="Select Client" fullWidth />
-                                    )}
-                                />
-                            ) : (
-                                <Typography>No clients available.</Typography>
-                            )
-                        ) : (
-                            <ListItemButton
-                                onClick={() => navigate(`/clients/${invoice.client._id}`)}
-                                sx={{
-                                    borderRadius: 2,
-                                    '&:hover': {
-                                        backgroundColor: 'primary.light',
-                                    },
-                                }}
-                            >
-                                <ListItemAvatar>
-                                    <Avatar>{invoice?.client?.name?.charAt(0)}</Avatar>
-                                </ListItemAvatar>
-                                <Typography variant="h6">{invoice?.client?.name}</Typography>
-                            </ListItemButton>
-                        )}
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} sm={4}>
-                                <Typography variant="h6" align="left">
-                                    Invoice Number: {editedInvoice?.invoiceNumber}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                {isEditing ? (
-                                    <TextField
-                                        label="Invoice Date"
-                                        type="date"
-                                        name="invoiceDate"
-                                        value={editedInvoice?.invoiceDate?.split('T')[0] || ''}
-                                        onChange={handleInputChange}
-                                        InputLabelProps={{
-                                            shrink: true,
-                                        }}
-                                        fullWidth
-                                    />
-                                ) : (
-                                    <Typography align="left">
-                                        Invoice Date:{' '}
-                                        {moment.utc(editedInvoice?.invoiceDate).format('MM-DD-YYYY')}
-                                    </Typography>
+        <>
+            <Card elevation={3}>
+                <CardContent>
+                    <Grid
+                        container
+                        spacing={2}
+                        justifyContent="space-between"
+                        alignItems="center"
+                        sx={{ padding: '10px' }}
+                    >
+                        <Grid item>
+                            <IconButton onClick={handleBack}>
+                                <ArrowBackIcon />
+                            </IconButton>
+                        </Grid>
+                        <Grid item>
+                            <Box display="flex" gap={2}>
+                                {editedInvoice.fileUrl && !isEditing && (
+                                    <Button
+                                        variant="contained"
+                                        href={editedInvoice.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        View Invoice
+                                    </Button>
                                 )}
-                            </Grid>
+                                {editedInvoice.signedPdfUrl && !isEditing && (
+                                    <Button
+                                        variant="contained"
+                                        href={editedInvoice.signedPdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        View Signed Invoice
+                                    </Button>
+                                )}
+                            </Box>
                         </Grid>
                     </Grid>
-                    <Grid item xs={12}>
-                        <Typography variant="h6" gutterBottom align="left">
-                            Items:
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="h6">
+                            No. {editedInvoice?.invoiceNumber || 'Loading...'}
                         </Typography>
-                        {editedInvoice.items && editedInvoice.items.length > 0 ? (
-                            editedInvoice.items.map((item, index) => (
-                                <Card
-                                    key={index}
-                                    variant="outlined"
-                                    sx={{ marginBottom: '16px', padding: '16px' }}
+                        <Box mt={2} mb={2}>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    display: 'inline-block',
+                                    px: 2,
+                                    py: 1,
+                                    borderRadius: 2,
+                                    fontWeight: 'bold',
+                                    color: '#fff',
+                                    backgroundColor:
+                                        editedInvoice?.status === 'signed and paid'
+                                            ? 'success.main'
+                                            : editedInvoice?.status === 'paid'
+                                                ? 'success.main'
+                                                : editedInvoice?.status === 'sent'
+                                                    ? 'info.main'
+                                                    : editedInvoice?.status === 'created'
+                                                        ? 'warning.main'
+                                                        : editedInvoice?.status === 'canceled'
+                                                            ? 'error.main'
+                                                            : 'grey.700',
+                                    letterSpacing: 1,
+                                    fontSize: '1.1rem',
+                                }}
+                            >
+                                Status: {editedInvoice?.status?.toUpperCase() || 'Loading...'}
+                            </Typography>
+                        </Box>
+                    </Box>
+                    <Grid container spacing={2} alignItems="flex-start">
+                        <Grid item xs={12} md={4}>
+                            {isEditing ? (
+                                clients && clients.length > 0 ? (
+                                    <Autocomplete
+                                        options={clients}
+                                        getOptionLabel={(client) => (client ? client.name : '')}
+                                        value={editedInvoice.client || null}
+                                        onChange={handleClientChange}
+                                        isOptionEqualToValue={(option, value) => option.id === value?.id}
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Select Client" fullWidth />
+                                        )}
+                                    />
+                                ) : (
+                                    <Typography>No clients available.</Typography>
+                                )
+                            ) : (
+                                <ListItemButton
+                                    onClick={() => navigate(`/clients/${invoice.client._id}`)}
+                                    sx={{
+                                        borderRadius: 2,
+                                        '&:hover': {
+                                            backgroundColor: 'primary.light',
+                                        },
+                                    }}
                                 >
+                                    <ListItemAvatar>
+                                        <Avatar>{invoice?.client?.name?.charAt(0)}</Avatar>
+                                    </ListItemAvatar>
+                                    <Typography variant="h6">{invoice?.client?.name}</Typography>
+                                </ListItemButton>
+                            )}
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Grid container spacing={2} alignItems="center">
+                                <Grid item xs={12} sm={4}>
+                                    <Typography variant="h6" align="left">
+                                        Invoice Number: {editedInvoice?.invoiceNumber}
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4}>
                                     {isEditing ? (
-                                        <Grid container spacing={2} alignItems="center">
-                                            <Grid item xs={12} sm={7}>
-                                                <TextField
-                                                    label="Description"
-                                                    fullWidth
-                                                    value={item.description}
-                                                    onChange={(e) =>
-                                                        handleItemChange(index, 'description', e.target.value)
-                                                    }
-                                                />
-                                            </Grid>
-                                            <Grid item xs={12} sm={3}>
-                                                <TextField
-                                                    label="Price"
-                                                    type="number"
-                                                    fullWidth
-                                                    value={item.price}
-                                                    onChange={(e) =>
-                                                        handleItemChange(index, 'price', e.target.value)
-                                                    }
-                                                />
-                                            </Grid>
-                                            <Grid item xs={12} sm={2}>
-                                                <IconButton
-                                                    color="error"
-                                                    onClick={() => handleDeleteItem(index)}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Grid>
-                                        </Grid>
+                                        <TextField
+                                            label="Invoice Date"
+                                            type="date"
+                                            name="invoiceDate"
+                                            value={editedInvoice?.invoiceDate?.split('T')[0] || ''}
+                                            onChange={handleInputChange}
+                                            InputLabelProps={{
+                                                shrink: true,
+                                            }}
+                                            fullWidth
+                                        />
                                     ) : (
                                         <Typography align="left">
-                                            {item.description} (Price: ${item.price})
+                                            Invoice Date:{' '}
+                                            {moment.utc(editedInvoice?.invoiceDate).format('MM-DD-YYYY')}
                                         </Typography>
                                     )}
-                                </Card>
-                            ))
-                        ) : (
-                            <Typography align="left">No items added yet.</Typography>
-                        )}
-                        {isEditing && editedInvoice.items.length < 5 && (
-                            <Button variant="contained" onClick={handleAddItem}>
-                                Add Item
-                            </Button>
-                        )}
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Typography align="left">
-                            Subtotal 1: ${editedInvoice?.subTotal1?.toFixed(2)}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        {isEditing ? (
-                            <TextField
-                                label="Extra Work/Materials"
-                                name="extraWorkMaterials"
-                                type="number"
-                                fullWidth
-                                value={editedInvoice.extraWorkMaterials || ''}
-                                onChange={handleInputChange}
-                            />
-                        ) : (
-                            <Typography align="left">
-                                Extra Work/Materials: ${editedInvoice?.extraWorkMaterials || 0}
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="h6" gutterBottom align="left">
+                                Items:
                             </Typography>
-                        )}
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Typography align="left">
-                            Subtotal 2: ${editedInvoice?.subTotal2?.toFixed(2)}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        {isEditing ? (
-                            <TextField
-                                label="Deposit/Adjustment"
-                                name="depositAdjustment"
-                                type="number"
-                                fullWidth
-                                value={editedInvoice.depositAdjustment || ''}
-                                onChange={handleInputChange}
-                            />
-                        ) : (
+                            {editedInvoice.items && editedInvoice.items.length > 0 ? (
+                                editedInvoice.items.map((item, index) => (
+                                    <Card
+                                        key={index}
+                                        variant="outlined"
+                                        sx={{ marginBottom: '16px', padding: '16px' }}
+                                    >
+                                        {isEditing ? (
+                                            <Grid container spacing={2} alignItems="center">
+                                                <Grid item xs={12} sm={7}>
+                                                    <TextField
+                                                        label="Description"
+                                                        fullWidth
+                                                        value={item.description}
+                                                        onChange={(e) =>
+                                                            handleItemChange(index, 'description', e.target.value)
+                                                        }
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={3}>
+                                                    <TextField
+                                                        label="Price"
+                                                        type="number"
+                                                        fullWidth
+                                                        value={item.price}
+                                                        onChange={(e) =>
+                                                            handleItemChange(index, 'price', e.target.value)
+                                                        }
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={2}>
+                                                    <IconButton
+                                                        color="error"
+                                                        onClick={() => handleDeleteItem(index)}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Grid>
+                                            </Grid>
+                                        ) : (
+                                            <Typography align="left">
+                                                {item.description} (Price: ${item.price})
+                                            </Typography>
+                                        )}
+                                    </Card>
+                                ))
+                            ) : (
+                                <Typography align="left">No items added yet.</Typography>
+                            )}
+                            {isEditing && editedInvoice.items.length < 5 && (
+                                <Button variant="contained" onClick={handleAddItem}>
+                                    Add Item
+                                </Button>
+                            )}
+                        </Grid>
+                        <Grid item xs={12} md={6}>
                             <Typography align="left">
-                                Deposit/Adjustment: ${editedInvoice.depositAdjustment || 0}
+                                Subtotal 1: ${editedInvoice?.subTotal1?.toFixed(2)}
                             </Typography>
-                        )}
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        {isEditing ? (
-                            <FormControl fullWidth>
-                                <InputLabel id="payment-method-label">Payment Method</InputLabel>
-                                <Select
-                                    labelId="payment-method-label"
-                                    name="paymentMethod"
-                                    value={editedInvoice.paymentMethod || ''}
-                                    label="Payment Method"
-                                    onChange={handleInputChange}
-                                    required
-                                >
-                                    <MenuItem value="awaiting payment">Awaiting Payment</MenuItem>
-                                    <MenuItem value="cash">Cash</MenuItem>
-                                    <MenuItem value="check">Check</MenuItem>
-                                    <MenuItem value="credit/debit">Credit/Debit</MenuItem>
-                                    <MenuItem value="online">Online</MenuItem>
-                                </Select>
-                            </FormControl>
-                        ) : (
-                            <Typography align="left">
-                                Payment Method: {editedInvoice.paymentMethod}
-                            </Typography>
-                        )}
-                    </Grid>
-                    {editedInvoice.paymentMethod === 'check' && (
+                        </Grid>
                         <Grid item xs={12} md={6}>
                             {isEditing ? (
                                 <TextField
-                                    label="Check Number"
-                                    name="checkNumber"
+                                    label="Extra Work/Materials"
+                                    name="extraWorkMaterials"
+                                    type="number"
                                     fullWidth
-                                    value={editedInvoice.checkNumber || ''}
+                                    value={editedInvoice.extraWorkMaterials || ''}
                                     onChange={handleInputChange}
-                                    required
                                 />
                             ) : (
                                 <Typography align="left">
-                                    Check Number: {editedInvoice.checkNumber}
+                                    Extra Work/Materials: ${editedInvoice?.extraWorkMaterials || 0}
                                 </Typography>
                             )}
                         </Grid>
-                    )}
-                    {editedInvoice.paymentMethod === 'credit/debit' && (
-                        <Grid item xs={12}>
+                        <Grid item xs={12} md={6}>
                             <Typography align="left">
-                                Credit Card Fee (3%): ${editedInvoice?.creditCardFee?.toFixed(2)}
+                                Subtotal 2: ${editedInvoice?.subTotal2?.toFixed(2)}
                             </Typography>
                         </Grid>
-                    )}
-                    <Grid item xs={12}>
-                        <Typography variant="h6" align="left">
-                            Total: ${editedInvoice?.total?.toFixed(2)}
-                        </Typography>
+                        <Grid item xs={12} md={6}>
+                            {isEditing ? (
+                                <TextField
+                                    label="Deposit/Adjustment"
+                                    name="depositAdjustment"
+                                    type="number"
+                                    fullWidth
+                                    value={editedInvoice.depositAdjustment || ''}
+                                    onChange={handleInputChange}
+                                />
+                            ) : (
+                                <Typography align="left">
+                                    Deposit/Adjustment: ${editedInvoice.depositAdjustment || 0}
+                                </Typography>
+                            )}
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            {isEditing ? (
+                                <FormControl fullWidth>
+                                    <InputLabel id="payment-method-label">Payment Method</InputLabel>
+                                    <Select
+                                        labelId="payment-method-label"
+                                        name="paymentMethod"
+                                        value={editedInvoice.paymentMethod || ''}
+                                        label="Payment Method"
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <MenuItem value="awaiting payment">Awaiting Payment</MenuItem>
+                                        <MenuItem value="cash">Cash</MenuItem>
+                                        <MenuItem value="check">Check</MenuItem>
+                                        <MenuItem value="credit/debit">Credit/Debit</MenuItem>
+                                        <MenuItem value="online">Online</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            ) : (
+                                <Typography align="left">
+                                    Payment Method: {editedInvoice.paymentMethod}
+                                </Typography>
+                            )}
+                        </Grid>
+                        {editedInvoice.paymentMethod === 'check' && (
+                            <Grid item xs={12} md={6}>
+                                {isEditing ? (
+                                    <TextField
+                                        label="Check Number"
+                                        name="checkNumber"
+                                        fullWidth
+                                        value={editedInvoice.checkNumber || ''}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                ) : (
+                                    <Typography align="left">
+                                        Check Number: {editedInvoice.checkNumber}
+                                    </Typography>
+                                )}
+                            </Grid>
+                        )}
+                        {editedInvoice.paymentMethod === 'credit/debit' && (
+                            <Grid item xs={12}>
+                                <Typography align="left">
+                                    Credit Card Fee (3%): ${editedInvoice?.creditCardFee?.toFixed(2)}
+                                </Typography>
+                            </Grid>
+                        )}
+                        <Grid item xs={12}>
+                            <Typography variant="h6" align="left">
+                                Total: ${editedInvoice?.total?.toFixed(2)}
+                            </Typography>
+                        </Grid>
                     </Grid>
-                </Grid>
-            </CardContent>
-            <CardActions>
-                <Grid
-                    container
-                    spacing={2}
-                    justifyContent="space-between"
-                    alignItems="center"
-                    sx={{ padding: '10px' }}
-                >
-                    <Grid item>
-                        <Box display="flex" gap={2}>
-                            <Button variant="contained" onClick={handleEditToggle}>
-                                {isEditing ? 'Save' : 'Edit'}
-                            </Button>
-                            {!isEditing && (
-                                <>
+                </CardContent>
+                <CardActions>
+                    <Grid
+                        container
+                        spacing={2}
+                        justifyContent="space-between"
+                        alignItems="center"
+                        sx={{ padding: '10px' }}
+                    >
+                        <Grid item>
+                            <Box display="flex" gap={2}>
+                                <Button variant="contained" onClick={handleEditToggle}>
+                                    {isEditing ? 'Save' : 'Edit'}
+                                </Button>
+                                {!isEditing && (
+                                    <>
+                                        <Button
+                                            variant="contained"
+                                            onClick={handleOpenDeleteModal}
+                                            color="error"
+                                        >
+                                            Delete
+                                        </Button>
+                                        {invoice.status == 'signed' && <Button
+                                            variant="contained"
+                                            color="success"
+                                            onClick={handlePaidInvoice}
+                                        >
+                                            Mark as Paid
+                                        </Button>}
+                                    </>
+                                )}
+                            </Box>
+                        </Grid>
+                        <Grid item>
+                            <Box display="flex" gap={2}>
+                                {!isEditing && (
+                                    <Button variant="contained" onClick={handleCreatePdf}>
+                                        {editedInvoice.fileUrl ? 'Regenerate PDF' : 'Create PDF'}
+                                    </Button>
+                                )}
+
+                                {editedInvoice.fileUrl && !editedInvoice.signedPdfUrl && !isEditing && (
+                                    <Button variant="contained" onClick={handleSendInvoice} color="primary">
+                                        Send Invoice
+                                    </Button>
+                                )}
+                                {editedInvoice.signedPdfUrl && !isEditing && (
                                     <Button
                                         variant="contained"
-                                        onClick={handleOpenDeleteModal}
-                                        color="error"
+                                        onClick={handleSendInvoice}
+                                        color="warning"
                                     >
-                                        Delete
+                                        Resend Invoice
                                     </Button>
-                                    {invoice.status == 'signed' && <Button
-                                        variant="contained"
-                                        color="success"
-                                        onClick={handlePaidInvoice}
-                                    >
-                                        Mark as Paid
-                                    </Button>}
-                                </>
-                            )}
-                        </Box>
+                                )}
+                            </Box>
+                        </Grid>
                     </Grid>
-                    <Grid item>
-                        <Box display="flex" gap={2}>
-                            {!isEditing && (
-                                <Button variant="contained" onClick={handleCreatePdf}>
-                                    {editedInvoice.fileUrl ? 'Regenerate PDF' : 'Create PDF'}
-                                </Button>
-                            )}
-
-                            {editedInvoice.fileUrl && !editedInvoice.signedPdfUrl && !isEditing && (
-                                <Button variant="contained" onClick={handleSendInvoice} color="primary">
-                                    Send Invoice
-                                </Button>
-                            )}
-                            {editedInvoice.signedPdfUrl && !isEditing && (
-                                <Button
-                                    variant="contained"
-                                    onClick={handleSendInvoice}
-                                    color="warning"
-                                >
-                                    Resend Invoice
-                                </Button>
-                            )}
-                        </Box>
-                    </Grid>
-                </Grid>
-            </CardActions>
-            <Modal
-                open={isCreatingPdf}
-                aria-labelledby="creating-pdf-modal"
-                aria-describedby="creating-pdf-description"
-            >
-                <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    height="20vh"
-                    bgcolor="background.paper"
-                    p={3}
-                    borderRadius={1}
-                    boxShadow={3}
+                </CardActions>
+                <Modal
+                    open={isCreatingPdf}
+                    aria-labelledby="creating-pdf-modal"
+                    aria-describedby="creating-pdf-description"
                 >
-                    <Box textAlign="center">
-                        <CircularProgress />
-                        <Typography variant="h6" mt={2}>
-                            Creating Pdf...
+                    <Box
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        height="20vh"
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                    >
+                        <Box textAlign="center">
+                            <CircularProgress />
+                            <Typography variant="h6" mt={2}>
+                                Creating Pdf...
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Modal>
+                <Modal
+                    open={isDeleteModalOpen}
+                    onClose={handleCloseDeleteModal}
+                    aria-labelledby="delete-confirmation-modal"
+                    aria-describedby="delete-confirmation-description"
+                >
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{ width: { xs: '80%', md: 400 }, margin: 'auto', textAlign: 'center' }}
+                    >
+                        <Typography variant="h6" mb={2} id="delete-confirmation-modal">
+                            Are you sure you want to delete this invoice?
                         </Typography>
+                        <Box display="flex" justifyContent="space-around" width="100%">
+                            <Button variant="contained" onClick={handleCloseDeleteModal}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={handleConfirmDelete}
+                            >
+                                Confirm Delete
+                            </Button>
+                        </Box>
                     </Box>
-                </Box>
-            </Modal>
+                </Modal>
+            </Card>
+            {/* Modals for send invoice and missing PDF */}
             <Modal
-                open={isDeleteModalOpen}
-                onClose={handleCloseDeleteModal}
-                aria-labelledby="delete-confirmation-modal"
-                aria-describedby="delete-confirmation-description"
+                open={missingPdfModalOpen}
+                onClose={() => setMissingPdfModalOpen(false)}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{ backdrop: { timeout: 300 } }}
             >
-                <Box
-                    display="flex"
-                    flexDirection="column"
-                    justifyContent="center"
-                    alignItems="center"
-                    bgcolor="background.paper"
-                    p={4}
-                    borderRadius={1}
-                    boxShadow={3}
-                    sx={{ width: { xs: '80%', md: 400 }, margin: 'auto', textAlign: 'center' }}
-                >
-                    <Typography variant="h6" mb={2} id="delete-confirmation-modal">
-                        Are you sure you want to delete this invoice?
-                    </Typography>
-                    <Box display="flex" justifyContent="space-around" width="100%">
-                        <Button variant="contained" onClick={handleCloseDeleteModal}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={handleConfirmDelete}
-                        >
-                            Confirm Delete
+                <Fade in={missingPdfModalOpen}>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '80%', md: 400 },
+                            textAlign: 'center',
+                            margin: 'auto'
+                        }}
+                    >
+                        <Typography variant="h6" mb={2}>
+                            Please create the PDF first before sending.
+                        </Typography>
+                        <Button variant="contained" onClick={() => setMissingPdfModalOpen(false)}>
+                            Close
                         </Button>
                     </Box>
-                </Box>
+                </Fade>
             </Modal>
-        </Card>
+
+            <Modal
+                open={sendSuccessModalOpen}
+                onClose={() => setSendSuccessModalOpen(false)}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{ backdrop: { timeout: 300 } }}
+            >
+                <Fade in={sendSuccessModalOpen}>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '80%', md: 400 },
+                            textAlign: 'center',
+                            margin: 'auto'
+                        }}
+                    >
+                        <Typography variant="h6" mb={2}>
+                            Invoice sent successfully!
+                        </Typography>
+                        <Button variant="contained" onClick={() => setSendSuccessModalOpen(false)}>
+                            Close
+                        </Button>
+                    </Box>
+                </Fade>
+            </Modal>
+
+            <Modal
+                open={sendFailureModalOpen}
+                onClose={() => setSendFailureModalOpen(false)}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{ backdrop: { timeout: 300 } }}
+            >
+                <Fade in={sendFailureModalOpen}>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="background.paper"
+                        p={4}
+                        borderRadius={1}
+                        boxShadow={3}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '80%', md: 400 },
+                            textAlign: 'center',
+                            margin: 'auto'
+                        }}
+                    >
+                        <Typography variant="h6" mb={2}>
+                            Failed to send invoice.
+                        </Typography>
+                        <Button variant="contained" onClick={() => setSendFailureModalOpen(false)}>
+                            Close
+                        </Button>
+                    </Box>
+                </Fade>
+            </Modal>
+        </>
     );
 }
