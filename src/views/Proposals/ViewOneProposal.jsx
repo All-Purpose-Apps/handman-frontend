@@ -508,128 +508,179 @@ const ViewProposal = () => {
         );
     }
 
-    const renderActions = () => {
-        switch (editedProposal?.status) {
-            case 'converted to invoice':
-                return (
-                    <>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate(-1)}
-                        >
-                            Back
-                        </Button>
-                        <Button
-                            variant="contained"
-                            onClick={() => handleGoToInvoice(editedProposal.invoiceId)}
-                        >
-                            Go to Invoice
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={handleOpenDeleteModal}
-                        >
-                            Delete
-                        </Button>
-                        <Typography variant="body1" color="error">
-                            This proposal has been converted to an invoice and can no longer
-                            be edited.
-                        </Typography>
-                    </>
-                );
-            case 'accepted':
-                return (
-                    <>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate(-1)}
-                        >
-                            Back
-                        </Button>
-                        {!isEditing && <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleOpenInvoiceModal}
-                        >
-                            Convert to Invoice
-                        </Button>}
-                        <Button variant="contained" onClick={handleEditToggle}>
-                            {isEditing ? 'Save' : 'Edit'}
-                        </Button>
-                        {!isEditing && (
-                            <Button variant="contained" onClick={handleCreatePdf}>
-                                Create PDF
-                            </Button>
-                        )}
-                        {proposal.fileUrl && (
-                            <Button
-                                variant="contained"
-                                href={proposal.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                View Proposal
-                            </Button>
-                        )}
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={handleOpenDeleteModal}
-                        >
-                            Delete
-                        </Button>
-                    </>
-                );
-            default:
-                return (
-                    <>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate(-1)}
-                        >
-                            Back
-                        </Button>
-                        <Button variant="contained" onClick={handleEditToggle}>
-                            {isEditing ? 'Save' : 'Edit'}
-                        </Button>
-                        {!isEditing && (
-                            <Button variant="contained" onClick={handleCreatePdf}>
-                                Create PDF
-                            </Button>
-                        )}
-                        {proposal.fileUrl && (
-                            <Button
-                                variant="contained"
-                                href={proposal.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                View Proposal
-                            </Button>
-                        )}
-                        {proposal.fileUrl && (
-                            <Button
-                                variant="contained"
-                                onClick={handleSendProposal}
-                            >
-                                Send To Client
-                            </Button>
-                        )}
-                        {!isEditing && <Button
-                            variant="contained"
-                            color="error"
-                            onClick={handleOpenDeleteModal}
-                        >
-                            Delete
-                        </Button>}
-                    </>
-                );
-        }
-    };
+    // Deconstruct actions into leftActions and rightActions for layout
+    let leftActions = [];
+    let rightActions = [];
+    // Helper for the Back/Cancel button
+    const backOrCancelButton = (
+        <Button
+            key="back"
+            variant="contained"
+            color="primary"
+            onClick={() => {
+                if (isEditing) {
+                    setIsEditing(false);
+                    setIsEditingClient(false);
+                    setEditedProposal({
+                        ...proposal,
+                        client: proposal.client || null,
+                        items: proposal.items || [],
+                        proposalTitle: proposal.proposalTitle || '',
+                        proposalDate: proposal.proposalDate || '',
+                        packagePrice: proposal.packagePrice || 0,
+                    });
+                    if (materialsList?._id) {
+                        setMaterialsListDiscount(materialsList.discountTotal || 0);
+                    }
+                } else {
+                    navigate(-1);
+                }
+            }}
+        >
+            {isEditing ? 'Cancel' : 'Back'}
+        </Button>
+    );
+    if (editedProposal?.status === 'converted to invoice') {
+        leftActions = [
+            backOrCancelButton,
+            <Button
+                key="goto-invoice"
+                variant="contained"
+                onClick={() => handleGoToInvoice(editedProposal.invoiceId)}
+            >
+                Go to Invoice
+            </Button>,
+            <Button
+                key="delete"
+                variant="contained"
+                color="error"
+                onClick={handleOpenDeleteModal}
+            >
+                Delete
+            </Button>,
+        ];
+        rightActions = [
+            <Typography key="converted-msg" variant="body1" color="error">
+                This proposal has been converted to an invoice and can no longer be edited.
+            </Typography>
+        ];
+    } else if (editedProposal?.status === 'accepted') {
+        leftActions = [
+            backOrCancelButton,
+            !isEditing && (
+                <Button
+                    key="convert-invoice"
+                    variant="contained"
+                    color="primary"
+                    onClick={handleOpenInvoiceModal}
+                >
+                    Convert to Invoice
+                </Button>
+            ),
+            <Button
+                key="edit"
+                variant="contained"
+                onClick={handleEditToggle}
+            >
+                {isEditing ? 'Save' : 'Edit'}
+            </Button>,
+            !isEditing && (
+                <Button
+                    key="delete"
+                    variant="contained"
+                    color="error"
+                    onClick={handleOpenDeleteModal}
+                >
+                    Delete
+                </Button>
+            ),
+        ].filter(Boolean);
+        rightActions = [
+            !isEditing && (
+                <Button
+                    key="create-pdf"
+                    variant="contained"
+                    onClick={handleCreatePdf}
+                >
+                    Create PDF
+                </Button>
+            ),
+            proposal.fileUrl && (
+                <Button
+                    key="view-proposal"
+                    variant="contained"
+                    href={proposal.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View Proposal
+                </Button>
+            ),
+            // "Send to Client" not shown in accepted status in original code
+        ].filter(Boolean);
+    } else {
+        leftActions = [
+            backOrCancelButton,
+            <Button
+                key="edit"
+                variant="contained"
+                onClick={handleEditToggle}
+            >
+                {isEditing ? 'Save' : 'Edit'}
+            </Button>,
+            !isEditing && (
+                <Button
+                    key="convert-invoice"
+                    variant="contained"
+                    color="primary"
+                    onClick={handleOpenInvoiceModal}
+                >
+                    Convert to Invoice
+                </Button>
+            ),
+            !isEditing && (
+                <Button
+                    key="delete"
+                    variant="contained"
+                    color="error"
+                    onClick={handleOpenDeleteModal}
+                >
+                    Delete
+                </Button>
+            ),
+        ].filter(Boolean);
+        rightActions = [
+            !isEditing && (
+                <Button
+                    key="create-pdf"
+                    variant="contained"
+                    onClick={handleCreatePdf}
+                >
+                    Create PDF
+                </Button>
+            ),
+            proposal.fileUrl && (
+                <Button
+                    key="view-proposal"
+                    variant="contained"
+                    href={proposal.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View Proposal
+                </Button>
+            ),
+            proposal.fileUrl && (
+                <Button
+                    key="send-client"
+                    variant="contained"
+                    onClick={handleSendProposal}
+                >
+                    Send To Client
+                </Button>
+            ),
+        ].filter(Boolean);
+    }
 
     return (
         <>
@@ -901,7 +952,26 @@ const ViewProposal = () => {
                         </Grid>
                     </Grid>
                 </CardContent>
-                <CardActions>{renderActions()}</CardActions>
+                <CardActions>
+                    <Grid
+                        container
+                        spacing={2}
+                        justifyContent="space-between"
+                        alignItems="center"
+                        sx={{ padding: '10px' }}
+                    >
+                        <Grid item>
+                            <Box display="flex" gap={2}>
+                                {leftActions}
+                            </Box>
+                        </Grid>
+                        <Grid item>
+                            <Box display="flex" gap={2}>
+                                {rightActions}
+                            </Box>
+                        </Grid>
+                    </Grid>
+                </CardActions>
 
                 {/* Render the ConvertInvoiceModal */}
                 {isInvoiceModalOpen && (
