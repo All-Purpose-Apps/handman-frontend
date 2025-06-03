@@ -346,19 +346,40 @@ Han-D-Man Pro<br>
                         </Box>
                     </Grid>
                 </Grid>
-                <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} md={8}>
-                        <Typography variant="h4" gutterBottom align="left">
-                            Invoice Details
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography variant="h6">
+                        No. {editedInvoice?.invoiceNumber || 'Loading...'}
+                    </Typography>
+                    <Box mt={2} mb={2}>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{
+                                display: 'inline-block',
+                                px: 2,
+                                py: 1,
+                                borderRadius: 2,
+                                fontWeight: 'bold',
+                                color: '#fff',
+                                backgroundColor:
+                                    editedInvoice?.status === 'signed and paid'
+                                        ? 'success.main'
+                                        : editedInvoice?.status === 'paid'
+                                            ? 'success.main'
+                                            : editedInvoice?.status === 'sent'
+                                                ? 'info.main'
+                                                : editedInvoice?.status === 'created'
+                                                    ? 'warning.main'
+                                                    : editedInvoice?.status === 'canceled'
+                                                        ? 'error.main'
+                                                        : 'grey.700',
+                                letterSpacing: 1,
+                                fontSize: '1.1rem',
+                            }}
+                        >
+                            Status: {editedInvoice?.status?.toUpperCase() || 'Loading...'}
                         </Typography>
-                    </Grid>
-                    {editedInvoice.fileUrl && (
-                        <Grid item xs={12} md={4} textAlign={{ xs: 'left', md: 'right' }}>
-                            updated {moment.utc(editedInvoice.updatedAt).fromNow()} on{' '}
-                            {moment.utc(editedInvoice.updatedAt).format('MM/DD/YYYY')}
-                        </Grid>
-                    )}
-                </Grid>
+                    </Box>
+                </Box>
                 <Grid container spacing={2} alignItems="flex-start">
                     <Grid item xs={12} md={4}>
                         {isEditing ? (
@@ -419,15 +440,6 @@ Han-D-Man Pro<br>
                                         {moment.utc(editedInvoice?.invoiceDate).format('MM-DD-YYYY')}
                                     </Typography>
                                 )}
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <Typography
-                                    align="left"
-                                    sx={{ color: getStatusColor(editedInvoice?.status?.toUpperCase()) }}
-                                >
-                                    Status:{' '}
-                                    <strong>{editedInvoice?.status?.toUpperCase()}</strong>
-                                </Typography>
                             </Grid>
                         </Grid>
                     </Grid>

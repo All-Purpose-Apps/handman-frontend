@@ -629,9 +629,38 @@ const ViewProposal = () => {
         <Card elevation={3} sx={{ p: 2 }}>
             <CardContent>
 
-                <Typography variant="h6">
-                    No. {proposal?.proposalNumber || 'Loading...'}
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography variant="h6">
+                        No. {proposal?.proposalNumber || 'Loading...'}
+                    </Typography>
+                    <Box mt={2} mb={2}>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{
+                                display: 'inline-block',
+                                px: 2,
+                                py: 1,
+                                borderRadius: 2,
+                                fontWeight: 'bold',
+                                color: '#fff',
+                                backgroundColor:
+                                    proposal?.status === 'accepted'
+                                        ? 'success.main'
+                                        : proposal?.status === 'converted to invoice'
+                                            ? 'info.main'
+                                            : proposal?.status === 'draft'
+                                                ? 'warning.main'
+                                                : proposal?.status === 'rejected'
+                                                    ? 'error.main'
+                                                    : 'grey.700',
+                                letterSpacing: 1,
+                                fontSize: '1.1rem',
+                            }}
+                        >
+                            Status: {proposal?.status?.toUpperCase() || 'Loading...'}
+                        </Typography>
+                    </Box>
+                </Box>
                 <Grid container spacing={4}>
                     <Grid item xs={12} md={4}>
                         <Box
@@ -709,9 +738,6 @@ const ViewProposal = () => {
                             </>
                         )}
 
-                        <Typography variant="body1">
-                            <strong>Status:</strong> {proposal?.status || 'Loading...'}
-                        </Typography>
 
                         {proposal.fileUrl && (
                             <Typography variant="body2">
