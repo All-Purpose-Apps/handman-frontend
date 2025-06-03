@@ -347,38 +347,60 @@ const ViewClient = () => {
                                                     if (category === 'proposal' && proposalStatus) {
                                                         const pStatus = proposalStatus.status.toLowerCase();
                                                         const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
-                                                        const invoiceValid = invoiceStatus && ['created', 'paid', 'approved'].some(k => invoiceStatus.status.toLowerCase().includes(k)) && new Date(invoiceStatus.date) > new Date(proposalStatus.date);
-                                                        const invoiceRejected = invoiceStatus && ['rejected', 'deleted'].some(k => invoiceStatus.status.toLowerCase().includes(k));
+                                                        const sentProposal = ['sent'].some(k => pStatus.includes(k));
+                                                        const proposalCreated = ['created'].some(k => pStatus.includes(k));
 
-                                                        if (validProposal && invoiceValid) {
-                                                            color = 'green';
-                                                            tooltipText = `Proposal: ${proposalStatus.status}`;
-                                                            date = proposalStatus.date;
-                                                        } else if (validProposal && invoiceRejected) {
-                                                            color = 'gray';
-                                                            tooltipText = `Proposal invalidated by invoice: ${invoiceStatus.status}`;
-                                                            date = proposalStatus.date;
-                                                        } else if (validProposal) {
-                                                            color = 'gold';
-                                                            tooltipText = `Proposal accepted, awaiting invoice`;
-                                                            date = proposalStatus.date;
+                                                        switch (true) {
+                                                            case validProposal:
+                                                                color = 'green';
+                                                                tooltipText = `Proposal: ${proposalStatus.status}`;
+                                                                date = proposalStatus.date;
+                                                                break;
+                                                            case proposalCreated:
+                                                                color = 'red';
+                                                                tooltipText = `Proposal: ${proposalStatus.status}`;
+                                                                date = proposalStatus.date;
+                                                                break;
+                                                            case sentProposal:
+                                                                color = 'gold';
+                                                                tooltipText = `Proposal: ${proposalStatus.status}`;
+                                                                date = proposalStatus.date;
+                                                                break;
+                                                            default:
+                                                                color = 'gray';
+                                                                tooltipText = 'No proposal activity';
+                                                                date = '';
+                                                                break;
                                                         }
                                                     }
 
                                                     if (category === 'invoice' && invoiceStatus) {
                                                         const iStatus = invoiceStatus.status.toLowerCase();
-                                                        if (iStatus.includes('paid')) {
-                                                            color = 'green';
-                                                            tooltipText = `Invoice: ${invoiceStatus.status}`;
-                                                            date = invoiceStatus.date;
-                                                        } else if (iStatus.includes('rejected') || iStatus.includes('deleted')) {
-                                                            color = 'gray';
-                                                            tooltipText = `Invoice: ${invoiceStatus.status}`;
-                                                            date = invoiceStatus.date;
-                                                        } else if (iStatus.includes('created') || iStatus.includes('sent')) {
-                                                            color = 'red';
-                                                            tooltipText = `Invoice: ${invoiceStatus.status}`;
-                                                            date = invoiceStatus.date;
+                                                        const validInvoice = ['paid', 'signed', 'signed and paid',].some(k => iStatus.includes(k));
+                                                        const sentInvoice = ['sent'].some(k => iStatus.includes(k));
+                                                        const invoiceCreated = ['created'].some(k => iStatus.includes(k));
+
+                                                        switch (true) {
+                                                            case validInvoice:
+                                                                color = 'green';
+                                                                tooltipText = `Invoice: ${invoiceStatus.status}`;
+                                                                date = invoiceStatus.date;
+                                                                break;
+                                                            case invoiceCreated:
+                                                                color = 'red';
+                                                                tooltipText = `Invoice: ${invoiceStatus.status}`;
+                                                                date = invoiceStatus.date;
+                                                                break;
+                                                            case sentInvoice:
+                                                                color = 'gold';
+                                                                tooltipText = `Invoice: ${invoiceStatus.status}`;
+                                                                date = invoiceStatus.date;
+                                                                break;
+                                                            default:
+                                                                color = 'gray';
+                                                                tooltipText = 'No invoice activity';
+                                                                date = '';
+                                                                break;
                                                         }
                                                     }
 

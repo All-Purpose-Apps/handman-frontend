@@ -148,9 +148,9 @@ const ClientsPage = () => {
         }
     }, [lastSync]);
 
-    useEffect(() => {
-        localStorage.setItem('tableView', JSON.stringify(tableView));
-    }, [tableView]);
+    // useEffect(() => {
+    //     localStorage.setItem('tableView', JSON.stringify(tableView));
+    // }, [tableView]);
 
     useEffect(() => {
         setFilteredClients(clients);
