@@ -376,8 +376,8 @@ const ViewClient = () => {
 
                                                     if (category === 'invoice' && invoiceStatus) {
                                                         const iStatus = invoiceStatus.status.toLowerCase();
-                                                        const validInvoice = ['paid', 'signed', 'signed and paid',].some(k => iStatus.includes(k));
-                                                        const sentInvoice = ['sent'].some(k => iStatus.includes(k));
+                                                        const validInvoice = ['signed and paid',].some(k => iStatus.includes(k));
+                                                        const sentInvoice = ['sent', 'signed', 'paid'].some(k => iStatus.includes(k));
                                                         const invoiceCreated = ['created'].some(k => iStatus.includes(k));
 
                                                         switch (true) {

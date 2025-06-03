@@ -293,6 +293,19 @@ Han-D-Man Pro<br>
         navigate(-1);
     };
 
+    const handlePaidInvoice = () => {
+        dispatch(updateInvoice({
+            id,
+            invoiceData: {
+                ...editedInvoice,
+                status: 'signed and paid',
+                updatedAt: new Date().toISOString(),
+            },
+        })).then(() => {
+            dispatch(fetchOneInvoice(id));
+        });
+    }
+
     return (
         <Card elevation={3}>
             <CardContent>
@@ -590,13 +603,22 @@ Han-D-Man Pro<br>
                                 {isEditing ? 'Save' : 'Edit'}
                             </Button>
                             {!isEditing && (
-                                <Button
-                                    variant="contained"
-                                    onClick={handleOpenDeleteModal}
-                                    color="error"
-                                >
-                                    Delete
-                                </Button>
+                                <>
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleOpenDeleteModal}
+                                        color="error"
+                                    >
+                                        Delete
+                                    </Button>
+                                    {invoice.status == 'signed' && <Button
+                                        variant="contained"
+                                        color="success"
+                                        onClick={handlePaidInvoice}
+                                    >
+                                        Mark as Paid
+                                    </Button>}
+                                </>
                             )}
                         </Box>
                     </Grid>
