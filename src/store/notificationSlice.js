@@ -69,6 +69,26 @@ export const clearNotifications = createAsyncThunk('notifications/clearNotificat
   }
 });
 
+export const markAllNotificationsAsRead = createAsyncThunk('notifications/markAllNotificationsAsRead', async (_, { rejectWithValue }) => {
+  const accessToken = await localStorage.getItem('accessToken');
+  try {
+    const response = await axios.patch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/notifications/markAllAsRead`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          withCredentials: true,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return rejectWithValue(error.response?.data || 'Failed to mark all notifications as read');
+  }
+});
+
 export const notificationSlice = createSlice({
   name: 'notifications',
   initialState,

@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { app } from '../utils/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchNotifications, markNotificationAsRead, clearNotifications } from '../store/notificationSlice';
+import { fetchNotifications, markNotificationAsRead, clearNotifications, markAllNotificationsAsRead } from '../store/notificationSlice';
 import dayjs from 'dayjs'; // For formatting timestamps
 
 export default function Topbar() {
@@ -52,6 +52,10 @@ export default function Topbar() {
     // Handle opening the notification menu
     const handleNotificationClick = (event) => {
         setAnchorEl(event.currentTarget);
+        dispatch(markAllNotificationsAsRead()).then(() => {
+            // After marking all as read, fetch notifications again to update the state
+            dispatch(fetchNotifications());
+        });
     };
 
     // Handle closing the notification menu

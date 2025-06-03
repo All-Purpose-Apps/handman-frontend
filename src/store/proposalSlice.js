@@ -94,6 +94,7 @@ export const sendProposalToClient = createAsyncThunk('proposals/sendProposalToCl
     );
     return response.data;
   } catch (error) {
+    console.error('Error sending proposal to client:', error);
     return rejectWithValue(error.response?.data || 'Failed to send proposal to client');
   }
 });
