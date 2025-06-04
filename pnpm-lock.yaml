@@ -89,6 +89,9 @@ importers:
       react-pdf:
         specifier: ^9.2.1
         version: 9.2.1(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-pro-sidebar:
+        specifier: ^1.1.0
+        version: 1.1.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-redux:
         specifier: ^9.2.0
         version: 9.2.0(@types/react@18.3.23)(react@18.3.1)(redux@5.0.1)
@@ -2222,6 +2225,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-pro-sidebar@1.1.0:
+    resolution: {integrity: sha512-rdRJ4PeMsqWq9n69AmF6et6qCbhCF1KEBgjAH8vIiLxE1k5fMxtRYo0k4asxW8qpIH6sqahiMxrxVVoObv8orQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   react-redux@9.2.0:
     resolution: {integrity: sha512-ROY9fvHhwOD9ySfrF0wmvu//bKCQ6AeZZq1nJNtbDC+kk5DuSuNX/n6YWYF/SYy7bSba4D4FSz8DJeKY/S/r+g==}
@@ -5011,6 +5020,18 @@ snapshots:
       warning: 4.0.3
     optionalDependencies:
       '@types/react': 18.3.23
+
+  react-pro-sidebar@1.1.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@emotion/react': 11.14.0(@types/react@18.3.23)(react@18.3.1)
+      '@emotion/styled': 11.14.0(@emotion/react@11.14.0(@types/react@18.3.23)(react@18.3.1))(@types/react@18.3.23)(react@18.3.1)
+      '@popperjs/core': 2.11.8
+      classnames: 2.5.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - '@types/react'
+      - supports-color
 
   react-redux@9.2.0(@types/react@18.3.23)(react@18.3.1)(redux@5.0.1):
     dependencies:

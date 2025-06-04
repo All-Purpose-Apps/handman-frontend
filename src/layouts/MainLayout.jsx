@@ -1,6 +1,6 @@
 // MainLayout.jsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import {
     Toolbar,
@@ -9,20 +9,22 @@ import {
 } from '@mui/material';
 
 import Sidebar from '../components/Sidebar';
+
 import Topbar from '../components/Topbar';
 
 export default function MainLayout() {
     const drawerWidth = 240;
+    const [showSidebar, setShowSidebar] = useState(false);
 
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
 
             {/* Topbar */}
-            <Topbar />
+            <Topbar setShowSidebar={setShowSidebar} />
 
             {/* Sidebar */}
-            <Sidebar />
+            <Sidebar showSidebar={showSidebar} onNavigate={() => setShowSidebar(false)} setShowSidebar={setShowSidebar} />
 
             {/* Main Content */}
             <Box
@@ -30,7 +32,7 @@ export default function MainLayout() {
                 sx={{
                     flexGrow: 1,
                     p: 3,
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
+                    ml: { sm: `${drawerWidth}px` },
                 }}
             >
                 <Toolbar />

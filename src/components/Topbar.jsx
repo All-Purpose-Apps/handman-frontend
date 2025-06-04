@@ -24,7 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotifications, markNotificationAsRead, clearNotifications, markAllNotificationsAsRead } from '../store/notificationSlice';
 import dayjs from 'dayjs'; // For formatting timestamps
 
-export default function Topbar() {
+export default function Topbar({ setShowSidebar }) {
     const auth = getAuth(app);
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -107,6 +107,7 @@ export default function Topbar() {
                 <IconButton
                     color="inherit"
                     edge="start"
+                    onClick={() => setShowSidebar((prev) => !prev)}
                     sx={{ mr: 2, display: { sm: 'none' } }}
                 >
                     <MenuIcon />
