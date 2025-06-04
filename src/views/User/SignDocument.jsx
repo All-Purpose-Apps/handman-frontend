@@ -30,6 +30,7 @@ const SignDocument = () => {
     const { token } = useParams();
     const classes = useStyles();
     const sigCanvas = useRef({});
+    const pdfFileRef = useRef(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [tokenInfo, setTokenInfo] = useState(null);
@@ -43,26 +44,67 @@ const SignDocument = () => {
     useEffect(() => {
         const fetchToken = async () => {
             try {
-                const response = await axios.post(
+                const invoiceResponse = await axios.post(
                     `${import.meta.env.VITE_BACKEND_URL}/api/invoices/verify-token`,
                     { token }
                 );
-                setTokenInfo(response.data);
-            } catch (err) {
-                try {
-                    const response = await axios.post(
-                        `${import.meta.env.VITE_BACKEND_URL}/api/proposals/verify-token`,
-                        { token }
-                    );
-                    setTokenInfo(response.data);
-                } catch (error) {
-                    console.error(error);
-                    setError('Invalid or expired token.');
+
+                if (invoiceResponse.data?.invoiceId) {
+                    setTokenInfo(invoiceResponse.data);
+                    return;
                 }
+            } catch (error) {
+                console.warn('Invoice token verification failed, trying proposal:', error);
+            }
+
+            try {
+                const proposalResponse = await axios.post(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/proposals/verify-token`,
+                    { token }
+                );
+
+                if (proposalResponse.data?.proposalId) {
+                    setTokenInfo(proposalResponse.data);
+                    return;
+                }
+            } catch (error) {
+                console.error('Proposal token verification failed:', error);
+                setError('Invalid or expired token.');
             }
         };
+
         fetchToken();
     }, [token]);
+
+    if (!tokenInfo) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh',
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    // Set pdfFileRef.current only once after tokenInfo is loaded
+    if (!pdfFileRef.current && tokenInfo) {
+        const isInvoice = !!tokenInfo.invoiceId;
+        const pdfFileUrl = isInvoice
+            ? `${import.meta.env.VITE_BACKEND_URL}/api/invoices/download-pdf/url?${tokenInfo.invoiceUrl}`
+            : `${import.meta.env.VITE_BACKEND_URL}/api/proposals/download-pdf/url?${tokenInfo.proposalUrl}`;
+
+        pdfFileRef.current = {
+            url: pdfFileUrl,
+            httpHeaders: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+    }
 
     const handleClearSignature = () => {
         sigCanvas.current.clear();
@@ -75,15 +117,13 @@ const SignDocument = () => {
         const signatureData = sigCanvas.current.toDataURL('image/png');
 
         const isInvoice = !!tokenInfo.invoiceId;
-        const pdfUrl = isInvoice
-            ? `${import.meta.env.VITE_BACKEND_URL}/api/invoices/download-pdf/url?${tokenInfo.invoiceUrl}`
-            : `${import.meta.env.VITE_BACKEND_URL}/api/proposals/download-pdf/url?${tokenInfo.proposalUrl}`;
 
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/api/${isInvoice ? 'invoices' : 'proposals'}/upload-pdf-with-signature`,
                 {
-                    pdfUrl,
+                    token,
+                    pdfUrl: pdfFileRef.current.url.split('?')[1], // Only after "url?"
                     signatureImage: signatureData,
                     invoiceNumber: isInvoice ? tokenInfo.invoiceNumber : undefined,
                     invoiceId: isInvoice ? tokenInfo.invoiceId : undefined,
@@ -119,21 +159,6 @@ const SignDocument = () => {
         );
     }
 
-    if (!tokenInfo) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100vh',
-                }}
-            >
-                <CircularProgress />
-            </Box>
-        );
-    }
-
     if (tokenInfo.revoked) {
         return (
             <Box
@@ -148,11 +173,6 @@ const SignDocument = () => {
             </Box>
         );
     }
-
-    const isInvoice = !!tokenInfo.invoiceId;
-    const pdfFileUrl = isInvoice
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/invoices/download-pdf/url?${tokenInfo.invoiceUrl}`
-        : `${import.meta.env.VITE_BACKEND_URL}/api/proposals/download-pdf/url?${tokenInfo.proposalUrl}`;
 
     return (
         <Box sx={{ maxWidth: 800, margin: '0 auto', padding: 2 }}>
@@ -183,7 +203,6 @@ const SignDocument = () => {
                         </Alert>
                     )}
 
-                    {/* PDF Viewer */}
                     <Box
                         sx={{
                             border: '1px solid #ccc',
@@ -193,7 +212,7 @@ const SignDocument = () => {
                         }}
                     >
                         <Document
-                            file={pdfFileUrl}
+                            file={pdfFileRef.current}
                             error={<div>Failed to load PDF</div>}
                             loading={<div>Loading PDF...</div>}
                         >
