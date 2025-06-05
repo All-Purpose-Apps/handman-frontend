@@ -12,7 +12,8 @@ import {
     CircularProgress,
     Box,
     Modal,
-
+    useTheme,
+    useMediaQuery,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -44,6 +45,8 @@ const ClientsPage = () => {
     const navigate = useNavigate();
     const auth = getAuth();
     const location = useLocation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const [userEmail, setUserEmail] = useState(null);
     const [contacts, setContacts] = useState([]);
@@ -231,7 +234,7 @@ const ClientsPage = () => {
 
     return (
         <div style={{ padding: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, marginBottom: 20 }}>
                 <TextField
                     label="Search Clients"
                     variant="outlined"
@@ -248,26 +251,45 @@ const ClientsPage = () => {
 
 
             <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
-                <DataGrid
-                    rows={filteredClients}
-                    columns={columns}
-                    pageSize={5}
-                    rowsPerPageOptions={[5, 10, 20]}
-                    getRowId={(row) => row._id}
-                    onRowClick={handleRowClick}
-                    pageSizeOptions={[5, 10, 25]}
-                    initialState={{
-                        sorting: {
-                            sortModel: [{ field: 'name', sort: 'asc' }],
-                        },
-                        pagination: {
-                            paginationModel: { pageSize: 10, page: 0 },
-                        },
-                    }}
-                    sx={{
-                        '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                    }}
-                />
+                {isMobile ? (
+                    <Box>
+                        {filteredClients.map((client) => (
+                            <Card
+                                key={client._id}
+                                onClick={() => handleCardClick(client._id)}
+                                sx={{
+                                    mb: 1,
+                                    p: 2,
+                                    cursor: 'pointer',
+                                    '&:hover': { backgroundColor: '#f5f5f5' },
+                                }}
+                            >
+                                <Typography variant="body1">{client.name}</Typography>
+                            </Card>
+                        ))}
+                    </Box>
+                ) : (
+                    <DataGrid
+                        rows={filteredClients}
+                        columns={columns}
+                        pageSize={5}
+                        rowsPerPageOptions={[5, 10, 20]}
+                        getRowId={(row) => row._id}
+                        onRowClick={handleRowClick}
+                        pageSizeOptions={[5, 10, 25]}
+                        initialState={{
+                            sorting: {
+                                sortModel: [{ field: 'name', sort: 'asc' }],
+                            },
+                            pagination: {
+                                paginationModel: { pageSize: 10, page: 0 },
+                            },
+                        }}
+                        sx={{
+                            '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
+                        }}
+                    />
+                )}
             </div>
 
 
