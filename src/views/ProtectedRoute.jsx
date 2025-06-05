@@ -12,23 +12,23 @@ const ProtectedRoute = ({ children }) => {
     const { currentUser } = useAuth();
     const auth = getAuth();
 
-    useEffect(() => {
-        const validateToken = async () => {
-            try {
-                if (auth.currentUser) {
-                    await getIdTokenResult(auth.currentUser, true); // force refresh
-                }
-            } catch (err) {
-                console.warn('Access token invalid or expired, re-signing in...');
-                try {
-                    await handleGoogleSignIn(auth);
-                } catch (signInErr) {
-                    console.error('Failed to re-authenticate:', signInErr);
-                }
-            }
-        };
-        validateToken();
-    }, []);
+    // useEffect(() => {
+    //     const validateToken = async () => {
+    //         try {
+    //             if (auth.currentUser) {
+    //                 await getIdTokenResult(auth.currentUser, true); // force refresh
+    //             }
+    //         } catch (err) {
+    //             console.warn('Access token invalid or expired, re-signing in...');
+    //             try {
+    //                 await handleGoogleSignIn(auth);
+    //             } catch (signInErr) {
+    //                 console.error('Failed to re-authenticate:', signInErr);
+    //             }
+    //         }
+    //     };
+    //     validateToken();
+    // }, []);
 
     if (!currentUser) {
         return <Navigate to="/login" replace />;

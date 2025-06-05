@@ -18,8 +18,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!localStorage.getItem('accessToken')) {
-        console.log('No accessToken found, signing in...');
-        await handleGoogleSignIn(auth);
+        if (user) {
+          // If user is signed in but no access token, sign them out
+          await auth.signOut();
+        }
+        setCurrentUser(null);
+        setLoading(false);
+        return;
       }
 
       setCurrentUser(user);
