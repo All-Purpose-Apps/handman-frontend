@@ -29,6 +29,8 @@ import {
     ListItemText,
     Fade,
     Backdrop,
+    useTheme,
+    useMediaQuery,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -95,6 +97,10 @@ const ViewProposal = () => {
         packagePrice: 0,
         materialsIncludedPrice: 0,
     });
+
+    // Responsive design
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 
 
@@ -719,96 +725,98 @@ const ViewProposal = () => {
                             </Typography>
                         </Box>
                     </Box>
-                    <Grid container spacing={4}>
+                    <Grid container spacing={isMobile ? 2 : 4} direction={isMobile ? 'column' : 'row'}>
                         <Grid item xs={12} md={4}>
-                            <Box
-                                display="flex"
-                                justifyContent="space-between"
-                                alignItems="center"
-                            >
-                                {isEditing ? (
-                                    <TextField
-                                        name="proposalDate"
-                                        label="Proposal Date"
-                                        type="date"
-                                        fullWidth
-                                        value={moment(editedProposal.proposalDate).format(
-                                            'YYYY-MM-DD'
+                            <Box sx={{ mb: isMobile ? 2 : 0 }}>
+                                <Box
+                                    display="flex"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                >
+                                    {isEditing ? (
+                                        <TextField
+                                            name="proposalDate"
+                                            label="Proposal Date"
+                                            type="date"
+                                            fullWidth
+                                            value={moment(editedProposal.proposalDate).format(
+                                                'YYYY-MM-DD'
+                                            )}
+                                            onChange={handleInputChange}
+                                            InputLabelProps={{ shrink: true }}
+                                        />
+                                    ) : (
+                                        <Typography variant="body1">
+                                            <strong>Proposal Date:</strong>{' '}
+                                            {moment(proposal?.proposalDate).format('MM/DD/YYYY') ||
+                                                'Loading...'}
+                                        </Typography>
+                                    )}
+                                </Box>
+
+                                {isEditing && (
+                                    <FormControlLabel
+                                        control={
+                                            <Switch checked={isEditingClient} onChange={toggleClientEdit} />
+                                        }
+                                        label="Edit Client"
+                                    />
+                                )}
+
+                                {isEditingClient ? (
+                                    <Autocomplete
+                                        options={clients}
+                                        getOptionLabel={(client) => client.name || ''}
+                                        value={editedProposal.client || null}
+                                        onChange={handleClientChange}
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Select Client" fullWidth />
                                         )}
-                                        onChange={handleInputChange}
-                                        InputLabelProps={{ shrink: true }}
                                     />
                                 ) : (
-                                    <Typography variant="body1">
-                                        <strong>Proposal Date:</strong>{' '}
-                                        {moment(proposal?.proposalDate).format('MM/DD/YYYY') ||
-                                            'Loading...'}
+                                    <>
+                                        <ListItemButton
+                                            onClick={() => navigate(`/clients/${proposal.client._id}`)}
+                                            sx={{
+                                                borderRadius: 2,
+                                                '&:hover': {
+                                                    backgroundColor: 'primary.light',
+                                                },
+                                            }}
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar>
+
+                                                    {proposal?.client?.name?.charAt(0)}
+                                                </Avatar>
+                                            </ListItemAvatar>
+                                            <ListItemText primary={proposal?.client?.name} secondary="Click to view details" />
+                                        </ListItemButton>
+                                        <Typography variant="body1" sx={{ marginTop: '10px' }}>
+                                            <strong>Client Name:</strong>{' '}
+                                            {proposal?.client?.name || 'Loading...'}
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            <strong>Client Address:</strong>{' '}
+                                            {proposal?.client?.address || 'Loading...'}
+                                        </Typography>
+                                    </>
+                                )}
+
+
+                                {proposal.fileUrl && (
+                                    <Typography variant="body2">
+                                        updated {moment(editedProposal.updatedAt).fromNow()} on {moment(editedProposal.updatedAt).format('MM/DD/YYYY')}
                                     </Typography>
                                 )}
                             </Box>
-
-                            {isEditing && (
-                                <FormControlLabel
-                                    control={
-                                        <Switch checked={isEditingClient} onChange={toggleClientEdit} />
-                                    }
-                                    label="Edit Client"
-                                />
-                            )}
-
-                            {isEditingClient ? (
-                                <Autocomplete
-                                    options={clients}
-                                    getOptionLabel={(client) => client.name || ''}
-                                    value={editedProposal.client || null}
-                                    onChange={handleClientChange}
-                                    renderInput={(params) => (
-                                        <TextField {...params} label="Select Client" fullWidth />
-                                    )}
-                                />
-                            ) : (
-                                <>
-                                    <ListItemButton
-                                        onClick={() => navigate(`/clients/${proposal.client._id}`)}
-                                        sx={{
-                                            borderRadius: 2,
-                                            '&:hover': {
-                                                backgroundColor: 'primary.light',
-                                            },
-                                        }}
-                                    >
-                                        <ListItemAvatar>
-                                            <Avatar>
-
-                                                {proposal?.client?.name?.charAt(0)}
-                                            </Avatar>
-                                        </ListItemAvatar>
-                                        <ListItemText primary={proposal?.client?.name} secondary="Click to view details" />
-                                    </ListItemButton>
-                                    <Typography variant="body1" sx={{ marginTop: '10px' }}>
-                                        <strong>Client Name:</strong>{' '}
-                                        {proposal?.client?.name || 'Loading...'}
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        <strong>Client Address:</strong>{' '}
-                                        {proposal?.client?.address || 'Loading...'}
-                                    </Typography>
-                                </>
-                            )}
-
-
-                            {proposal.fileUrl && (
-                                <Typography variant="body2">
-                                    updated {moment(editedProposal.updatedAt).fromNow()} on {moment(editedProposal.updatedAt).format('MM/DD/YYYY')}
-                                </Typography>
-                            )}
                         </Grid>
 
                         <Grid item xs={12}>
                             <Typography variant="h5" gutterBottom>
                                 Items
                             </Typography>
-                            <TableContainer component={Paper}>
+                            <TableContainer component={Paper} sx={{ overflowX: isMobile ? 'auto' : 'unset' }}>
                                 <Table aria-label="items table">
                                     <TableHead>
                                         <TableRow>
@@ -956,17 +964,38 @@ const ViewProposal = () => {
                     <Grid
                         container
                         spacing={2}
+                        direction={isMobile ? 'column' : 'row'}
                         justifyContent="space-between"
                         alignItems="center"
-                        sx={{ padding: '10px' }}
+                        sx={{ padding: isMobile ? 2 : '10px' }}
                     >
                         <Grid item>
-                            <Box display="flex" gap={2}>
+                            <Box
+                                display="flex"
+                                flexDirection={isMobile ? 'column' : 'row'}
+                                gap={2}
+                                sx={{
+                                    '& button': {
+                                        fontSize: isMobile ? '1rem' : '0.875rem',
+                                        padding: isMobile ? '12px 16px' : undefined,
+                                    },
+                                }}
+                            >
                                 {leftActions}
                             </Box>
                         </Grid>
                         <Grid item>
-                            <Box display="flex" gap={2}>
+                            <Box
+                                display="flex"
+                                flexDirection={isMobile ? 'column' : 'row'}
+                                gap={2}
+                                sx={{
+                                    '& button': {
+                                        fontSize: isMobile ? '1rem' : '0.875rem',
+                                        padding: isMobile ? '12px 16px' : undefined,
+                                    },
+                                }}
+                            >
                                 {rightActions}
                             </Box>
                         </Grid>
