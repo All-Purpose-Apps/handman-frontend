@@ -10,8 +10,15 @@ const Login = () => {
     const navigate = useNavigate();
 
     const handleClick = async () => {
-        await handleGoogleSignIn(auth, navigate);
-        navigate('/dashboard');
+        if (sessionStorage.getItem('loginInProgress')) return;
+
+        try {
+            sessionStorage.setItem('loginInProgress', 'true');
+            await handleGoogleSignIn(auth, navigate);
+            navigate('/dashboard');
+        } finally {
+            sessionStorage.removeItem('loginInProgress');
+        }
     }
 
     return (

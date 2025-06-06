@@ -166,6 +166,22 @@ export const clearClientHistory = createAsyncThunk('clients/clearClientHistory',
   }
 });
 
+export const sendReviewRequestEmail = createAsyncThunk('clients//send-review-request', async (clientId, { rejectWithValue }) => {
+  const accessToken = localStorage.getItem('accessToken');
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/send-review-request`, clientId, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return rejectWithValue(error.response?.data || 'Failed to send review request email');
+  }
+});
+
 export const clientSlice = createSlice({
   name: 'clients',
   initialState,

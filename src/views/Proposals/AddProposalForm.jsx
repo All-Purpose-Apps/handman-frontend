@@ -26,7 +26,6 @@ export default function AddProposalForm() {
     const navigate = useNavigate();
     const location = useLocation();
 
-
     const { proposalNumber: routeProposalNumber } = useParams();
     const [newProposalData, setNewProposalData] = useState({
         proposalNumber: routeProposalNumber || '',
@@ -181,18 +180,30 @@ export default function AddProposalForm() {
 
     const handleAddProposal = async (event) => {
         event.preventDefault();
+        try {
+            const proposalData = await dispatch(addProposal(newProposalData));
+            await dispatch(updateMaterialsList({
+                id: newProposalData.materialsListId,
+                materials,
+                total: materialsTotal,
+                discountTotal: materialsDiscountPrice,
+            }));
+            localStorage.removeItem('proposalClient');
+            localStorage.removeItem('proposalItems');
 
-        await dispatch(addProposal(newProposalData));
-        await dispatch(updateMaterialsList({
-            id: newProposalData.materialsListId,
-            materials,
-            total: materialsTotal,
-            discountTotal: materialsDiscountPrice,
-        }));
-        localStorage.removeItem('proposalClient');
-        localStorage.removeItem('proposalItems');
-
-        navigate('/proposals');
+            navigate(`/proposals/${proposalData.payload._id}`, {
+                state: {
+                    location: { from: '/proposals/new' },
+                }
+            });
+        } catch (error) {
+            console.error('Failed to add proposal:', error);
+            setSnackbar({
+                open: true,
+                message: 'Failed to add proposal. Please try again.',
+                severity: 'error',
+            });
+        }
     };
 
     const handleAddMaterials = () => {

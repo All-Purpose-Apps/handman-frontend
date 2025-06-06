@@ -11,7 +11,6 @@ const ProtectedRoute = ({ children }) => {
     const { showCountdown, countdown } = useAutoLogout(); // Auto logout countdown
     const { currentUser } = useAuth();
     const auth = getAuth();
-
     // useEffect(() => {
     //     const validateToken = async () => {
     //         try {

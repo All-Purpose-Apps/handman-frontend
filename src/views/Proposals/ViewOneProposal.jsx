@@ -46,6 +46,7 @@ import {
 import { addInvoice, fetchInvoices } from '../../store/invoiceSlice';
 import { fetchClients } from '../../store/clientSlice';
 import { getMaterialListById, updateMaterialsList } from '../../store/materialsSlice';
+import { fetchProposals } from '../../store/proposalSlice';
 import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
 
 
@@ -483,6 +484,31 @@ const ViewProposal = () => {
     }
 
 
+    const handleCancelBackButton = async () => {
+        if (isEditing) {
+            setIsEditing(false);
+            setIsEditingClient(false);
+            setEditedProposal({
+                ...proposal,
+                client: proposal.client || null,
+                items: proposal.items || [],
+                proposalTitle: proposal.proposalTitle || '',
+                proposalDate: proposal.proposalDate || '',
+                packagePrice: proposal.packagePrice || 0,
+            });
+            if (materialsList?._id) {
+                setMaterialsListDiscount(materialsList.discountTotal || 0);
+            }
+        } else {
+            if (location?.state?.location?.from && location?.state?.location?.from === '/proposals/new') {
+                await dispatch(fetchProposals());
+                navigate('/proposals');
+            } else if (!location?.state?.location?.from) {
+                navigate(-1);
+            }
+        }
+    }
+
 
 
 
@@ -523,25 +549,7 @@ const ViewProposal = () => {
             key="back"
             variant="contained"
             color="primary"
-            onClick={() => {
-                if (isEditing) {
-                    setIsEditing(false);
-                    setIsEditingClient(false);
-                    setEditedProposal({
-                        ...proposal,
-                        client: proposal.client || null,
-                        items: proposal.items || [],
-                        proposalTitle: proposal.proposalTitle || '',
-                        proposalDate: proposal.proposalDate || '',
-                        packagePrice: proposal.packagePrice || 0,
-                    });
-                    if (materialsList?._id) {
-                        setMaterialsListDiscount(materialsList.discountTotal || 0);
-                    }
-                } else {
-                    navigate(-1);
-                }
-            }}
+            onClick={() => handleCancelBackButton()}
         >
             {isEditing ? 'Cancel' : 'Back'}
         </Button>

@@ -58,8 +58,6 @@ const ProposalsPage = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
-    console.log('isMobile:', isMobile);
-    console.log('isTablet:', isTablet);
 
     const columns = isMobile
         ? [

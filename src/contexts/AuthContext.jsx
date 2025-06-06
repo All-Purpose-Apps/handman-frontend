@@ -1,7 +1,6 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { handleGoogleSignIn } from '../utils/handleGoogleSignIn';
 import { app } from '../utils/firebase'; // Ensure you have initialized Firebase
 
 const AuthContext = createContext();
@@ -18,13 +17,15 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!localStorage.getItem('accessToken')) {
-        if (user) {
-          // If user is signed in but no access token, sign them out
+        if (user && !sessionStorage.getItem('logoutRedirected')) {
+          sessionStorage.setItem('logoutRedirected', 'true');
           await auth.signOut();
         }
         setCurrentUser(null);
         setLoading(false);
         return;
+      } else {
+        sessionStorage.removeItem('logoutRedirected');
       }
 
       setCurrentUser(user);

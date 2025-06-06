@@ -45,6 +45,7 @@ import {
     Cancel as CancelIcon,
     Contacts as ContactsIcon,
 } from '@mui/icons-material';
+import axios from 'axios';
 
 const ViewClient = () => {
     const { id } = useParams();
@@ -222,6 +223,31 @@ const ViewClient = () => {
         }
         return label.charAt(0).toUpperCase() + label.slice(1)
     }
+    const handleSendReview = async () => {
+        const accessToken = localStorage.getItem('accessToken');
+        try {
+            await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/api/gmail/send-review-request`,
+                {
+                    to: client.email,
+                    subject: 'Please Review Us',
+                    clientId: client._id,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        withCredentials: true,
+                    },
+                }
+            );
+            // Optionally show success feedback here
+        } catch (error) {
+            console.error('Error sending review request:', error);
+            // Optionally show error feedback here
+        }
+    };
+
+
 
     return (
         <Box
@@ -576,7 +602,7 @@ const ViewClient = () => {
                                                             sx={{
                                                                 minWidth: { xs: '100%', sm: 'auto' }
                                                             }}
-                                                            onClick={() => console.log('Send review request')} // Replace with real function
+                                                            onClick={handleSendReview} // Replace with real function
                                                         >
                                                             Send Review Request
                                                         </Button>
