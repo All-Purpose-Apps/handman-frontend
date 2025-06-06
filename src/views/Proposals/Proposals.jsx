@@ -55,7 +55,11 @@ const ProposalsPage = () => {
     };
 
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMobile = useMediaQuery(theme.breakpoints.only('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.only('md'));
+
+    console.log('isMobile:', isMobile);
+    console.log('isTablet:', isTablet);
 
     const columns = isMobile
         ? [
@@ -73,76 +77,110 @@ const ProposalsPage = () => {
                 valueGetter: (params) => params.name || 'N/A',
             },
         ]
-        : [
-            {
-                field: 'proposalNumber',
-                headerName: 'Proposal #',
-                width: 100,
-                sortable: true,
-                align: 'center',
-            },
-            {
-                field: 'client',
-                headerName: 'Client',
-                width: 200,
-                sortable: true,
-                valueGetter: (params) => params.name || 'N/A',
-            },
-            {
-                field: 'proposalDate',
-                headerName: 'Date',
-                width: 150,
-                sortable: true,
-                valueFormatter: (params) => moment(params.value).format('MMM DD, YYYY'),
-            },
-            {
-                field: 'status',
-                headerName: 'Status',
-                width: 200,
-                sortable: true,
-                valueFormatter: (params) => {
-                    const status = params || 'N/A';
-                    return status.charAt(0).toUpperCase() + status.slice(1);
+        : isTablet
+            ? [
+                {
+                    field: 'proposalNumber',
+                    headerName: 'Proposal #',
+                    width: 100,
+                    sortable: true,
+                    align: 'center',
                 },
-            },
-            {
-                field: 'packagePrice',
-                headerName: 'Total',
-                width: 120,
-                sortable: true,
-                valueFormatter: (params) => {
-                    const value = params || 0;
-                    return `$${value.toFixed(2)}`;
+                {
+                    field: 'client',
+                    headerName: 'Client',
+                    width: 200,
+                    sortable: true,
+                    valueGetter: (params) => params.name || 'N/A',
                 },
-            },
-            {
-                field: 'items',
-                headerName: 'Items',
-                width: 300,
-                sortable: false,
-                renderCell: (params) => {
-                    const items = params.value || [];
-                    const hasMaterials = !!params.row.materialsListId;
+                {
+                    field: 'proposalDate',
+                    headerName: 'Date',
+                    width: 150,
+                    sortable: true,
+                    valueFormatter: (params) => moment(params.value).format('MMM DD, YYYY'),
+                },
+                {
+                    field: 'status',
+                    headerName: 'Status',
+                    width: 200,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        const status = params || 'N/A';
+                        return status.charAt(0).toUpperCase() + status.slice(1);
+                    },
+                },
+            ]
+            : [
+                {
+                    field: 'proposalNumber',
+                    headerName: 'Proposal #',
+                    width: 100,
+                    sortable: true,
+                    align: 'center',
+                },
+                {
+                    field: 'client',
+                    headerName: 'Client',
+                    width: 200,
+                    sortable: true,
+                    valueGetter: (params) => params.name || 'N/A',
+                },
+                {
+                    field: 'proposalDate',
+                    headerName: 'Date',
+                    width: 150,
+                    sortable: true,
+                    valueFormatter: (params) => moment(params.value).format('MMM DD, YYYY'),
+                },
+                {
+                    field: 'status',
+                    headerName: 'Status',
+                    width: 200,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        const status = params || 'N/A';
+                        return status.charAt(0).toUpperCase() + status.slice(1);
+                    },
+                },
+                {
+                    field: 'packagePrice',
+                    headerName: 'Total',
+                    width: 120,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        const value = params || 0;
+                        return `$${value.toFixed(2)}`;
+                    },
+                },
+                {
+                    field: 'items',
+                    headerName: 'Items',
+                    width: 300,
+                    sortable: false,
+                    renderCell: (params) => {
+                        const items = params.value || [];
+                        const hasMaterials = !!params.row.materialsListId;
 
-                    return (
-                        <Box>
-                            <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
-                                {items.map((item, index) => (
-                                    <li key={index} style={{ lineHeight: '24px' }}>
-                                        {item.description}
-                                    </li>
-                                ))}
-                            </ul>
-                            {hasMaterials && (
-                                <Typography variant="body2" color="text.secondary" style={{ paddingLeft: 20 }}>
-                                    Includes materials
-                                </Typography>
-                            )}
-                        </Box>
-                    );
+                        return (
+                            <Box>
+                                <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
+                                    {items.map((item, index) => (
+                                        <li key={index} style={{ lineHeight: '24px' }}>
+                                            {item.description}
+                                        </li>
+                                    ))}
+                                </ul>
+                                {hasMaterials && (
+                                    <Typography variant="body2" color="text.secondary" style={{ paddingLeft: 20 }}>
+                                        Includes materials
+                                    </Typography>
+                                )}
+                            </Box>
+                        );
+                    },
                 },
-            },
-        ];
+            ];
 
     if (loading) {
         return <Typography variant="h4">Loading...</Typography>;

@@ -27,18 +27,6 @@ import ClientButtons from '../../components/ClientButtons';
 import { formatPhoneNumber } from '../../utils/formatPhoneNumber';
 import axios from 'axios';
 
-const columns = [
-    { field: 'name', headerName: 'Name', width: 200, sortable: true },
-    { field: 'email', headerName: 'Email', width: 250, sortable: true },
-    { field: 'phone', headerName: 'Phone', width: 150, sortable: true, valueFormatter: (params) => formatPhoneNumber(params) },
-    { field: 'address', headerName: 'Address', width: 250, sortable: true },
-    {
-        field: 'statusHistory', headerName: 'Status', width: 240, sortable: true, valueFormatter: (params) => {
-            const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
-            return sortedStatusHistory[0].status;
-        }
-    },
-];
 
 const ClientsPage = () => {
     const dispatch = useDispatch();
@@ -47,6 +35,7 @@ const ClientsPage = () => {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.only('md'));
 
     const [userEmail, setUserEmail] = useState(null);
     const [contacts, setContacts] = useState([]);
@@ -231,6 +220,36 @@ const ClientsPage = () => {
 
     const handleRowClick = (params) => navigate(`/clients/${params.row._id}`);
     const handleCardClick = (clientId) => navigate(`/clients/${clientId}`);
+    const columns = isTablet
+        ? [
+            { field: 'name', headerName: 'Name', width: 240, sortable: true },
+            {
+                field: 'statusHistory',
+                headerName: 'Status',
+                width: 240,
+                sortable: true,
+                valueFormatter: (params) => {
+                    const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    return sortedStatusHistory[0].status;
+                }
+            },
+        ]
+        : [
+            { field: 'name', headerName: 'Name', width: 200, sortable: true },
+            { field: 'email', headerName: 'Email', width: 250, sortable: true },
+            { field: 'phone', headerName: 'Phone', width: 150, sortable: true, valueFormatter: (params) => formatPhoneNumber(params) },
+            { field: 'address', headerName: 'Address', width: 250, sortable: true },
+            {
+                field: 'statusHistory',
+                headerName: 'Status',
+                width: 240,
+                sortable: true,
+                valueFormatter: (params) => {
+                    const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    return sortedStatusHistory[0].status;
+                }
+            },
+        ];
 
     return (
         <div style={{ padding: 20 }}>

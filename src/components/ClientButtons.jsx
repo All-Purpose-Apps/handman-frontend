@@ -14,6 +14,11 @@ export default function ClientButtons({ lastSyncedAt, handleSyncGoogleContacts, 
                 justifyContent: isMobile ? 'center' : 'end',
             }}
         >
+            {!isMobile && (
+                <Typography variant="body2" color="textSecondary" style={{ marginLeft: '20px' }}>
+                    Last Synced: {lastSyncedAt || 'Never'}
+                </Typography>
+            )}
             <Button
                 variant="contained"
                 color="primary"
@@ -30,11 +35,6 @@ export default function ClientButtons({ lastSyncedAt, handleSyncGoogleContacts, 
             <Button variant="contained" color="primary" onClick={handleOpenModal}>
                 Add Client
             </Button>
-            {!isMobile && (
-                <Typography variant="body2" color="textSecondary" style={{ marginLeft: '20px' }}>
-                    Last Synced: {lastSyncedAt || 'Never'}
-                </Typography>
-            )}
         </div>
     )
 }
