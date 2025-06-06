@@ -203,7 +203,7 @@ const ViewClient = () => {
         'TASK ASSIGNED': '#1976d2', // blue
 
         // Review Statuses
-        'REVIEW REQUESTED': '#fbc02d', // yellow
+        'REVIEW REQUESTED': '#388e3c', // green
     };
 
     const getStatusColor = (status) => statusColorMap[status] || 'black';
@@ -446,7 +446,7 @@ const ViewClient = () => {
                                                     if (category === 'review' && reviewStatus) {
                                                         const iStatus = invoiceStatus?.status?.toLowerCase() || '';
                                                         if (iStatus.includes('paid')) {
-                                                            color = 'blue';
+                                                            color = 'green';
                                                             tooltipText = `Review: ${reviewStatus.status}`;
                                                             date = reviewStatus.date;
                                                         } else {
