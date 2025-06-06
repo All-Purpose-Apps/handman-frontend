@@ -32,7 +32,7 @@ export default function MainLayout() {
                 sx={{
                     flexGrow: 1,
                     p: 3,
-                    ml: { sm: `${drawerWidth}px` },
+                    ml: { lg: `${drawerWidth}px` },
                 }}
             >
                 <Toolbar />

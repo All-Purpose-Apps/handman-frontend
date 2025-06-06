@@ -35,7 +35,7 @@ const ClientsPage = () => {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.only('md'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
     const [userEmail, setUserEmail] = useState(null);
     const [contacts, setContacts] = useState([]);
@@ -220,13 +220,20 @@ const ClientsPage = () => {
 
     const handleRowClick = (params) => navigate(`/clients/${params.row._id}`);
     const handleCardClick = (clientId) => navigate(`/clients/${clientId}`);
-    const columns = isTablet
+    const columns = isMobile
         ? [
-            { field: 'name', headerName: 'Name', width: 240, sortable: true },
+            {
+                field: 'name',
+                headerName: 'Name',
+                flex: 1,
+                minWidth: 150,
+                sortable: true,
+            },
             {
                 field: 'statusHistory',
                 headerName: 'Status',
-                width: 240,
+                flex: 1,
+                minWidth: 150,
                 sortable: true,
                 valueFormatter: (params) => {
                     const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -234,26 +241,80 @@ const ClientsPage = () => {
                 }
             },
         ]
-        : [
-            { field: 'name', headerName: 'Name', width: 200, sortable: true },
-            { field: 'email', headerName: 'Email', width: 250, sortable: true },
-            { field: 'phone', headerName: 'Phone', width: 150, sortable: true, valueFormatter: (params) => formatPhoneNumber(params) },
-            { field: 'address', headerName: 'Address', width: 250, sortable: true },
-            {
-                field: 'statusHistory',
-                headerName: 'Status',
-                width: 240,
-                sortable: true,
-                valueFormatter: (params) => {
-                    const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
-                    return sortedStatusHistory[0].status;
-                }
-            },
-        ];
+        : isTablet
+            ? [
+                {
+                    field: 'name',
+                    headerName: 'Name',
+                    flex: 1,
+                    minWidth: 150,
+                    sortable: true,
+                },
+                {
+                    field: 'email',
+                    headerName: 'Email',
+                    flex: 1,
+                    minWidth: 180,
+                    sortable: true,
+                },
+                {
+                    field: 'statusHistory',
+                    headerName: 'Status',
+                    flex: 1,
+                    minWidth: 150,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
+                        return sortedStatusHistory[0].status;
+                    }
+                },
+            ]
+            : [
+                {
+                    field: 'name',
+                    headerName: 'Name',
+                    flex: 1,
+                    minWidth: 150,
+                    sortable: true,
+                },
+                {
+                    field: 'email',
+                    headerName: 'Email',
+                    flex: 1,
+                    minWidth: 180,
+                    sortable: true,
+                },
+                {
+                    field: 'phone',
+                    headerName: 'Phone',
+                    flex: 1,
+                    minWidth: 120,
+                    sortable: true,
+                    valueFormatter: (params) => formatPhoneNumber(params),
+                },
+                {
+                    field: 'address',
+                    headerName: 'Address',
+                    flex: 1,
+                    minWidth: 180,
+                    sortable: true,
+                },
+                {
+                    field: 'statusHistory',
+                    headerName: 'Status',
+                    flex: 1,
+                    minWidth: 150,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
+                        return sortedStatusHistory[0].status;
+                    }
+                },
+            ];
 
     return (
         <div style={{ padding: 20 }}>
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, marginBottom: 20 }}>
+            <div style={{ display: 'flex', flexDirection: (isMobile || isTablet) ? 'column' : 'row', gap: 16, marginBottom: 20 }}>
                 <TextField
                     label="Search Clients"
                     variant="outlined"

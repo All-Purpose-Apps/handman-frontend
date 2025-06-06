@@ -108,7 +108,7 @@ export default function Topbar({ setShowSidebar }) {
                     color="inherit"
                     edge="start"
                     onClick={() => setShowSidebar((prev) => !prev)}
-                    sx={{ mr: 2, display: { sm: 'none' } }}
+                    sx={{ mr: 2, display: { xs: 'block', sm: 'block' } }}
                 >
                     <MenuIcon />
                 </IconButton>

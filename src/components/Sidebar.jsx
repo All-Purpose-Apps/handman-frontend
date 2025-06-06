@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Toolbar, Box,
+    useMediaQuery, useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
@@ -14,7 +15,24 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 export default function Sidebar({ showSidebar, onNavigate }) {
     const [user, setUser] = useState(null);
     const auth = getAuth();
+    const theme = useTheme();
+    const isMdDown = useMediaQuery(theme.breakpoints.down('lg'));
+    const [isPortrait, setIsPortrait] = useState(
+        typeof window !== 'undefined'
+            ? window.matchMedia('(orientation: portrait)').matches
+            : false
+    );
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const mediaQuery = window.matchMedia('(orientation: portrait)');
+        const handleOrientationChange = () => setIsPortrait(mediaQuery.matches);
+        mediaQuery.addEventListener('change', handleOrientationChange);
+        return () => mediaQuery.removeEventListener('change', handleOrientationChange);
+    }, []);
+
+    const isTabletPortrait = isMdDown && isPortrait;
+    console.log('isTabletPortrait:', isTabletPortrait);
     useEffect(() => {
         // Listen for auth state changes
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -65,7 +83,7 @@ export default function Sidebar({ showSidebar, onNavigate }) {
                 onClose={onNavigate}
                 ModalProps={{ keepMounted: true }}
                 sx={{
-                    display: { xs: 'block', sm: 'none' },
+                    display: { xs: 'block', sm: isTabletPortrait ? 'block' : 'none' },
                     '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' },
                 }}
             >
@@ -82,7 +100,7 @@ export default function Sidebar({ showSidebar, onNavigate }) {
             <Drawer
                 variant="permanent"
                 sx={{
-                    display: { xs: 'none', sm: 'block' },
+                    display: { xs: 'none', sm: isTabletPortrait ? 'none' : 'block' },
                     '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' },
                 }}
                 open

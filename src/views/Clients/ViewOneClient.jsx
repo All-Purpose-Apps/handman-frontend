@@ -224,7 +224,12 @@ const ViewClient = () => {
     }
 
     return (
-        <Box padding={3}>
+        <Box
+            sx={{
+                px: { xs: 1, sm: 3 },
+                py: { xs: 2, sm: 3 }
+            }}
+        >
             <Button
                 variant="contained"
                 color="primary"
@@ -238,7 +243,15 @@ const ViewClient = () => {
             <Grid container spacing={2}>
                 {/* Client Details */}
                 <Grid item xs={12} md={6}>
-                    <Card variant="outlined" sx={{ padding: 2, position: 'relative' }}>
+                    <Card
+                        variant="outlined"
+                        sx={{
+                            p: 2,
+                            position: 'relative',
+                            px: { xs: 1, sm: 3 },
+                            py: { xs: 2, sm: 3 }
+                        }}
+                    >
                         {/* Icon Buttons at the Top Right */}
                         <Box
                             sx={{
@@ -448,70 +461,93 @@ const ViewClient = () => {
                                     })()}
                                     <Box
                                         sx={{
-                                            padding: 1,
-                                            borderRadius: 1,
-                                            display: 'inline-block',
-                                            fontWeight: 'bold',
-                                            fontSize: '1.1rem',
-                                            color: 'white',
-                                            backgroundColor: getStatusColor(getRecentStatus(client.statusHistory)),
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            width: '100%',
                                             marginBottom: 1,
                                         }}
                                     >
-                                        Status: {getRecentStatus(client.statusHistory)}
+                                        <Box
+                                            sx={{
+                                                padding: 1,
+                                                borderRadius: 1,
+                                                display: 'inline-block',
+                                                fontWeight: 'bold',
+                                                fontSize: '1.1rem',
+                                                color: 'white',
+                                                backgroundColor: getStatusColor(getRecentStatus(client.statusHistory)),
+                                            }}
+                                        >
+                                            Status: {getRecentStatus(client.statusHistory)}
+                                        </Box>
                                     </Box>
                                 </>
                             )}
                             <Divider sx={{ marginY: 1 }} />
+                            {/* Action Buttons Row */}
                             <Box
                                 sx={{
                                     display: 'flex',
-                                    justifyContent: { xs: 'center', md: 'flex-start' },
-                                    flexWrap: 'wrap',
+                                    flexDirection: { xs: 'column', sm: 'row' },
+                                    justifyContent: { xs: 'center', sm: 'space-between' },
+                                    alignItems: 'center',
                                     gap: 1,
+                                    width: '100%',
                                 }}
                             >
                                 {isEditing ? (
                                     <>
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={handleSave}
-                                            startIcon={<SaveIcon />}
-                                            disabled={isSaving}
-                                        >
-                                            Save
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            color="secondary"
-                                            onClick={handleCancel}
-                                            startIcon={<CancelIcon />}
-                                        >
-                                            Cancel
-                                        </Button>
+                                        <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', sm: 'start' } }}>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={handleSave}
+                                                startIcon={<SaveIcon />}
+                                                disabled={isSaving}
+                                                sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
+                                            >
+                                                Save
+                                            </Button>
+                                        </Box>
+                                        <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', sm: 'end' } }}>
+                                            <Button
+                                                variant="outlined"
+                                                color="secondary"
+                                                onClick={handleCancel}
+                                                startIcon={<CancelIcon />}
+                                                sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </Box>
                                     </>
                                 ) : (
                                     <>
-                                        <Button
-                                            variant="outlined"
-                                            color="secondary"
-                                            onClick={handleOpenStatusHistory}
-                                            startIcon={<HistoryIcon />}
-                                        >
-                                            Status History
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            href={`https://contacts.google.com/person/${client.resourceName?.replace(
-                                                /^people\//,
-                                                ''
-                                            )}`}
-                                            target="_blank"
-                                            startIcon={<ContactsIcon />}
-                                        >
-                                            Google Contacts
-                                        </Button>
+                                        <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', sm: 'start' } }}>
+                                            <Button
+                                                variant="outlined"
+                                                color="secondary"
+                                                onClick={handleOpenStatusHistory}
+                                                startIcon={<HistoryIcon />}
+                                                sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
+                                            >
+                                                Status History
+                                            </Button>
+                                        </Box>
+                                        <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', sm: 'end' } }}>
+                                            <Button
+                                                variant="outlined"
+                                                href={`https://contacts.google.com/person/${client.resourceName?.replace(
+                                                    /^people\//,
+                                                    ''
+                                                )}`}
+                                                target="_blank"
+                                                startIcon={<ContactsIcon />}
+                                                sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
+                                            >
+                                                Google Contacts
+                                            </Button>
+                                        </Box>
                                         {/* Send Review Request Button (conditional) */}
                                         {(() => {
                                             const statusHistory = client.statusHistory || [];
@@ -533,14 +569,18 @@ const ViewClient = () => {
 
                                             if (validProposal && validInvoice) {
                                                 return (
-                                                    <Button
-                                                        variant="contained"
-                                                        color="success"
-                                                        sx={{ mt: 1 }}
-                                                        onClick={() => console.log('Send review request')} // Replace with real function
-                                                    >
-                                                        Send Review Request
-                                                    </Button>
+                                                    <Box sx={{ width: '100%', mt: 1, textAlign: { xs: 'center', sm: 'center' } }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="success"
+                                                            sx={{
+                                                                minWidth: { xs: '100%', sm: 'auto' }
+                                                            }}
+                                                            onClick={() => console.log('Send review request')} // Replace with real function
+                                                        >
+                                                            Send Review Request
+                                                        </Button>
+                                                    </Box>
                                                 );
                                             }
 
@@ -568,14 +608,14 @@ const ViewClient = () => {
                                 Invoices
                             </Typography>
                             {invoices.length > 0 ? (
-                                <TableContainer component={Paper} sx={{ maxHeight: 200, overflow: 'auto' }}>
+                                <TableContainer component={Paper} sx={{ maxHeight: 200, overflow: 'auto', overflowX: 'auto' }}>
                                     <Table stickyHeader aria-label="invoices table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>Invoice #</TableCell>
-                                                <TableCell>Issue Date</TableCell>
-                                                <TableCell>Status</TableCell>
-                                                <TableCell align="right">Amount</TableCell>
+                                                <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Invoice #</TableCell>
+                                                <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Issue Date</TableCell>
+                                                <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Status</TableCell>
+                                                <TableCell align="right" sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Amount</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -585,12 +625,12 @@ const ViewClient = () => {
                                                     onClick={() => handleInvoiceClick(invoice._id)}
                                                     style={{ cursor: 'pointer' }}
                                                 >
-                                                    <TableCell>{invoice.invoiceNumber}</TableCell>
-                                                    <TableCell>
+                                                    <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>{invoice.invoiceNumber}</TableCell>
+                                                    <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                                         {moment(invoice.invoiceDate).format('MM/DD/YYYY')}
                                                     </TableCell>
-                                                    <TableCell>{invoice.status}</TableCell>
-                                                    <TableCell align="right">
+                                                    <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>{invoice.status}</TableCell>
+                                                    <TableCell align="right" sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                                         ${invoice.total.toFixed(2)}
                                                     </TableCell>
                                                 </TableRow>
@@ -615,14 +655,14 @@ const ViewClient = () => {
                                 Proposals
                             </Typography>
                             {proposals.length > 0 ? (
-                                <TableContainer component={Paper} sx={{ maxHeight: 200, overflow: 'auto' }}>
+                                <TableContainer component={Paper} sx={{ maxHeight: 200, overflow: 'auto', overflowX: 'auto' }}>
                                     <Table stickyHeader aria-label="proposals table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>Proposal #</TableCell>
-                                                <TableCell>Issue Date</TableCell>
-                                                <TableCell>Status</TableCell>
-                                                <TableCell align="right">Amount</TableCell>
+                                                <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Proposal #</TableCell>
+                                                <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Issue Date</TableCell>
+                                                <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Status</TableCell>
+                                                <TableCell align="right" sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>Amount</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -632,12 +672,12 @@ const ViewClient = () => {
                                                     onClick={() => handleProposalClick(proposal._id)}
                                                     style={{ cursor: 'pointer' }}
                                                 >
-                                                    <TableCell>{proposal.proposalNumber}</TableCell>
-                                                    <TableCell>
+                                                    <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>{proposal.proposalNumber}</TableCell>
+                                                    <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                                         {moment(proposal.proposalDate).format('MM/DD/YYYY')}
                                                     </TableCell>
-                                                    <TableCell>{proposal.status}</TableCell>
-                                                    <TableCell align="right">
+                                                    <TableCell sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>{proposal.status}</TableCell>
+                                                    <TableCell align="right" sx={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                                         ${proposal.packagePrice?.toFixed(2)}
                                                     </TableCell>
                                                 </TableRow>
