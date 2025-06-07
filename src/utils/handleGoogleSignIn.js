@@ -8,7 +8,7 @@ export const handleGoogleSignIn = async (auth) => {
   console.log('Starting Google sign-in...');
   const lastSignInTimestamp = parseInt(localStorage.getItem('lastSignInTimestamp'), 10);
   const now = Date.now();
-  const timeout = 2 * 1000; // 2 seconds
+  const timeout = 10 * 60 * 1000; // 10 minutes
 
   if (signInWindowOpen) {
     console.log('Popup already open, exiting.');

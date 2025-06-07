@@ -202,7 +202,7 @@ const ProposalsPage = () => {
                         const status = (params.value || '').toLowerCase();
                         let backgroundColor = 'transparent';
                         let textColor = 'black';
-                        console.log('Status:', status);
+
                         if (status === 'accepted' || status === 'converted to invoice') {
                             backgroundColor = '#d0f0c0'; // light green
                         } else if (status === 'sent' || status === 'viewed') {

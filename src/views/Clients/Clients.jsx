@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { DataGrid } from '@mui/x-data-grid';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
@@ -45,6 +46,10 @@ const ClientsPage = () => {
     });
     const [searchText, setSearchText] = useState('');
     const [filteredClients, setFilteredClients] = useState([]);
+    // Infinite scroll state
+    const [visibleClients, setVisibleClients] = useState([]);
+    const [hasMore, setHasMore] = useState(true);
+    const itemsPerLoad = 10;
     const [openModal, setOpenModal] = useState(false);
     const [lastSyncedAt, setLastSyncedAt] = useState(null);
     const [isCreatingClient, setIsCreatingClient] = useState(false);
@@ -147,6 +152,21 @@ const ClientsPage = () => {
     useEffect(() => {
         setFilteredClients(clients);
     }, [clients]);
+
+    // Initialize visibleClients when filteredClients changes (for infinite scroll)
+    useEffect(() => {
+        setVisibleClients(filteredClients.slice(0, itemsPerLoad));
+        setHasMore(filteredClients.length > itemsPerLoad);
+    }, [filteredClients]);
+
+    // Handler to load more clients for infinite scroll
+    const loadMoreClients = () => {
+        const next = filteredClients.slice(visibleClients.length, visibleClients.length + itemsPerLoad);
+        setVisibleClients(prev => [...prev, ...next]);
+        if (visibleClients.length + next.length >= filteredClients.length) {
+            setHasMore(false);
+        }
+    };
 
     const handleSyncGoogleContacts = async () => {
         try {
@@ -358,7 +378,7 @@ const ClientsPage = () => {
                                 }}
                             >
                                 <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
-                                    {recentStatus}
+                                    {recentStatus.toUpperCase()}
                                 </Typography>
                             </Box>
                         );
@@ -448,13 +468,45 @@ const ClientsPage = () => {
                                 }}
                             >
                                 <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
-                                    {recentStatus}
+                                    {recentStatus.toUpperCase()}
                                 </Typography>
                             </Box>
                         );
                     },
                 },
             ];
+
+    // Status color map for cards
+    const statusColorMap = {
+        'ACTIVE': '#388e3c',
+        'INACTIVE': '#757575',
+        'ARCHIVED': '#616161',
+        'WORK IN PROGRESS': '#1976d2',
+        'COMPLETED': '#388e3c',
+        'CANCELED': '#b71c1c',
+        'FOLLOW-UP': '#fbc02d',
+        'CREATED BY USER': '#0288d1',
+        'IMPORTED FROM GOOGLE': '#7b1fa2',
+        'INQUIRY RECEIVED': '#fbc02d',
+        'PROPOSAL CREATED': '#0288d1',
+        'PROPOSAL SENT': '#fbc02d',
+        'PROPOSAL UPDATED': '#0288d1',
+        'PROPOSAL ACCEPTED': '#388e3c',
+        'PROPOSAL SIGNED': '#388e3c',
+        'PROPOSAL REJECTED': '#b71c1c',
+        'PROPOSAL DELETED': '#757575',
+        'INVOICE CREATED': '#0288d1',
+        'INVOICE SENT': '#fbc02d',
+        'INVOICE UPDATED': '#0288d1',
+        'INVOICE APPROVED': '#388e3c',
+        'INVOICE REJECTED': '#b71c1c',
+        'INVOICE PAID': '#ffd600',
+        'INVOICE PAID AND SIGNED': '#ffd600',
+        'INVOICE DELETED': '#757575',
+        'APPOINTMENT SCHEDULED': '#1976d2',
+        'TASK ASSIGNED': '#1976d2',
+        'REVIEW REQUESTED': '#388e3c',
+    };
 
     return (
         <div style={{ padding: 20 }}>
@@ -473,25 +525,40 @@ const ClientsPage = () => {
                 />
             </div>
 
-
             <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
                 {isMobile ? (
-                    <Box>
-                        {filteredClients.map((client) => (
-                            <Card
-                                key={client._id}
-                                onClick={() => handleCardClick(client._id)}
-                                sx={{
-                                    mb: 1,
-                                    p: 2,
-                                    cursor: 'pointer',
-                                    '&:hover': { backgroundColor: '#f5f5f5' },
-                                }}
-                            >
-                                <Typography variant="body1">{client.name}</Typography>
-                            </Card>
-                        ))}
-                    </Box>
+                    <InfiniteScroll
+                        dataLength={visibleClients.length}
+                        next={loadMoreClients}
+                        hasMore={hasMore}
+                        loader={<Typography textAlign="center">Loading...</Typography>}
+                        scrollThreshold={0.9}
+                    >
+                        {visibleClients.map((client) => {
+                            const sortedStatusHistory = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
+                            const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
+                            const bgColor = statusColorMap[recentStatus.toUpperCase()] || '#e0e0e0';
+                            return (
+                                <Card
+                                    key={client._id}
+                                    onClick={() => handleCardClick(client._id)}
+                                    sx={{
+                                        mb: 1,
+                                        p: 2,
+                                        cursor: 'pointer',
+                                        '&:hover': { backgroundColor: '#f5f5f5' },
+                                        backgroundColor: bgColor,
+                                        color: '#fff',
+                                    }}
+                                >
+                                    <Typography variant="body1">{client.name}</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 'bold', mt: 1 }}>
+                                        {recentStatus.toUpperCase()}
+                                    </Typography>
+                                </Card>
+                            );
+                        })}
+                    </InfiniteScroll>
                 ) : (
                     <DataGrid
                         rows={filteredClients}
@@ -515,7 +582,6 @@ const ClientsPage = () => {
                     />
                 )}
             </div>
-
 
             <AddClientModal
                 handleAddClient={handleAddClient}
