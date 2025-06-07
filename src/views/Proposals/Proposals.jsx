@@ -74,6 +74,42 @@ const ProposalsPage = () => {
                 sortable: true,
                 valueGetter: (params) => params.name || 'N/A',
             },
+            {
+                field: 'status',
+                headerName: 'Status',
+                width: 200,
+                sortable: true,
+                renderCell: (params) => {
+                    const status = (params.value || '').toLowerCase();
+                    let backgroundColor = 'transparent';
+                    let textColor = 'black';
+
+                    if (status === 'accepted' || status === 'converted to invoice') {
+                        backgroundColor = '#d0f0c0'; // light green
+                    } else if (status === 'sent' || status === 'viewed') {
+                        backgroundColor = '#fffacd'; // light yellow
+                    } else if (status === 'rejected' || status === 'deleted') {
+                        backgroundColor = '#d3d3d3'; // light gray
+                    }
+
+                    return (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                backgroundColor,
+                                display: 'flex',
+                                alignItems: 'center',
+                                paddingLeft: 2,
+                            }}
+                        >
+                            <Typography style={{ color: textColor, fontWeight: 500 }}>
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </Typography>
+                        </Box>
+                    );
+                },
+            },
         ]
         : isTablet
             ? [
@@ -103,9 +139,35 @@ const ProposalsPage = () => {
                     headerName: 'Status',
                     width: 200,
                     sortable: true,
-                    valueFormatter: (params) => {
-                        const status = params || 'N/A';
-                        return status.charAt(0).toUpperCase() + status.slice(1);
+                    renderCell: (params) => {
+                        const status = (params.value || '').toLowerCase();
+                        let backgroundColor = 'transparent';
+                        let textColor = 'black';
+
+                        if (status === 'accepted' || status === 'converted to invoice') {
+                            backgroundColor = '#d0f0c0'; // light green
+                        } else if (status === 'sent' || status === 'viewed') {
+                            backgroundColor = '#fffacd'; // light yellow
+                        } else if (status === 'rejected' || status === 'deleted') {
+                            backgroundColor = '#d3d3d3'; // light gray
+                        }
+
+                        return (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    paddingLeft: 2,
+                                }}
+                            >
+                                <Typography style={{ color: textColor, fontWeight: 500 }}>
+                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                </Typography>
+                            </Box>
+                        );
                     },
                 },
             ]
@@ -136,9 +198,35 @@ const ProposalsPage = () => {
                     headerName: 'Status',
                     width: 200,
                     sortable: true,
-                    valueFormatter: (params) => {
-                        const status = params || 'N/A';
-                        return status.charAt(0).toUpperCase() + status.slice(1);
+                    renderCell: (params) => {
+                        const status = (params.value || '').toLowerCase();
+                        let backgroundColor = 'transparent';
+                        let textColor = 'black';
+                        console.log('Status:', status);
+                        if (status === 'accepted' || status === 'converted to invoice') {
+                            backgroundColor = '#d0f0c0'; // light green
+                        } else if (status === 'sent' || status === 'viewed') {
+                            backgroundColor = '#fffacd'; // light yellow
+                        } else if (status === 'rejected' || status === 'deleted') {
+                            backgroundColor = '#d3d3d3'; // light gray
+                        }
+
+                        return (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    paddingLeft: 2,
+                                }}
+                            >
+                                <Typography style={{ color: textColor, fontWeight: 500 }}>
+                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                </Typography>
+                            </Box>
+                        );
                     },
                 },
                 {

@@ -26,10 +26,6 @@ export const fetchNotifications = createAsyncThunk('notifications/fetchNotificat
     return response.data;
   } catch (error) {
     console.log(error);
-    if (error.response?.status === 401) {
-      await signOut(auth);
-      handleGoogleSignIn(auth);
-    }
     return rejectWithValue(error.response?.data || 'Something went wrong');
   }
 });

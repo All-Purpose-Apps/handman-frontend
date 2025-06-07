@@ -10,7 +10,7 @@ import "./assets/css/main.css"
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <Provider store={store}>
         <GoogleOAuthProvider clientId="1040736667872-ag7rvp0srjd7b43r1n7bcdhe852cgj24.apps.googleusercontent.com">
           <App />

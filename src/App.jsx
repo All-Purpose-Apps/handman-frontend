@@ -45,8 +45,8 @@ export default function App() {
         <AuthWatcher />
         <Routes>
           <Route path="sign/:token" element={<SignDocument />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/" element={<MainLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
             {getRoutes()}
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NoMatch />} />

@@ -32,7 +32,7 @@ export default function Sidebar({ showSidebar, onNavigate }) {
     }, []);
 
     const isTabletPortrait = isMdDown && isPortrait;
-    console.log('isTabletPortrait:', isTabletPortrait);
+
     useEffect(() => {
         // Listen for auth state changes
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {

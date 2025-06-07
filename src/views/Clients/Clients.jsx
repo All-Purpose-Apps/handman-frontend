@@ -235,10 +235,58 @@ const ClientsPage = () => {
                 flex: 1,
                 minWidth: 150,
                 sortable: true,
-                valueFormatter: (params) => {
-                    const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
-                    return sortedStatusHistory[0].status;
-                }
+                renderCell: (params) => {
+                    const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
+                    const colorMap = {
+                        'ACTIVE': '#388e3c',
+                        'INACTIVE': '#757575',
+                        'ARCHIVED': '#616161',
+                        'WORK IN PROGRESS': '#1976d2',
+                        'COMPLETED': '#388e3c',
+                        'CANCELED': '#b71c1c',
+                        'FOLLOW-UP': '#fbc02d',
+                        'CREATED BY USER': '#0288d1',
+                        'IMPORTED FROM GOOGLE': '#7b1fa2',
+                        'INQUIRY RECEIVED': '#fbc02d',
+                        'PROPOSAL CREATED': '#0288d1',
+                        'PROPOSAL SENT': '#fbc02d',
+                        'PROPOSAL UPDATED': '#0288d1',
+                        'PROPOSAL ACCEPTED': '#388e3c',
+                        'PROPOSAL SIGNED': '#388e3c',
+                        'PROPOSAL REJECTED': '#b71c1c',
+                        'PROPOSAL DELETED': '#757575',
+                        'INVOICE CREATED': '#0288d1',
+                        'INVOICE SENT': '#fbc02d',
+                        'INVOICE UPDATED': '#0288d1',
+                        'INVOICE APPROVED': '#388e3c',
+                        'INVOICE REJECTED': '#b71c1c',
+                        'INVOICE PAID': '#ffd600',
+                        'INVOICE PAID AND SIGNED': '#ffd600',
+                        'INVOICE DELETED': '#757575',
+                        'APPOINTMENT SCHEDULED': '#1976d2',
+                        'TASK ASSIGNED': '#1976d2',
+                        'REVIEW REQUESTED': '#388e3c',
+                    };
+                    const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
+                    return (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                backgroundColor: bgColor,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 1,
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                                {recentStatus}
+                            </Typography>
+                        </Box>
+                    );
+                },
             },
         ]
         : isTablet
@@ -263,10 +311,58 @@ const ClientsPage = () => {
                     flex: 1,
                     minWidth: 150,
                     sortable: true,
-                    valueFormatter: (params) => {
-                        const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
-                        return sortedStatusHistory[0].status;
-                    }
+                    renderCell: (params) => {
+                        const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+                        const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
+                        const colorMap = {
+                            'ACTIVE': '#388e3c',
+                            'INACTIVE': '#757575',
+                            'ARCHIVED': '#616161',
+                            'WORK IN PROGRESS': '#1976d2',
+                            'COMPLETED': '#388e3c',
+                            'CANCELED': '#b71c1c',
+                            'FOLLOW-UP': '#fbc02d',
+                            'CREATED BY USER': '#0288d1',
+                            'IMPORTED FROM GOOGLE': '#7b1fa2',
+                            'INQUIRY RECEIVED': '#fbc02d',
+                            'PROPOSAL CREATED': '#0288d1',
+                            'PROPOSAL SENT': '#fbc02d',
+                            'PROPOSAL UPDATED': '#0288d1',
+                            'PROPOSAL ACCEPTED': '#388e3c',
+                            'PROPOSAL SIGNED': '#388e3c',
+                            'PROPOSAL REJECTED': '#b71c1c',
+                            'PROPOSAL DELETED': '#757575',
+                            'INVOICE CREATED': '#0288d1',
+                            'INVOICE SENT': '#fbc02d',
+                            'INVOICE UPDATED': '#0288d1',
+                            'INVOICE APPROVED': '#388e3c',
+                            'INVOICE REJECTED': '#b71c1c',
+                            'INVOICE PAID': '#ffd600',
+                            'INVOICE PAID AND SIGNED': '#ffd600',
+                            'INVOICE DELETED': '#757575',
+                            'APPOINTMENT SCHEDULED': '#1976d2',
+                            'TASK ASSIGNED': '#1976d2',
+                            'REVIEW REQUESTED': '#388e3c',
+                        };
+                        const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
+                        return (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: bgColor,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: 1,
+                                }}
+                            >
+                                <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                                    {recentStatus}
+                                </Typography>
+                            </Box>
+                        );
+                    },
                 },
             ]
             : [
@@ -305,10 +401,58 @@ const ClientsPage = () => {
                     flex: 1,
                     minWidth: 150,
                     sortable: true,
-                    valueFormatter: (params) => {
-                        const sortedStatusHistory = [...params].sort((a, b) => new Date(b.date) - new Date(a.date));
-                        return sortedStatusHistory[0].status;
-                    }
+                    renderCell: (params) => {
+                        const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+                        const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
+                        const colorMap = {
+                            'ACTIVE': '#388e3c',
+                            'INACTIVE': '#757575',
+                            'ARCHIVED': '#616161',
+                            'WORK IN PROGRESS': '#1976d2',
+                            'COMPLETED': '#388e3c',
+                            'CANCELED': '#b71c1c',
+                            'FOLLOW-UP': '#fbc02d',
+                            'CREATED BY USER': '#0288d1',
+                            'IMPORTED FROM GOOGLE': '#7b1fa2',
+                            'INQUIRY RECEIVED': '#fbc02d',
+                            'PROPOSAL CREATED': '#0288d1',
+                            'PROPOSAL SENT': '#fbc02d',
+                            'PROPOSAL UPDATED': '#0288d1',
+                            'PROPOSAL ACCEPTED': '#388e3c',
+                            'PROPOSAL SIGNED': '#388e3c',
+                            'PROPOSAL REJECTED': '#b71c1c',
+                            'PROPOSAL DELETED': '#757575',
+                            'INVOICE CREATED': '#0288d1',
+                            'INVOICE SENT': '#fbc02d',
+                            'INVOICE UPDATED': '#0288d1',
+                            'INVOICE APPROVED': '#388e3c',
+                            'INVOICE REJECTED': '#b71c1c',
+                            'INVOICE PAID': '#ffd600',
+                            'INVOICE PAID AND SIGNED': '#ffd600',
+                            'INVOICE DELETED': '#757575',
+                            'APPOINTMENT SCHEDULED': '#1976d2',
+                            'TASK ASSIGNED': '#1976d2',
+                            'REVIEW REQUESTED': '#388e3c',
+                        };
+                        const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
+                        return (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: bgColor,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: 1,
+                                }}
+                            >
+                                <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                                    {recentStatus}
+                                </Typography>
+                            </Box>
+                        );
+                    },
                 },
             ];
 

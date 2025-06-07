@@ -44,7 +44,7 @@ export const handleGoogleSignIn = async (auth) => {
 
   try {
     const result = await signInWithPopup(auth, provider);
-    console.log('Popup sign-in result:', result);
+    console.log('Popup sign-in result = true');
 
     const credential = GoogleAuthProvider.credentialFromResult(result);
 
