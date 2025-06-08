@@ -12,7 +12,7 @@ import Sidebar from '../components/Sidebar';
 
 import Topbar from '../components/Topbar';
 
-export default function MainLayout() {
+function MainLayout() {
     const drawerWidth = 240;
     const [showSidebar, setShowSidebar] = useState(false);
 
@@ -41,3 +41,5 @@ export default function MainLayout() {
         </Box>
     );
 }
+
+export default React.memo(MainLayout);

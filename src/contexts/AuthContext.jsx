@@ -1,5 +1,5 @@
 // src/contexts/AuthContext.jsx
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { app } from '../utils/firebase'; // Ensure you have initialized Firebase
 
@@ -34,5 +34,6 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, [auth]);
 
-  return <AuthContext.Provider value={{ currentUser }}>{!loading && children}</AuthContext.Provider>;
+  const value = useMemo(() => ({ currentUser, setCurrentUser }), [currentUser]);
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };

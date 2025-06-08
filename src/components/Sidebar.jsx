@@ -10,11 +10,10 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import { routes } from '../routes';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Sidebar({ showSidebar, onNavigate }) {
-    const [user, setUser] = useState(null);
-    const auth = getAuth();
+    const { currentUser } = useAuth();
     const theme = useTheme();
     const isMdDown = useMediaQuery(theme.breakpoints.down('lg'));
     const [isPortrait, setIsPortrait] = useState(
@@ -32,16 +31,6 @@ export default function Sidebar({ showSidebar, onNavigate }) {
     }, []);
 
     const isTabletPortrait = isMdDown && isPortrait;
-
-    useEffect(() => {
-        // Listen for auth state changes
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-        });
-
-        // Cleanup subscription on unmount
-        return () => unsubscribe();
-    }, []);
 
     const listItem = (routes) => {
         return routes.map((route) => {
@@ -65,7 +54,7 @@ export default function Sidebar({ showSidebar, onNavigate }) {
                 <ListItemText primary="Menu" />
             </ListItem>
             <Divider />
-            {user ? listItem(routes) : (
+            {currentUser ? listItem(routes) : (
                 <ListItem component={Link} to="/login" onClick={onNavigate}>
                     <ListItemText primary="Login" />
                 </ListItem>

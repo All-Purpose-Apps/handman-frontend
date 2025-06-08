@@ -1,18 +1,16 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useMemo } from 'react';
 
 const SettingsContext = createContext();
 
 export const SettingsProvider = ({ children }) => {
 
     const [urgentDays, setUrgentDays] = useState(1); // Default to 1 day
-
+    const contextValue = useMemo(() => ({
+        urgentDays,
+        setUrgentDays,
+    }), [urgentDays]);
     return (
-        <SettingsContext.Provider
-            value={{
-                urgentDays,
-                setUrgentDays,
-            }}
-        >
+        <SettingsContext.Provider value={contextValue}>
             {children}
         </SettingsContext.Provider>
     );

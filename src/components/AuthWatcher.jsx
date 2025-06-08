@@ -1,16 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+const auth = getAuth();
+
 const AuthWatcher = () => {
-    const auth = getAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
-    useEffect(() => {
+    const isPublicPath = useMemo(() => {
         const publicPaths = ['/login', '/sign']; // Add paths for public routes
-        const isPublicPath = publicPaths.some((path) => location.pathname.startsWith(path));
+        return publicPaths.some((path) => location.pathname.startsWith(path));
+    }, [location.pathname]);
 
+    useEffect(() => {
         const checkToken = async () => {
             if (isPublicPath) return; // Allow access to public routes without redirection
 
@@ -51,7 +54,7 @@ const AuthWatcher = () => {
             clearInterval(intervalId);
             unsubscribe();
         };
-    }, [auth, navigate, location]);
+    }, [navigate, location.pathname, isPublicPath]);
 
     return null;
 };

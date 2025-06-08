@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     AppBar,
     IconButton,
@@ -24,7 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotifications, markNotificationAsRead, clearNotifications, markAllNotificationsAsRead } from '../store/notificationSlice';
 import dayjs from 'dayjs'; // For formatting timestamps
 
-export default function Topbar({ setShowSidebar }) {
+function Topbar({ setShowSidebar }) {
     const auth = getAuth(app);
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -46,8 +46,10 @@ export default function Topbar({ setShowSidebar }) {
         }
     }, [status, dispatch]);
 
-    // Compute unread count dynamically
-    const unreadCount = notifications.filter((n) => !n.isRead).length;
+    // Compute unread count dynamically with useMemo
+    const unreadCount = useMemo(() => {
+        return notifications.filter((n) => !n.isRead).length;
+    }, [notifications]);
 
     // Handle opening the notification menu
     const handleNotificationClick = (event) => {
@@ -87,6 +89,15 @@ export default function Topbar({ setShowSidebar }) {
 
     // State to control showing all notifications
     const [showAllNotifications, setShowAllNotifications] = useState(false);
+
+    // Memoize displayedNotifications and slicedNotifications
+    const displayedNotifications = useMemo(() => {
+        return [...notifications].sort((a, b) => new Date(b.date) - new Date(a.date));
+    }, [notifications]);
+
+    const slicedNotifications = useMemo(() => {
+        return showAllNotifications ? displayedNotifications : displayedNotifications.slice(0, 5);
+    }, [displayedNotifications, showAllNotifications]);
 
     // Handle logout
     const handleLogout = async () => {
@@ -160,43 +171,36 @@ export default function Topbar({ setShowSidebar }) {
                             </Typography>
                         </MenuItem>
                         <Divider />
-                        {(() => {
-                            const displayedNotifications = [...notifications]
-                                .sort((a, b) => new Date(b.date) - new Date(a.date));
-                            const slicedNotifications = showAllNotifications
-                                ? displayedNotifications
-                                : displayedNotifications.slice(0, 5);
-                            return slicedNotifications.map((notification) => (
-                                <MenuItem
-                                    key={notification._id}
-                                    sx={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'flex-start',
-                                        backgroundColor: notification.isRead ? '#ffffff' : '#e3f2fd',
-                                        gap: 1,
-                                        px: 2,
-                                        py: 1.5,
-                                        borderBottom: '1px solid #f0f0f0',
-                                    }}
+                        {slicedNotifications.map((notification) => (
+                            <MenuItem
+                                key={notification._id}
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    backgroundColor: notification.isRead ? '#ffffff' : '#e3f2fd',
+                                    gap: 1,
+                                    px: 2,
+                                    py: 1.5,
+                                    borderBottom: '1px solid #f0f0f0',
+                                }}
+                            >
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2">
+                                        {notification.message}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {dayjs(notification.date).format('MMM D, YYYY h:mm A')}
+                                    </Typography>
+                                </Box>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => handleNotificationDismiss(notification._id)}
                                 >
-                                    <Box sx={{ flex: 1 }}>
-                                        <Typography variant="body2">
-                                            {notification.message}
-                                        </Typography>
-                                        <Typography variant="caption" color="text.secondary">
-                                            {dayjs(notification.date).format('MMM D, YYYY h:mm A')}
-                                        </Typography>
-                                    </Box>
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => handleNotificationDismiss(notification._id)}
-                                    >
-                                        <CloseIcon fontSize="small" />
-                                    </IconButton>
-                                </MenuItem>
-                            ));
-                        })()}
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            </MenuItem>
+                        ))}
                         <MenuItem onClick={() => setShowAllNotifications((prev) => !prev)}>
                             <Typography variant="body2" color="primary">
                                 {showAllNotifications ? 'Show Less' : 'View All Notifications'}
@@ -212,3 +216,5 @@ export default function Topbar({ setShowSidebar }) {
         </AppBar>
     );
 }
+
+export default React.memo(Topbar);

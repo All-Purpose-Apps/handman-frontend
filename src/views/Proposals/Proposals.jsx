@@ -1,6 +1,6 @@
 // Proposals.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProposals } from '../../store/proposalSlice';
@@ -17,33 +17,39 @@ import {
 import moment from 'moment';
 
 const ProposalsPage = () => {
+    console.count('ProposalsPage render count');
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [searchText, setSearchText] = useState('');
-    const [filteredProposals, setFilteredProposals] = useState([]);
 
     const proposals = useSelector((state) => state.proposals.proposals);
     const loading = useSelector((state) => state.proposals.status === 'loading');
     const error = useSelector((state) => state.proposals.error);
 
+    const filteredProposalsFormatted = useMemo(() => {
+        const filtered = proposals.filter((proposal) =>
+            ['proposalNumber', 'proposalTitle', 'clientName', 'status'].some((field) =>
+                proposal[field]?.toString().toLowerCase().includes(searchText.toLowerCase())
+            ) ||
+            proposal?.items?.some((item) =>
+                item.description.toLowerCase().includes(searchText.toLowerCase())
+            )
+        );
+
+        const formatted = filtered.map((p) => ({
+            ...p,
+            formattedDate: p.proposalDate
+                ? moment(p.proposalDate).format('MMM DD, YYYY')
+                : '',
+        }));
+        console.log('Filtered and formatted proposals calculated');
+        return formatted;
+    }, [proposals, searchText]);
+
     useEffect(() => {
         dispatch(fetchProposals());
         dispatch(fetchClients());
     }, [dispatch]);
-
-    useEffect(() => {
-        setFilteredProposals(
-            proposals.filter((proposal) =>
-                ['proposalNumber', 'proposalTitle', 'clientName', 'status']
-                    .some((field) =>
-                        proposal[field]?.toString().toLowerCase().includes(searchText.toLowerCase())
-                    ) ||
-                proposal?.items?.some((item) =>
-                    item.description.toLowerCase().includes(searchText.toLowerCase())
-                )
-            )
-        );
-    }, [proposals, searchText]);
 
     const handleSearch = (event) => {
         setSearchText(event.target.value);
@@ -58,81 +64,15 @@ const ProposalsPage = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
-
-    const columns = isMobile
-        ? [
-            {
-                field: 'proposalNumber',
-                headerName: 'Proposal #',
-                width: 120,
-                sortable: true,
-            },
-            {
-                field: 'client',
-                headerName: 'Client',
-                width: 200,
-                sortable: true,
-                valueGetter: (params) => params.name || 'N/A',
-            },
-            {
-                field: 'status',
-                headerName: 'Status',
-                width: 200,
-                sortable: true,
-                renderCell: (params) => {
-                    const status = (params.value || '').toLowerCase();
-                    let backgroundColor = 'transparent';
-                    let textColor = 'white';
-
-                    if (status === 'accepted' || status === 'converted to invoice') {
-                        backgroundColor = 'green'; // light green
-                    } else if (status === 'sent' || status === 'viewed') {
-                        backgroundColor = 'goldenrod'; // light yellow
-                    } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
-                        backgroundColor = 'gray'; // light gray
-                    }
-
-                    return (
-                        <Box
-                            sx={{
-                                width: '100%',
-                                height: '100%',
-                                backgroundColor,
-                                display: 'flex',
-                                alignItems: 'center',
-                                paddingLeft: 2,
-                            }}
-                        >
-                            <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                {status.toUpperCase()}
-                            </Typography>
-                        </Box>
-                    );
-                },
-            },
-        ]
-        : isTablet
+    const columns = useMemo(() => {
+        console.log('Columns re-calculated');
+        return isMobile
             ? [
                 {
                     field: 'proposalNumber',
                     headerName: 'Proposal #',
-                    width: 100,
+                    width: 120,
                     sortable: true,
-                    align: 'center',
-                },
-                {
-                    field: 'client',
-                    headerName: 'Client',
-                    width: 200,
-                    sortable: true,
-                    valueGetter: (params) => params.name || 'N/A',
-                },
-                {
-                    field: 'proposalDate',
-                    headerName: 'Date',
-                    width: 150,
-                    sortable: true,
-                    valueFormatter: (params) => moment(params.value).format('MMM DD, YYYY'),
                 },
                 {
                     field: 'status',
@@ -146,7 +86,7 @@ const ProposalsPage = () => {
 
                         if (status === 'accepted' || status === 'converted to invoice') {
                             backgroundColor = 'green'; // light green
-                        } else if (status === 'sent' || status === 'viewed') {
+                        } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
                             backgroundColor = 'goldenrod'; // light yellow
                         } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
                             backgroundColor = 'gray'; // light gray
@@ -171,102 +111,161 @@ const ProposalsPage = () => {
                     },
                 },
             ]
-            : [
-                {
-                    field: 'proposalNumber',
-                    headerName: 'Proposal #',
-                    width: 100,
-                    sortable: true,
-                    align: 'center',
-                },
-                {
-                    field: 'client',
-                    headerName: 'Client',
-                    width: 200,
-                    sortable: true,
-                    valueGetter: (params) => params.name || 'N/A',
-                },
-                {
-                    field: 'proposalDate',
-                    headerName: 'Date',
-                    width: 150,
-                    sortable: true,
-                    valueFormatter: (params) => moment(params.value).format('MMM DD, YYYY'),
-                },
-                {
-                    field: 'status',
-                    headerName: 'Status',
-                    width: 200,
-                    sortable: true,
-                    renderCell: (params) => {
-                        const status = (params.value || '').toLowerCase();
-                        let backgroundColor = 'transparent';
-                        let textColor = 'white';
-
-                        if (status === 'accepted' || status === 'converted to invoice') {
-                            backgroundColor = 'green'; // light green
-                        } else if (status === 'sent' || status === 'viewed') {
-                            backgroundColor = 'goldenrod'; // light yellow
-                        } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
-                            backgroundColor = 'gray'; // light gray
-                        }
-
-                        return (
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    backgroundColor,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    paddingLeft: 2,
-                                }}
-                            >
-                                <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                    {status.toUpperCase()}
-                                </Typography>
-                            </Box>
-                        );
+            : isTablet
+                ? [
+                    {
+                        field: 'proposalNumber',
+                        headerName: 'Proposal #',
+                        width: 100,
+                        sortable: true,
+                        align: 'center',
                     },
-                },
-                {
-                    field: 'packagePrice',
-                    headerName: 'Total',
-                    width: 120,
-                    sortable: true,
-                    valueFormatter: (params) => {
-                        const value = params || 0;
-                        return `$${value.toFixed(2)}`;
+                    {
+                        field: 'client',
+                        headerName: 'Client',
+                        width: 200,
+                        sortable: true,
+                        valueGetter: (params) => params.name || 'N/A',
                     },
-                },
-                {
-                    field: 'items',
-                    headerName: 'Items',
-                    width: 300,
-                    sortable: false,
-                    renderCell: (params) => {
-                        const items = params.value || [];
-                        const hasMaterials = !!params.row.materialsListId;
+                    {
+                        field: 'formattedDate',
+                        headerName: 'Date',
+                        width: 150,
+                        sortable: false,
+                    },
+                    {
+                        field: 'status',
+                        headerName: 'Status',
+                        width: 200,
+                        sortable: true,
+                        renderCell: (params) => {
+                            const status = (params.value || '').toLowerCase();
+                            let backgroundColor = 'transparent';
+                            let textColor = 'white';
 
-                        return (
-                            <Box>
-                                <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
-                                    {items.map((item, index) => (
-                                        <li key={index} style={{ lineHeight: '24px' }}>
-                                            {item.description}
-                                        </li>
-                                    ))}
-                                </ul>
-                                {hasMaterials && (
-                                    <Typography variant="body2" color="text.secondary" style={{ paddingLeft: 20 }}>
-                                        Includes materials
+                            if (status === 'accepted' || status === 'converted to invoice') {
+                                backgroundColor = 'green'; // light green
+                            } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
+                                backgroundColor = 'goldenrod'; // light yellow
+                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                                backgroundColor = 'gray'; // light gray
+                            }
+
+                            return (
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        backgroundColor,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        paddingLeft: 2,
+                                    }}
+                                >
+                                    <Typography style={{ color: textColor, fontWeight: 500 }}>
+                                        {status.toUpperCase()}
                                     </Typography>
-                                )}
-                            </Box>
-                        );
+                                </Box>
+                            );
+                        },
                     },
-                },
-            ];
+                ]
+                : [
+                    {
+                        field: 'proposalNumber',
+                        headerName: 'Proposal #',
+                        width: 100,
+                        sortable: true,
+                        align: 'center',
+                    },
+                    {
+                        field: 'client',
+                        headerName: 'Client',
+                        width: 200,
+                        sortable: true,
+                        valueGetter: (params) => params.name || 'N/A',
+                    },
+                    {
+                        field: 'formattedDate',
+                        headerName: 'Date',
+                        width: 150,
+                        sortable: false,
+                    },
+                    {
+                        field: 'status',
+                        headerName: 'Status',
+                        width: 200,
+                        sortable: true,
+                        renderCell: (params) => {
+                            const status = (params.value || '').toLowerCase();
+                            let backgroundColor = 'transparent';
+                            let textColor = 'white';
+
+                            if (status === 'accepted' || status === 'converted to invoice') {
+                                backgroundColor = 'green'; // light green
+                            } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
+                                backgroundColor = 'goldenrod'; // light yellow
+                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                                backgroundColor = 'gray'; // light gray
+                            }
+
+                            return (
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        backgroundColor,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        paddingLeft: 2,
+                                    }}
+                                >
+                                    <Typography style={{ color: textColor, fontWeight: 500 }}>
+                                        {status.toUpperCase()}
+                                    </Typography>
+                                </Box>
+                            );
+                        },
+                    },
+                    {
+                        field: 'packagePrice',
+                        headerName: 'Total',
+                        width: 120,
+                        sortable: true,
+                        valueFormatter: (params) => {
+                            const value = params || 0;
+                            return `$${value.toFixed(2)}`;
+                        },
+                    },
+                    {
+                        field: 'items',
+                        headerName: 'Items',
+                        width: 300,
+                        sortable: false,
+                        renderCell: (params) => {
+                            const items = params.value || [];
+                            const hasMaterials = !!params.row.materialsListId;
+
+                            return (
+                                <Box>
+                                    <ul style={{ margin: 0, paddingLeft: 20, paddingBottom: 8, paddingTop: 8 }}>
+                                        {items.map((item, index) => (
+                                            <li key={index} style={{ lineHeight: '24px' }}>
+                                                {item.description}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    {hasMaterials && (
+                                        <Typography variant="body2" color="text.secondary" style={{ paddingLeft: 20 }}>
+                                            Includes materials
+                                        </Typography>
+                                    )}
+                                </Box>
+                            );
+                        },
+                    },
+                ];
+    }, [isMobile, isTablet]);
 
     if (loading) {
         return <Typography variant="h4">Loading...</Typography>;
@@ -308,7 +307,7 @@ const ProposalsPage = () => {
 
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
-                    rows={filteredProposals}
+                    rows={filteredProposalsFormatted}
                     columns={columns}
                     pageSize={10}
                     rowsPerPageOptions={[5, 10, 20]}
@@ -341,4 +340,4 @@ const ProposalsPage = () => {
     );
 };
 
-export default ProposalsPage;
+export default React.memo(ProposalsPage);
