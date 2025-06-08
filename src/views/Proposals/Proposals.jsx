@@ -82,14 +82,14 @@ const ProposalsPage = () => {
                 renderCell: (params) => {
                     const status = (params.value || '').toLowerCase();
                     let backgroundColor = 'transparent';
-                    let textColor = 'black';
+                    let textColor = 'white';
 
                     if (status === 'accepted' || status === 'converted to invoice') {
-                        backgroundColor = '#d0f0c0'; // light green
+                        backgroundColor = 'green'; // light green
                     } else if (status === 'sent' || status === 'viewed') {
-                        backgroundColor = '#fffacd'; // light yellow
-                    } else if (status === 'rejected' || status === 'deleted') {
-                        backgroundColor = '#d3d3d3'; // light gray
+                        backgroundColor = 'goldenrod'; // light yellow
+                    } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                        backgroundColor = 'gray'; // light gray
                     }
 
                     return (
@@ -104,7 +104,7 @@ const ProposalsPage = () => {
                             }}
                         >
                             <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                                {status.toUpperCase()}
                             </Typography>
                         </Box>
                     );
@@ -142,14 +142,14 @@ const ProposalsPage = () => {
                     renderCell: (params) => {
                         const status = (params.value || '').toLowerCase();
                         let backgroundColor = 'transparent';
-                        let textColor = 'black';
+                        let textColor = 'white';
 
                         if (status === 'accepted' || status === 'converted to invoice') {
-                            backgroundColor = '#d0f0c0'; // light green
+                            backgroundColor = 'green'; // light green
                         } else if (status === 'sent' || status === 'viewed') {
-                            backgroundColor = '#fffacd'; // light yellow
-                        } else if (status === 'rejected' || status === 'deleted') {
-                            backgroundColor = '#d3d3d3'; // light gray
+                            backgroundColor = 'goldenrod'; // light yellow
+                        } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                            backgroundColor = 'gray'; // light gray
                         }
 
                         return (
@@ -164,7 +164,7 @@ const ProposalsPage = () => {
                                 }}
                             >
                                 <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    {status.toUpperCase()}
                                 </Typography>
                             </Box>
                         );
@@ -201,14 +201,14 @@ const ProposalsPage = () => {
                     renderCell: (params) => {
                         const status = (params.value || '').toLowerCase();
                         let backgroundColor = 'transparent';
-                        let textColor = 'black';
+                        let textColor = 'white';
 
                         if (status === 'accepted' || status === 'converted to invoice') {
-                            backgroundColor = '#d0f0c0'; // light green
+                            backgroundColor = 'green'; // light green
                         } else if (status === 'sent' || status === 'viewed') {
-                            backgroundColor = '#fffacd'; // light yellow
-                        } else if (status === 'rejected' || status === 'deleted') {
-                            backgroundColor = '#d3d3d3'; // light gray
+                            backgroundColor = 'goldenrod'; // light yellow
+                        } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                            backgroundColor = 'gray'; // light gray
                         }
 
                         return (
@@ -223,7 +223,7 @@ const ProposalsPage = () => {
                                 }}
                             >
                                 <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    {status.toUpperCase()}
                                 </Typography>
                             </Box>
                         );

@@ -15,6 +15,7 @@ import {
     MenuItem,
     IconButton, // Added this import
 } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import DeleteIcon from '@mui/icons-material/Delete'; // Added this import
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInvoices, addInvoice } from '../../store/invoiceSlice';
@@ -48,8 +49,10 @@ const columns = [
         field: 'total',
         headerName: 'Total',
         width: 120,
+        valueGetter: (params) =>
+            `$${params.toFixed(2)}`,
     },
-    { field: 'status', headerName: 'Status', width: 120 },
+
     {
         field: 'createdAt',
         headerName: 'Created At',
@@ -82,9 +85,50 @@ const columns = [
             );
         },
     },
+    {
+        field: 'status',
+        headerName: 'Status',
+        flex: 1,
+        minWidth: 120,
+        renderCell: (params) => {
+            const color = getStatusColor(params.value);
+            return (
+                <Box
+                    sx={{
+                        backgroundColor: color,
+                        color: '#fff',
+                        borderRadius: 1,
+                        px: 1,
+                        py: 0.5,
+                        textAlign: 'center',
+                        width: 'fit-content',
+                        minWidth: 80,
+                    }}
+                >
+                    {params.value}
+                </Box>
+            );
+        },
+    },
 ];
 
-
+const getStatusColor = (status) => {
+    switch (status) {
+        case 'paid':
+        case 'signed and paid':
+            return 'green';
+        case 'sent':
+        case 'signed':
+            return 'goldenrod';
+        case 'deleted':
+            return 'blue';
+        case 'canceled':
+            return 'red';
+        case 'created':
+        default:
+            return 'gray';
+    }
+};
 
 const InvoicesPage = () => {
     const dispatch = useDispatch();
@@ -96,6 +140,10 @@ const InvoicesPage = () => {
     const [filteredInvoices, setFilteredInvoices] = useState([]);
     const [openModal, setOpenModal] = useState(false);
     const today = new Date().toISOString().split('T')[0];
+    const isMobile = useMediaQuery('(max-width:600px)');
+    const displayedColumns = isMobile
+        ? columns.filter(col => ['invoiceNumber', 'client'].includes(col.field))
+        : columns;
     const [newInvoiceData, setNewInvoiceData] = useState({
         invoiceNumber: '',
         invoiceDate: today,
@@ -305,7 +353,7 @@ const InvoicesPage = () => {
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
                     rows={filteredInvoices}
-                    columns={columns}
+                    columns={displayedColumns}
                     pageSize={5}
                     rowsPerPageOptions={[5]}
                     onRowClick={(params) => handleGoToInvoice(params.row._id)}
