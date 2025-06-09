@@ -73,6 +73,8 @@ const ViewProposal = () => {
     const [missingPdfModalOpen, setMissingPdfModalOpen] = useState(false);
     const [sendSuccessModalOpen, setSendSuccessModalOpen] = useState(false);
     const [sendFailureModalOpen, setSendFailureModalOpen] = useState(false);
+    // State-driven modal for sending proposal
+    const [isSendingProposal, setIsSendingProposal] = useState(false);
 
 
     const [invoiceData, setInvoiceData] = useState({
@@ -324,6 +326,9 @@ const ViewProposal = () => {
             return;
         }
 
+        setIsSendingProposal(true);
+        setSendSuccessModalOpen(false);
+        setSendFailureModalOpen(false);
         try {
             const token = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/api/proposals/create-token`,
@@ -382,6 +387,7 @@ const ViewProposal = () => {
             console.error('Error sending proposal:', error);
             setSendFailureModalOpen(true);
         } finally {
+            setIsSendingProposal(false);
             dispatch(fetchOneProposal(id));
         }
     };
@@ -564,14 +570,16 @@ const ViewProposal = () => {
             >
                 Go to Invoice
             </Button>,
-            <Button
-                key="delete"
-                variant="contained"
-                color="error"
-                onClick={handleOpenDeleteModal}
-            >
-                Delete
-            </Button>,
+            isEditing && (
+                <Button
+                    key="delete"
+                    variant="contained"
+                    color="error"
+                    onClick={handleOpenDeleteModal}
+                >
+                    Delete
+                </Button>
+            ),
         ];
         rightActions = [
             <Typography key="converted-msg" variant="body1" color="error">
@@ -581,6 +589,24 @@ const ViewProposal = () => {
     } else if (editedProposal?.status === 'accepted') {
         leftActions = [
             backOrCancelButton,
+
+            <Button
+                key="edit"
+                variant="contained"
+                onClick={handleEditToggle}
+            >
+                {isEditing ? 'Save' : 'Edit'}
+            </Button>,
+            isEditing && (
+                <Button
+                    key="delete"
+                    variant="contained"
+                    color="error"
+                    onClick={handleOpenDeleteModal}
+                >
+                    Delete
+                </Button>
+            ),
             !isEditing && (
                 <Button
                     key="convert-invoice"
@@ -589,23 +615,6 @@ const ViewProposal = () => {
                     onClick={handleOpenInvoiceModal}
                 >
                     Convert to Invoice
-                </Button>
-            ),
-            <Button
-                key="edit"
-                variant="contained"
-                onClick={handleEditToggle}
-            >
-                {isEditing ? 'Save' : 'Edit'}
-            </Button>,
-            !isEditing && (
-                <Button
-                    key="delete"
-                    variant="contained"
-                    color="error"
-                    onClick={handleOpenDeleteModal}
-                >
-                    Delete
                 </Button>
             ),
         ].filter(Boolean);
@@ -652,7 +661,7 @@ const ViewProposal = () => {
             //         Convert to Invoice
             //     </Button>
             // ),
-            !isEditing && (
+            isEditing && (
                 <Button
                     key="delete"
                     variant="contained"
@@ -691,6 +700,17 @@ const ViewProposal = () => {
                     onClick={handleSendProposal}
                 >
                     Send To Client
+                </Button>
+            ),
+            // Add "Get Signature" button at the end (always shown in default proposal status)
+            proposal.fileUrl && editedProposal?.status === 'sent to client' && (
+                <Button
+                    key="get-signature"
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => navigate(`/sign/${proposal._id}`)}
+                >
+                    Get Signature
                 </Button>
             ),
         ].filter(Boolean);
@@ -1027,11 +1047,8 @@ const ViewProposal = () => {
                 )}
 
                 {/* Loading Modal */}
-                <Modal
-                    open={isCreatingPdf}
-                    aria-labelledby="creating-pdf-modal"
-                    aria-describedby="creating-pdf-description"
-                >
+                {/* Enhanced Loading/Status Modal for Sending Proposal */}
+                <Modal open={isSendingProposal || sendSuccessModalOpen || sendFailureModalOpen}>
                     <Box
                         display="flex"
                         justifyContent="center"
@@ -1043,10 +1060,34 @@ const ViewProposal = () => {
                         boxShadow={3}
                     >
                         <Box textAlign="center">
-                            <CircularProgress />
-                            <Typography variant="h6" mt={2}>
-                                Creating Pdf...
-                            </Typography>
+                            {isSendingProposal && (
+                                <>
+                                    <CircularProgress />
+                                    <Typography variant="h6" mt={2}>
+                                        Sending Proposal...
+                                    </Typography>
+                                </>
+                            )}
+                            {sendSuccessModalOpen && (
+                                <>
+                                    <Typography variant="h6" color="success.main">
+                                        Proposal Sent Successfully!
+                                    </Typography>
+                                    <Button onClick={() => setSendSuccessModalOpen(false)} sx={{ mt: 2 }} variant="contained">
+                                        Close
+                                    </Button>
+                                </>
+                            )}
+                            {sendFailureModalOpen && (
+                                <>
+                                    <Typography variant="h6" color="error">
+                                        Failed to Send Proposal
+                                    </Typography>
+                                    <Button onClick={() => setSendFailureModalOpen(false)} sx={{ mt: 2 }} variant="contained">
+                                        Close
+                                    </Button>
+                                </>
+                            )}
                         </Box>
                     </Box>
                 </Modal>
@@ -1121,76 +1162,7 @@ const ViewProposal = () => {
                     </Box>
                 </Fade>
             </Modal>
-            <Modal
-                open={sendSuccessModalOpen}
-                onClose={() => setSendSuccessModalOpen(false)}
-                closeAfterTransition
-                slots={{ backdrop: Backdrop }}
-                slotProps={{ backdrop: { timeout: 300 } }}
-            >
-                <Fade in={sendSuccessModalOpen}>
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                        bgcolor="background.paper"
-                        p={4}
-                        borderRadius={1}
-                        boxShadow={3}
-                        sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: { xs: '80%', md: 400 },
-                            textAlign: 'center'
-                        }}
-                    >
-                        <Typography variant="h6" mb={2}>
-                            Proposal sent successfully!
-                        </Typography>
-                        <Button variant="contained" onClick={() => setSendSuccessModalOpen(false)}>
-                            Close
-                        </Button>
-                    </Box>
-                </Fade>
-            </Modal>
-            <Modal
-                open={sendFailureModalOpen}
-                onClose={() => setSendFailureModalOpen(false)}
-                closeAfterTransition
-                slots={{ backdrop: Backdrop }}
-                slotProps={{ backdrop: { timeout: 300 } }}
-            >
-                <Fade in={sendFailureModalOpen}>
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                        bgcolor="background.paper"
-                        p={4}
-                        borderRadius={1}
-                        boxShadow={3}
-                        sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: { xs: '80%', md: 400 },
-                            textAlign: 'center'
-                        }}
-                    >
-                        <Typography variant="h6" mb={2}>
-                            Failed to send proposal.
-                        </Typography>
-                        <Button variant="contained" onClick={() => setSendFailureModalOpen(false)}>
-                            Close
-                        </Button>
-                    </Box>
-                </Fade>
-            </Modal>
+            {/* Removed old sendSuccessModalOpen and sendFailureModalOpen modals, now handled by enhanced modal above */}
         </>
     );
 };

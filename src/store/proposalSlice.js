@@ -83,26 +83,6 @@ export const deleteProposal = createAsyncThunk('proposals/deleteProposal', async
   }
 });
 
-export const sendProposalToClient = createAsyncThunk('proposals/sendProposalToClient', async (proposalId, { rejectWithValue }) => {
-  try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(
-      `${import.meta.env.VITE_BACKEND_URL}/api/proposals/send-proposal-to-client`,
-      { proposalId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          withCredentials: true,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error sending proposal to client:', error);
-    return rejectWithValue(error.response?.data || 'Failed to send proposal to client');
-  }
-});
-
 export const proposalSlice = createSlice({
   name: 'proposals',
   initialState,
