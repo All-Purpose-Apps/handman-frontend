@@ -330,7 +330,7 @@ const ClientsPage = () => {
                 },
             },
         ]
-        : isTablet
+        : isTablet || window.innerWidth <= 1220
             ? [
                 {
                     field: 'name',
