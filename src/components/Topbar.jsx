@@ -30,6 +30,7 @@ function Topbar({ setShowSidebar }) {
     const { currentUser } = useAuth();
     const dispatch = useDispatch();
 
+
     // Get notifications from Redux store
     const notifications = useSelector((state) => state.notifications.notifications);
     const status = useSelector((state) => state.notifications.status);
@@ -119,7 +120,7 @@ function Topbar({ setShowSidebar }) {
                     color="inherit"
                     edge="start"
                     onClick={() => setShowSidebar((prev) => !prev)}
-                    sx={{ mr: 2, display: { xs: 'block', sm: 'block' } }}
+                    sx={{ mr: 2, display: { xs: 'block', sm: 'block', md: 'none' } }}
                 >
                     <MenuIcon />
                 </IconButton>

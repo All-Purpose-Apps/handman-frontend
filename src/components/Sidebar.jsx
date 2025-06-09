@@ -16,6 +16,7 @@ export default function Sidebar({ showSidebar, onNavigate }) {
     const { currentUser } = useAuth();
     const theme = useTheme();
     const isMdDown = useMediaQuery(theme.breakpoints.down('lg'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
     const [isPortrait, setIsPortrait] = useState(
         typeof window !== 'undefined'
             ? window.matchMedia('(orientation: portrait)').matches
@@ -90,7 +91,7 @@ export default function Sidebar({ showSidebar, onNavigate }) {
                 variant="permanent"
                 sx={{
                     display: { xs: 'none', sm: isTabletPortrait ? 'none' : 'block' },
-                    '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' },
+                    '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', position: isTablet ? 'relative' : 'fixed' },
                 }}
                 open
             >
