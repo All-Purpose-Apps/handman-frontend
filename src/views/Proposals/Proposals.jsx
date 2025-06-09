@@ -15,9 +15,9 @@ import {
     useMediaQuery,
 } from '@mui/material';
 import moment from 'moment';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ProposalsPage = () => {
-    console.count('ProposalsPage render count');
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [searchText, setSearchText] = useState('');
@@ -25,6 +25,7 @@ const ProposalsPage = () => {
     const proposals = useSelector((state) => state.proposals.proposals);
     const loading = useSelector((state) => state.proposals.status === 'loading');
     const error = useSelector((state) => state.proposals.error);
+    const { currentUser } = useAuth();
 
     const filteredProposalsFormatted = useMemo(() => {
         const filtered = proposals.filter((proposal) =>
@@ -42,14 +43,15 @@ const ProposalsPage = () => {
                 ? moment(p.proposalDate).format('MMM DD, YYYY')
                 : '',
         }));
-        console.log('Filtered and formatted proposals calculated');
         return formatted;
     }, [proposals, searchText]);
 
     useEffect(() => {
-        dispatch(fetchProposals());
-        dispatch(fetchClients());
-    }, [dispatch]);
+        if (currentUser) {
+            dispatch(fetchProposals());
+            dispatch(fetchClients());
+        }
+    }, [dispatch, currentUser]);
 
     const handleSearch = (event) => {
         setSearchText(event.target.value);
@@ -65,7 +67,6 @@ const ProposalsPage = () => {
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
     const columns = useMemo(() => {
-        console.log('Columns re-calculated');
         return isMobile
             ? [
                 {
@@ -104,7 +105,7 @@ const ProposalsPage = () => {
                                 }}
                             >
                                 <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                    {status.toUpperCase()}
+                                    {(status || '').toUpperCase()}
                                 </Typography>
                             </Box>
                         );
@@ -163,7 +164,7 @@ const ProposalsPage = () => {
                                     }}
                                 >
                                     <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                        {status.toUpperCase()}
+                                        {(status || '').toUpperCase()}
                                     </Typography>
                                 </Box>
                             );
@@ -221,7 +222,7 @@ const ProposalsPage = () => {
                                     }}
                                 >
                                     <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                        {status.toUpperCase()}
+                                        {(status || '').toUpperCase()}
                                     </Typography>
                                 </Box>
                             );
@@ -272,7 +273,11 @@ const ProposalsPage = () => {
     }
 
     if (error) {
-        return <Typography variant="h4">Error: {error}</Typography>;
+        return (
+            <Typography variant="h4">
+                Error: {typeof error === 'string' ? error : error?.msg || 'Unknown error'}
+            </Typography>
+        );
     }
 
     return (
