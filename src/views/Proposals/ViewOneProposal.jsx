@@ -708,7 +708,7 @@ const ViewProposal = () => {
                     key="get-signature"
                     variant="contained"
                     color="secondary"
-                    onClick={() => navigate(`/sign/${proposal._id}`)}
+                    onClick={() => navigate(`/signature/proposal/${proposal._id}`)}
                 >
                     Get Signature
                 </Button>

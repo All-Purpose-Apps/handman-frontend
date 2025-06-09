@@ -8,6 +8,7 @@ import ProtectedRoute from './views/ProtectedRoute';
 import AuthWatcher from './components/AuthWatcher.jsx';
 import SignDocument from './views/User/SignDocument.jsx';
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
+import Signature from './components/Signature.jsx';
 
 export default function App() {
   const getRoutes = () => {
@@ -45,6 +46,7 @@ export default function App() {
         <AuthWatcher />
         <Routes>
           <Route path="sign/:token" element={<SignDocument />} />
+          <Route path="/signature/:document/:id" element={<Signature />} />
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             {getRoutes()}
