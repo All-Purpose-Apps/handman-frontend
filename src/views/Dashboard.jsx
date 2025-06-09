@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,7 @@ import {
     Divider,
     Button
 } from '@mui/material';
+import { Backdrop, CircularProgress } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import {
     People as PeopleIcon,
@@ -31,14 +32,21 @@ const DashboardPage = () => {
     const dispatch = useDispatch();
     const { urgentDays } = useSettings();
 
+    // Loading state for data fetching
+    const [loading, setLoading] = useState(true);
+
     // Fetch clients, invoices, and proposals when the component mounts, only if a user is present
     useEffect(() => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
         if (currentUser) {
-            dispatch(fetchClients());
-            dispatch(fetchInvoices());
-            dispatch(fetchProposals());
+            Promise.all([
+                dispatch(fetchClients()),
+                dispatch(fetchInvoices()),
+                dispatch(fetchProposals())
+            ]).finally(() => setLoading(false));
+        } else {
+            setLoading(false);
         }
     }, [dispatch]);
 
@@ -86,6 +94,13 @@ const DashboardPage = () => {
         }))
     ].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 10);
 
+    if (loading) {
+        return (
+            <Backdrop open={true}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+        );
+    }
 
     return (
         <Box sx={{ flexGrow: 1, p: 3 }}>
