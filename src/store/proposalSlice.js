@@ -1,8 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const accessToken = localStorage.getItem('accessToken');
-
 const initialState = {
   proposals: [],
   proposal: {},
@@ -12,6 +10,7 @@ const initialState = {
 
 export const fetchProposals = createAsyncThunk('proposals/fetchProposals', async (_, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/proposals`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -26,6 +25,7 @@ export const fetchProposals = createAsyncThunk('proposals/fetchProposals', async
 
 export const fetchOneProposal = createAsyncThunk('proposals/fetchOneProposal', async (proposalId, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/proposals/${proposalId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -40,6 +40,7 @@ export const fetchOneProposal = createAsyncThunk('proposals/fetchOneProposal', a
 
 export const addProposal = createAsyncThunk('proposals/addProposal', async (proposal, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/proposals`, proposal, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -54,6 +55,7 @@ export const addProposal = createAsyncThunk('proposals/addProposal', async (prop
 
 export const updateProposal = createAsyncThunk('proposals/updateProposal', async (proposal, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/proposals/${proposal._id}`, proposal, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -68,6 +70,7 @@ export const updateProposal = createAsyncThunk('proposals/updateProposal', async
 
 export const deleteProposal = createAsyncThunk('proposals/deleteProposal', async (proposalId, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/proposals/${proposalId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -80,8 +83,9 @@ export const deleteProposal = createAsyncThunk('proposals/deleteProposal', async
   }
 });
 
-export const sendProposalToClient = createAsyncThunk('proposals/sendProposalToClient', async (invoiceId, { rejectWithValue }) => {
+export const sendProposalToClient = createAsyncThunk('proposals/sendProposalToClient', async (proposalId, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.post(
       `${import.meta.env.VITE_BACKEND_URL}/api/proposals/send-proposal-to-client`,
       { proposalId },

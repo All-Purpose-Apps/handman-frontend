@@ -1,8 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const accessToken = localStorage.getItem('accessToken');
-
 const initialState = {
   invoices: [],
   invoice: {},
@@ -13,6 +11,7 @@ const initialState = {
 // Fetch all invoices
 export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (_, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -28,6 +27,7 @@ export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (_
 // Fetch a single invoice by ID
 export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', async (invoiceId, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -43,6 +43,7 @@ export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', asyn
 // Add a new invoice
 export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/invoices`, invoice, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -75,6 +76,7 @@ export const updateInvoice = createAsyncThunk('invoices/updateInvoice', async ({
 
 export const deleteInvoice = createAsyncThunk('invoices/deleteInvoice', async (invoiceId, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/invoices/${invoiceId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -89,6 +91,7 @@ export const deleteInvoice = createAsyncThunk('invoices/deleteInvoice', async (i
 
 export const sendInvoiceToClient = createAsyncThunk('invoices/sendInvoiceToClient', async (invoiceId, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.post(
       `${import.meta.env.VITE_BACKEND_URL}/api/invoices/send-invoice-to-client`,
       { invoiceId },

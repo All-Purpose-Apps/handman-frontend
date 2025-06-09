@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import {
     TextField,
@@ -24,7 +24,69 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import moment from 'moment';
 import AddInvoiceModal from './AddInvoiceModal';
 
-const columns = [
+const today = new Date().toISOString().split('T')[0];
+
+const getStatusColor = (status) => {
+    switch (status) {
+        case 'paid':
+        case 'signed and paid':
+            return 'green';
+        case 'sent':
+        case 'signed':
+            return 'goldenrod';
+        case 'deleted':
+            return 'blue';
+        case 'canceled':
+            return 'red';
+        case 'created':
+        default:
+            return 'gray';
+    }
+};
+
+const tabletColumns = [
+    { field: 'invoiceNumber', headerName: 'Invoice #', width: 100, align: 'center' },
+    {
+        field: 'invoiceDate',
+        headerName: 'Invoice Date',
+        width: 100,
+        valueGetter: (params) =>
+            moment.utc(params).format('MM/DD/YYYY'),
+    },
+    {
+        field: 'client',
+        headerName: 'Client',
+        width: 200,
+        valueGetter: (params) =>
+            `${params.name}`,
+    },
+    {
+        field: 'status',
+        headerName: 'Status',
+        flex: 1,
+        minWidth: 120,
+        renderCell: (params) => {
+            const color = getStatusColor(params.value);
+            return (
+                <Box
+                    sx={{
+                        backgroundColor: color,
+                        color: '#fff',
+                        borderRadius: 1,
+                        px: 1,
+                        py: 0.5,
+                        textAlign: 'center',
+                        minWidth: 80,
+                    }}
+                >
+                    {params.value.toUpperCase()}
+                </Box>
+            );
+        },
+    },
+];
+
+const desktopColumns = [
     { field: 'invoiceNumber', headerName: 'Invoice #', width: 100, align: 'center' },
     {
         field: 'invoiceDate',
@@ -101,49 +163,44 @@ const columns = [
                         px: 1,
                         py: 0.5,
                         textAlign: 'center',
-                        width: 'fit-content',
                         minWidth: 80,
                     }}
                 >
-                    {params.value}
+                    {params.value.toUpperCase()}
                 </Box>
             );
         },
     },
 ];
 
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'paid':
-        case 'signed and paid':
-            return 'green';
-        case 'sent':
-        case 'signed':
-            return 'goldenrod';
-        case 'deleted':
-            return 'blue';
-        case 'canceled':
-            return 'red';
-        case 'created':
-        default:
-            return 'gray';
-    }
-};
-
 const InvoicesPage = () => {
+
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const invoices = useSelector((state) => state.invoices.invoices);
     const clients = useSelector((state) => state.clients.clients);
     const [searchText, setSearchText] = useState('');
-    const [filteredInvoices, setFilteredInvoices] = useState([]);
     const [openModal, setOpenModal] = useState(false);
-    const today = new Date().toISOString().split('T')[0];
-    const isMobile = useMediaQuery('(max-width:600px)');
-    const displayedColumns = isMobile
-        ? columns.filter(col => ['invoiceNumber', 'client'].includes(col.field))
-        : columns;
+    const isTablet = useMediaQuery('(max-width:1200px)');
+
+    const columns = useMemo(() => {
+        return isTablet ? tabletColumns : desktopColumns;
+    }, [isTablet]);
+
+    const filteredInvoices = useMemo(() => {
+        return invoices.filter((invoice) => {
+            const invoiceMatches =
+                invoice.invoiceNumber.toLowerCase().includes(searchText.toLowerCase()) ||
+                invoice.client.name.toLowerCase().includes(searchText.toLowerCase());
+            const itemsMatch = invoice.items.some((item) =>
+                item.description.toLowerCase().includes(searchText.toLowerCase())
+            );
+            return invoiceMatches || itemsMatch;
+        });
+    }, [invoices, searchText]);
+
     const [newInvoiceData, setNewInvoiceData] = useState({
         invoiceNumber: '',
         invoiceDate: today,
@@ -173,22 +230,6 @@ const InvoicesPage = () => {
         dispatch(fetchInvoices());
         dispatch(fetchClients());
     }, [dispatch]);
-
-    useEffect(() => {
-        setFilteredInvoices(
-            invoices.filter((invoice) => {
-                const invoiceMatches =
-                    invoice.invoiceNumber.toLowerCase().includes(searchText.toLowerCase()) ||
-                    invoice.client.name.toLowerCase().includes(searchText.toLowerCase());
-
-                const itemsMatch = invoice.items.some((item) =>
-                    item.description.toLowerCase().includes(searchText.toLowerCase())
-                );
-
-                return invoiceMatches || itemsMatch;
-            })
-        );
-    }, [invoices, searchText]);
 
     useEffect(() => {
         if (invoices.length > 0) {
@@ -319,6 +360,8 @@ const InvoicesPage = () => {
         }
     };
 
+
+
     return (
         <div style={{ padding: 20 }}>
             <Box
@@ -353,7 +396,7 @@ const InvoicesPage = () => {
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
                     rows={filteredInvoices}
-                    columns={displayedColumns}
+                    columns={columns}
                     pageSize={5}
                     rowsPerPageOptions={[5]}
                     onRowClick={(params) => handleGoToInvoice(params.row._id)}
