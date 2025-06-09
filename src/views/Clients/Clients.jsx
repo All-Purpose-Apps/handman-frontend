@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { DataGrid } from '@mui/x-data-grid';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -37,6 +37,25 @@ const ClientsPage = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+    const [device, setDevice] = useState('desktop');
+
+    useEffect(() => {
+        const updateDevice = () => {
+            const width = window.innerWidth;
+            const newDevice =
+                width <= theme.breakpoints.values.sm
+                    ? 'mobile'
+                    : width <= theme.breakpoints.values.md
+                        ? 'tablet'
+                        : 'desktop';
+            setDevice((prev) => (prev !== newDevice ? newDevice : prev));
+        };
+
+        updateDevice();
+        window.addEventListener('resize', updateDevice);
+        return () => window.removeEventListener('resize', updateDevice);
+    }, [theme]);
 
     const [userEmail, setUserEmail] = useState(null);
     const [contacts, setContacts] = useState([]);
@@ -508,21 +527,36 @@ const ClientsPage = () => {
         'REVIEW REQUESTED': '#388e3c',
     };
 
+
+
     return (
         <div style={{ padding: 20 }}>
-            <div style={{ display: 'flex', flexDirection: (isMobile || isTablet) ? 'column' : 'row', gap: 16, marginBottom: 20 }}>
-                <TextField
-                    label="Search Clients"
-                    variant="outlined"
-                    value={searchText}
-                    onChange={handleSearch}
-                    style={{ width: '100%' }}
-                />
-                <ClientButtons
-                    lastSyncedAt={lastSyncedAt}
-                    handleSyncGoogleContacts={handleSyncGoogleContacts}
-                    handleOpenModal={handleOpenModal}
-                />
+            <div style={{
+                display: 'flex',
+                flexDirection: device === 'tablet' || window.innerWidth <= 1220 ? 'column' : 'row',
+                gap: 16,
+                marginBottom: 20
+            }}>
+                <div style={{ width: '100%' }}>
+                    <TextField
+                        label="Search Clients"
+                        variant="outlined"
+                        value={searchText}
+                        onChange={handleSearch}
+                        style={{ width: '100%' }}
+                    />
+                </div>
+                <div style={{
+                    width: '100%',
+                    display: device === 'tablet' || window.innerWidth <= 1220 ? 'block' : 'flex',
+                    justifyContent: device === 'tablet' || window.innerWidth <= 1220 ? 'flex-start' : 'flex-end'
+                }}>
+                    <ClientButtons
+                        lastSyncedAt={lastSyncedAt}
+                        handleSyncGoogleContacts={handleSyncGoogleContacts}
+                        handleOpenModal={handleOpenModal}
+                    />
+                </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
