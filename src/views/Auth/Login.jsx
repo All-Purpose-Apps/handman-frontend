@@ -1,6 +1,6 @@
 // src/components/Login.jsx
 import React from 'react';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { app } from '../../utils/firebase';
 import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
@@ -9,6 +9,16 @@ import { Box, Button, Typography, Paper } from '@mui/material';
 const Login = () => {
     const auth = getAuth(app);
     const navigate = useNavigate();
+
+    React.useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                navigate('/dashboard');
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const handleClick = async () => {
         if (sessionStorage.getItem('loginInProgress')) return;
