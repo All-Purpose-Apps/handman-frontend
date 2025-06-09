@@ -42,10 +42,10 @@ function Topbar({ setShowSidebar }) {
 
     // Fetch notifications from the Redux store
     useEffect(() => {
-        if (status === 'idle') {
+        if (currentUser && status === 'idle') {
             dispatch(fetchNotifications());
         }
-    }, [status, dispatch]);
+    }, [currentUser, status, dispatch]);
 
     // Compute unread count dynamically with useMemo
     const unreadCount = useMemo(() => {
