@@ -15,6 +15,7 @@ import {
     Modal,
     useTheme,
     useMediaQuery,
+    Backdrop,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -78,6 +79,7 @@ const ClientsPage = () => {
         email: '',
         phone: '',
     });
+    const [loading, setLoading] = useState(true);
 
     const lastSync = useSelector((state) => state.lastSync.lastSync);
     const clients = useSelector((state) => state.clients.clients);
@@ -136,11 +138,14 @@ const ClientsPage = () => {
     };
 
     const fetchClientsFromMongo = async () => {
+        setLoading(true);
         try {
             const { payload } = await dispatch(fetchClients());
             setFilteredClients(payload);
         } catch (error) {
             console.error('Error fetching clients:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -438,6 +443,13 @@ const ClientsPage = () => {
             ];
 
 
+    if (loading) {
+        return (
+            <Backdrop open={true}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+        );
+    }
 
     return (
         <div style={{ padding: 20 }}>
