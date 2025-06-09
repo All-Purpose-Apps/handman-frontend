@@ -8,9 +8,15 @@ import { getIdTokenResult, getAuth } from 'firebase/auth';
 import { handleGoogleSignIn } from '../utils/handleGoogleSignIn'; // Adjust path if needed
 
 const ProtectedRoute = ({ children }) => {
-    const { showCountdown, countdown } = useAutoLogout(); // Auto logout countdown
     const { currentUser } = useAuth();
     const auth = getAuth();
+
+    let showCountdown = false;
+    let countdown = 0;
+    if (currentUser) {
+        ({ showCountdown, countdown } = useAutoLogout());
+    }
+
     // useEffect(() => {
     //     const validateToken = async () => {
     //         try {
@@ -35,14 +41,16 @@ const ProtectedRoute = ({ children }) => {
 
     return (
         <>
-            <Dialog open={showCountdown}>
-                <DialogTitle>Session Expiring</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        You will be logged out in {countdown} seconds due to inactivity.
-                    </Typography>
-                </DialogContent>
-            </Dialog>
+            {showCountdown && (
+                <Dialog open>
+                    <DialogTitle>Session Expiring</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            You will be logged out in {countdown} seconds due to inactivity.
+                        </Typography>
+                    </DialogContent>
+                </Dialog>
+            )}
             {children}
         </>
     );

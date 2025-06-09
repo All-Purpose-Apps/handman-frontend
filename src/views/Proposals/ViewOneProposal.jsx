@@ -642,16 +642,16 @@ const ViewProposal = () => {
             >
                 {isEditing ? 'Save' : 'Edit'}
             </Button>,
-            !isEditing && (
-                <Button
-                    key="convert-invoice"
-                    variant="contained"
-                    color="primary"
-                    onClick={handleOpenInvoiceModal}
-                >
-                    Convert to Invoice
-                </Button>
-            ),
+            // !isEditing && (
+            //     <Button
+            //         key="convert-invoice"
+            //         variant="contained"
+            //         color="primary"
+            //         onClick={handleOpenInvoiceModal}
+            //     >
+            //         Convert to Invoice
+            //     </Button>
+            // ),
             !isEditing && (
                 <Button
                     key="delete"
