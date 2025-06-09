@@ -2,7 +2,8 @@ import React, { useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { Button, Box, Typography, Stack } from '@mui/material';
 import { makeStyles } from '@mui/styles';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 
 const useStyles = makeStyles({
     sigCanvas: {
@@ -13,13 +14,53 @@ const useStyles = makeStyles({
 });
 
 const Signature = () => {
+
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [error, setError] = React.useState(null);
     const classes = useStyles();
     const sigCanvas = useRef({});
     const navigate = useNavigate();
+    const { document, id } = useParams();
+    console.log('Document:', document === 'proposal', 'ID:', id);
 
     const handleClearSignature = () => {
         sigCanvas.current.clear();
     };
+
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        setError(null);
+
+        const signatureData = sigCanvas.current.toDataURL('image/png');
+        try {
+
+            if (document === 'proposal') {
+                const response = await axios.post(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/proposals/internal-upload-pdf-with-signature/${id}`,
+                    {
+                        signature: signatureData,
+                    },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                        },
+                        withCredentials: true,
+                    }
+                );
+                console.log('Upload successful:', response.data);
+                navigate(-1); // Navigate back after successful upload
+            } else {
+                console.warn('Unsupported document type:', document);
+            }
+        } catch (error) {
+            console.error('Upload failed:', error);
+            setError('Failed to upload signature. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+
+    }
 
     return (
         <Box sx={{ maxWidth: 800, margin: '0 auto', padding: 2 }}>
@@ -43,10 +84,7 @@ const Signature = () => {
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={() => {
-                            const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
-                            console.log(dataURL);
-                        }}
+                        onClick={handleSubmit}
                     >
                         Save Signature
                     </Button>
