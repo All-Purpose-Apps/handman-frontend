@@ -628,15 +628,15 @@ const ViewProposal = () => {
                     Create PDF
                 </Button>
             ),
-            proposal.fileUrl && (
+            proposal.signedPdfUrl && (
                 <Button
                     key="view-proposal"
                     variant="contained"
-                    href={proposal.fileUrl}
+                    href={proposal.signedPdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    View Proposal
+                    View Signed Proposal
                 </Button>
             ),
             // "Send to Client" not shown in accepted status in original code
