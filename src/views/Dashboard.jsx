@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { getAuth } from 'firebase/auth';
 import { useSettings } from '../contexts/SettingsContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -30,11 +31,15 @@ const DashboardPage = () => {
     const dispatch = useDispatch();
     const { urgentDays } = useSettings();
 
-    // Fetch clients, invoices, and proposals when the component mounts
+    // Fetch clients, invoices, and proposals when the component mounts, only if a user is present
     useEffect(() => {
-        dispatch(fetchClients());
-        dispatch(fetchInvoices());
-        dispatch(fetchProposals());
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            dispatch(fetchClients());
+            dispatch(fetchInvoices());
+            dispatch(fetchProposals());
+        }
     }, [dispatch]);
 
     const clients = useSelector((state) => state.clients.clients);
