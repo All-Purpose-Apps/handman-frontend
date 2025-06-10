@@ -16,6 +16,7 @@ import {
     useTheme,
     useMediaQuery,
     Backdrop,
+    Button
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -81,10 +82,13 @@ const ClientsPage = () => {
     });
     const [loading, setLoading] = useState(false);
     const [isFetchingClients, setIsFetchingClients] = useState(false);
+    const [fetchError, setFetchError] = useState(null);
     const [isSyncingContacts, setIsSyncingContacts] = useState(false);
 
     const lastSync = useSelector((state) => state.lastSync.lastSync);
     const clients = useSelector((state) => state.clients.clients);
+    const isLoading = useSelector((state) => state.clients.isLoading);
+    const isError = useSelector((state) => state.clients.isError);
 
     // Auth listener to capture logged-in user's email
 
@@ -141,11 +145,13 @@ const ClientsPage = () => {
 
     const fetchClientsFromMongo = async () => {
         setIsFetchingClients(true);
+        setFetchError(null);
         try {
             const { payload } = await dispatch(fetchClients());
             setFilteredClients(payload);
         } catch (error) {
             console.error('Error fetching clients:', error);
+            setFetchError('Failed to fetch clients. Please try again.');
         } finally {
             setIsFetchingClients(false);
         }
@@ -176,7 +182,13 @@ const ClientsPage = () => {
     // }, [tableView]);
 
     useEffect(() => {
-        setFilteredClients(clients);
+        if (Array.isArray(clients)) {
+            const sanitized = clients.filter((c) => typeof c === 'object' && c !== null && c._id);
+            setFilteredClients(sanitized);
+        } else {
+            console.warn('clients is not an array:', clients);
+            setFilteredClients([]);
+        }
     }, [clients]);
 
     // Initialize visibleClients when filteredClients changes (for infinite scroll)
@@ -269,7 +281,6 @@ const ClientsPage = () => {
 
     const handleRowClick = (params) => navigate(`/clients/${params.row._id}`);
     const handleCardClick = (clientId) => navigate(`/clients/${clientId}`);
-
     const colorMap = {
         'ACTIVE': '#388e3c',
         'INACTIVE': '#757575',
@@ -563,26 +574,29 @@ const ClientsPage = () => {
                         })}
                     </InfiniteScroll>
                 ) : (
-                    <DataGrid
-                        rows={filteredClients}
-                        columns={columns}
-                        pageSize={5}
-                        // rowsPerPageOptions={[5, 10, 20]}
-                        getRowId={(row) => row._id}
-                        onRowClick={handleRowClick}
-                        pageSizeOptions={[5, 10, 25, 50, 100]}
-                        initialState={{
-                            sorting: {
-                                sortModel: [{ field: 'name', sort: 'asc' }],
-                            },
-                            pagination: {
-                                paginationModel: { pageSize: 10, page: 0 },
-                            },
-                        }}
-                        sx={{
-                            '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
-                        }}
-                    />
+                    Array.isArray(filteredClients) && filteredClients.length > 0 ? (
+                        <DataGrid
+                            rows={filteredClients.filter((c) => typeof c === 'object' && c !== null && c._id)}
+                            columns={columns}
+                            pageSize={5}
+                            getRowId={(row) => row._id}
+                            pageSizeOptions={[5, 10, 25, 50, 100]}
+                            initialState={{
+                                sorting: {
+                                    sortModel: [{ field: 'name', sort: 'asc' }],
+                                },
+                                pagination: {
+                                    paginationModel: { pageSize: 10, page: 0 },
+                                },
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
+                            }}
+                            onRowClick={handleRowClick}
+                        />
+                    ) : (
+                        <Typography>No valid clients found.</Typography>
+                    )
                 )}
             </div>
 
@@ -657,6 +671,64 @@ const ClientsPage = () => {
                     >
                         <CircularProgress />
                         <Typography mt={2}>Syncing Contacts...</Typography>
+                    </Box>
+                </Box>
+            </Modal>
+
+            <Modal open={Boolean(fetchError)}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100vh"
+                >
+                    <Box
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        gap={2}
+                    >
+                        <Typography color="error" variant="h6">{fetchError}</Typography>
+                        <Box display="flex" gap={2}>
+                            <Button variant="contained" onClick={fetchClientsFromMongo}>
+                                Retry
+                            </Button>
+                            <Button variant="outlined" onClick={() => setFetchError(null)}>
+                                Dismiss
+                            </Button>
+                        </Box>
+                    </Box>
+                </Box>
+            </Modal>
+            <Modal open={Boolean(isError)}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100vh"
+                >
+                    <Box
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        gap={2}
+                    >
+                        <Typography color="error" variant="h6">
+                            An error occurred while loading clients.
+                        </Typography>
+                        <Box display="flex" gap={2}>
+                            <Button variant="contained" onClick={fetchClientsFromMongo}>
+                                Retry
+                            </Button>
+                        </Box>
                     </Box>
                 </Box>
             </Modal>
