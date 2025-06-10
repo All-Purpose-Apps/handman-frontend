@@ -14,8 +14,8 @@ const initialState = {
 // Fetch all clients
 export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, { rejectWithValue }) => {
   const auth = getAuth();
-  const accessToken = localStorage.getItem('accessToken');
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,

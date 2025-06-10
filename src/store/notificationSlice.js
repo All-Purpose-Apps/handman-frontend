@@ -14,9 +14,9 @@ const initialState = {
 // Fetch all notifications
 export const fetchNotifications = createAsyncThunk('notifications/fetchNotifications', async (_, { rejectWithValue }) => {
   const auth = getAuth();
-  const accessToken = await localStorage.getItem('accessToken');
 
   try {
+    const accessToken = await localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notifications`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -50,8 +50,8 @@ export const markNotificationAsRead = createAsyncThunk('notifications/markNotifi
 });
 
 export const clearNotifications = createAsyncThunk('notifications/clearNotifications', async (_, { rejectWithValue }) => {
-  const accessToken = await localStorage.getItem('accessToken');
   try {
+    const accessToken = await localStorage.getItem('accessToken');
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/clear`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -66,8 +66,8 @@ export const clearNotifications = createAsyncThunk('notifications/clearNotificat
 });
 
 export const markAllNotificationsAsRead = createAsyncThunk('notifications/markAllNotificationsAsRead', async (_, { rejectWithValue }) => {
-  const accessToken = await localStorage.getItem('accessToken');
   try {
+    const accessToken = await localStorage.getItem('accessToken');
     const response = await axios.patch(
       `${import.meta.env.VITE_BACKEND_URL}/api/notifications/markAllAsRead`,
       {},

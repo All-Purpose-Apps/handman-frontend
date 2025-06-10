@@ -1,8 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const accessToken = localStorage.getItem('accessToken');
-
 const initialState = {
   items: [],
   materialsList: [],
@@ -12,6 +10,7 @@ const initialState = {
 
 export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', async (_, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -27,6 +26,7 @@ export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', asy
 
 export const addMaterial = createAsyncThunk('materials/addMaterial', async (material, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/add-material-to-list`, material, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -41,6 +41,7 @@ export const addMaterial = createAsyncThunk('materials/addMaterial', async (mate
 
 export const deleteMaterial = createAsyncThunk('materials/deleteMaterial', async (id, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-material-from-list/${id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -55,6 +56,7 @@ export const deleteMaterial = createAsyncThunk('materials/deleteMaterial', async
 
 export const updateMaterial = createAsyncThunk('materials/updateMaterial', async (material, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/materials/update-material-in-list/${material._id}`, material, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -70,6 +72,7 @@ export const updateMaterial = createAsyncThunk('materials/updateMaterial', async
 
 export const createMaterialsList = createAsyncThunk('materials/createMaterialsList', async (materials, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/create-materials-list`, materials, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -84,6 +87,7 @@ export const createMaterialsList = createAsyncThunk('materials/createMaterialsLi
 
 export const getMaterialList = createAsyncThunk('materials/getMaterialList', async (proposalNumber, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list/${proposalNumber}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -98,6 +102,7 @@ export const getMaterialList = createAsyncThunk('materials/getMaterialList', asy
 
 export const getMaterialListById = createAsyncThunk('materials/getMaterialListById', async (id, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list-by-id/${id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -112,6 +117,7 @@ export const getMaterialListById = createAsyncThunk('materials/getMaterialListBy
 
 export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsList', async ({ id, materials, total, discountTotal }, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.put(
       `${import.meta.env.VITE_BACKEND_URL}/api/materials/update-materials-list/${id}`,
       { materials, total, discountTotal },
@@ -131,6 +137,7 @@ export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsLi
 
 export const deleteMaterialsList = createAsyncThunk('materials/deleteMaterialsList', async (id, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-materials-list/${id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,

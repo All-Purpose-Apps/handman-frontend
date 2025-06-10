@@ -14,14 +14,9 @@ const initialState = {
 };
 
 export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async (_, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
   const auth = getAuth();
-
-  if (!accessToken) {
-    return rejectWithValue('Access token is missing');
-  }
-
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/calendars`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -38,12 +33,10 @@ export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async 
 });
 
 export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({ calendarId }, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
   const auth = getAuth();
-  if (!accessToken) {
-    return rejectWithValue('Access token is missing');
-  }
+
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -60,11 +53,8 @@ export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({
 });
 
 export const createCalendarEvent = createAsyncThunk('calendar/createCalendarEvent', async ({ eventData, calendarId }, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
-  if (!accessToken) {
-    return rejectWithValue('Access token is missing');
-  }
   try {
+    const accessToken = localStorage.getItem('accessToken');
     await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, eventData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -84,11 +74,8 @@ export const createCalendarEvent = createAsyncThunk('calendar/createCalendarEven
 });
 
 export const updateCalendarEvent = createAsyncThunk('calendar/updateCalendarEvent', async ({ eventId, eventData, calendarId }, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
-  if (!accessToken) {
-    return rejectWithValue('Access token is missing');
-  }
   try {
+    const accessToken = localStorage.getItem('accessToken');
     await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, eventData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -108,11 +95,8 @@ export const updateCalendarEvent = createAsyncThunk('calendar/updateCalendarEven
 });
 
 export const deleteCalendarEvent = createAsyncThunk('calendar/deleteCalendarEvent', async ({ eventId, calendarId }, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
-  if (!accessToken) {
-    return rejectWithValue('Access token is missing');
-  }
   try {
+    const accessToken = localStorage.getItem('accessToken');
     await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,

@@ -1,8 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const accessToken = localStorage.getItem('accessToken');
-
 const initialState = {
   lowesProducts: [],
   homeDepotProducts: [],
@@ -14,6 +12,7 @@ const initialState = {
 // Fetch all products
 export const fetchLowesProducts = createAsyncThunk('products/fetchLowesProducts', async (search, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/lowes`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -31,6 +30,7 @@ export const fetchLowesProducts = createAsyncThunk('products/fetchLowesProducts'
 
 export const fetchHomeDepotProducts = createAsyncThunk('products/fetchHomeDepotProducts', async (search, { rejectWithValue }) => {
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/home-depot`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,

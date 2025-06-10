@@ -2,8 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 export const fetchFiles = createAsyncThunk('files/fetchFiles', async (_, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/files`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -18,9 +18,8 @@ export const fetchFiles = createAsyncThunk('files/fetchFiles', async (_, { rejec
 });
 
 export const deleteFile = createAsyncThunk('files/deleteFile', async (filename, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
-  console.log('Deleting file:', filename);
   try {
+    const accessToken = localStorage.getItem('accessToken');
     await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/files/delete/`, {
       params: { filename },
       headers: {
@@ -36,8 +35,8 @@ export const deleteFile = createAsyncThunk('files/deleteFile', async (filename, 
 });
 
 export const renameFile = createAsyncThunk('files/renameFile', async ({ oldName, newName }, { rejectWithValue }) => {
-  const accessToken = localStorage.getItem('accessToken');
   try {
+    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.put(
       `${import.meta.env.VITE_BACKEND_URL}/api/files/rename`,
       {
