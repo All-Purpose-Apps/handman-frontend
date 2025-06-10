@@ -14,7 +14,7 @@ import {
     Divider,
     Button
 } from '@mui/material';
-import { Backdrop, CircularProgress } from '@mui/material';
+import { CircularProgress, Modal } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import {
     People as PeopleIcon,
@@ -96,9 +96,27 @@ const DashboardPage = () => {
 
     if (loading) {
         return (
-            <Backdrop open={true}>
-                <CircularProgress color="inherit" />
-            </Backdrop>
+            <Modal open={true}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100vh"
+                >
+                    <Box
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                    >
+                        <CircularProgress />
+                        <Typography mt={2}>Loading Dashboard...</Typography>
+                    </Box>
+                </Box>
+            </Modal>
         );
     }
 

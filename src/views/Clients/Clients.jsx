@@ -79,7 +79,9 @@ const ClientsPage = () => {
         email: '',
         phone: '',
     });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [isFetchingClients, setIsFetchingClients] = useState(false);
+    const [isSyncingContacts, setIsSyncingContacts] = useState(false);
 
     const lastSync = useSelector((state) => state.lastSync.lastSync);
     const clients = useSelector((state) => state.clients.clients);
@@ -138,14 +140,14 @@ const ClientsPage = () => {
     };
 
     const fetchClientsFromMongo = async () => {
-        setLoading(true);
+        setIsFetchingClients(true);
         try {
             const { payload } = await dispatch(fetchClients());
             setFilteredClients(payload);
         } catch (error) {
             console.error('Error fetching clients:', error);
         } finally {
-            setLoading(false);
+            setIsFetchingClients(false);
         }
     };
 
@@ -193,6 +195,7 @@ const ClientsPage = () => {
     };
 
     const handleSyncGoogleContacts = async () => {
+        setIsSyncingContacts(true);
         try {
             const contacts = await fetchContacts();
             await dispatch(syncClients(contacts));
@@ -204,6 +207,8 @@ const ClientsPage = () => {
         } catch (error) {
             console.error('Error syncing Google Contacts:', error);
             alert('Failed to sync Google Contacts.');
+        } finally {
+            setIsSyncingContacts(false);
         }
     };
 
@@ -479,13 +484,7 @@ const ClientsPage = () => {
             ];
 
 
-    if (loading) {
-        return (
-            <Backdrop open={true}>
-                <CircularProgress color="inherit" />
-            </Backdrop>
-        );
-    }
+    // Remove loading spinner on initial load, will show spinners above table instead
 
     return (
         <div style={{ padding: 20 }}>
@@ -614,6 +613,50 @@ const ClientsPage = () => {
                         <Typography variant="h6" mt={2}>
                             Creating Client...
                         </Typography>
+                    </Box>
+                </Box>
+            </Modal>
+
+            <Modal open={isFetchingClients}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100vh"
+                >
+                    <Box
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                    >
+                        <CircularProgress />
+                        <Typography mt={2}>Loading Clients...</Typography>
+                    </Box>
+                </Box>
+            </Modal>
+
+            <Modal open={isSyncingContacts}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100vh"
+                >
+                    <Box
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                    >
+                        <CircularProgress />
+                        <Typography mt={2}>Syncing Contacts...</Typography>
                     </Box>
                 </Box>
             </Modal>

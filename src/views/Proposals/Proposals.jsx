@@ -13,6 +13,8 @@ import {
     Box,
     useTheme,
     useMediaQuery,
+    Modal,
+    CircularProgress,
 } from '@mui/material';
 import moment from 'moment';
 import { useAuth } from '../../contexts/AuthContext';
@@ -315,7 +317,29 @@ const ProposalsPage = () => {
     }, [isMobile, isTablet]);
 
     if (loading) {
-        return <Typography variant="h4">Loading...</Typography>;
+        return (
+            <Modal open={true}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100vh"
+                >
+                    <Box
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                    >
+                        <CircularProgress />
+                        <Typography mt={2}>Loading Proposals...</Typography>
+                    </Box>
+                </Box>
+            </Modal>
+        );
     }
 
     if (error) {

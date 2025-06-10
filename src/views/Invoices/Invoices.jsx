@@ -13,7 +13,8 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    IconButton, // Added this import
+    IconButton,
+    CircularProgress,
 } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import DeleteIcon from '@mui/icons-material/Delete'; // Added this import
@@ -218,6 +219,7 @@ const InvoicesPage = () => {
     const clients = useSelector((state) => state.clients.clients);
     const [searchText, setSearchText] = useState('');
     const [openModal, setOpenModal] = useState(false);
+    const [loading, setLoading] = useState(true);
     const isTablet = useMediaQuery('(min-width:600px) and (max-width:1024px)');
     const isMobile = useMediaQuery('(max-width:600px)');
 
@@ -263,8 +265,17 @@ const InvoicesPage = () => {
     }, [location.state, navigate]);
 
     useEffect(() => {
-        dispatch(fetchInvoices());
-        dispatch(fetchClients());
+        const fetchData = async () => {
+            try {
+                await dispatch(fetchInvoices());
+                await dispatch(fetchClients());
+            } catch (error) {
+                console.error('Failed to load data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, [dispatch]);
 
     useEffect(() => {
@@ -397,6 +408,31 @@ const InvoicesPage = () => {
     };
 
 
+    if (loading) {
+        return (
+            <Modal open={true}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100vh"
+                >
+                    <Box
+                        bgcolor="background.paper"
+                        p={3}
+                        borderRadius={1}
+                        boxShadow={3}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                    >
+                        <CircularProgress />
+                        <Typography mt={2}>Loading Invoices...</Typography>
+                    </Box>
+                </Box>
+            </Modal>
+        );
+    }
 
     return (
         <div style={{ padding: 20 }}>
