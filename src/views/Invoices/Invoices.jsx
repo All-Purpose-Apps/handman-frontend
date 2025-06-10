@@ -150,21 +150,6 @@ const desktopColumns = [
         valueGetter: (params) =>
             `$${params.toFixed(2)}`,
     },
-
-    {
-        field: 'createdAt',
-        headerName: 'Created At',
-        width: 100,
-        valueGetter: (params) =>
-            moment.utc(params).format('MM/DD/YYYY'),
-    },
-    {
-        field: 'updatedAt',
-        headerName: 'Updated At',
-        width: 100,
-        valueGetter: (params) =>
-            moment.utc(params).format('MM/DD/YYYY'),
-    },
     {
         field: 'items',
         headerName: 'Items',
@@ -200,9 +185,13 @@ const desktopColumns = [
                         py: 0.5,
                         textAlign: 'center',
                         minWidth: 80,
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        fontSize: '1.2rem', // 14px
                     }}
                 >
-                    {params.value.toUpperCase()}
+                    {params.value}
                 </Box>
             );
         },

@@ -212,18 +212,19 @@ const ProposalsPage = () => {
                         align: 'center',
                     },
                     {
+                        field: 'formattedDate',
+                        headerName: 'Date',
+                        width: 150,
+                        sortable: false,
+                    },
+                    {
                         field: 'client',
                         headerName: 'Client',
                         width: 200,
                         sortable: true,
                         valueGetter: (params) => params.name || 'N/A',
                     },
-                    {
-                        field: 'formattedDate',
-                        headerName: 'Date',
-                        width: 150,
-                        sortable: false,
-                    },
+
 
                     {
                         field: 'packagePrice',
