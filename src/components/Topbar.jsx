@@ -125,7 +125,7 @@ function Topbar({ setShowSidebar }) {
                     <MenuIcon />
                 </IconButton>
                 <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                    Han-D-Man Pro
+                    {currentUser ? `Welcome, ${currentUser.displayName || currentUser.email}` : 'Welcome'}
                 </Typography>
 
                 {/* Notification Bell Icon */}
