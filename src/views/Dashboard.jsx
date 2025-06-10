@@ -201,85 +201,91 @@ const DashboardPage = () => {
                             sx={{ backgroundColor: 'primary.main', color: 'white' }}
                         />
                         <CardContent>
-                            <List>
-                                {[...clients]
-                                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                                    .slice(0, 10)
-                                    .map((client, index) => {
-                                        // Status color logic
-                                        const statusHistory = client.statusHistory || [];
+                            {[...clients]
+                                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                                .slice(0, 10).length === 0 ? (
+                                <Typography>No clients available</Typography>
+                            ) : (
+                                <List>
+                                    {[...clients]
+                                        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                                        .slice(0, 10)
+                                        .map((client, index) => {
+                                            // Status color logic
+                                            const statusHistory = client.statusHistory || [];
 
-                                        const proposalStatus = [...statusHistory]
-                                            .filter(s => s.status?.toLowerCase().includes('proposal'))
-                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                            const proposalStatus = [...statusHistory]
+                                                .filter(s => s.status?.toLowerCase().includes('proposal'))
+                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-                                        const invoiceStatus = [...statusHistory]
-                                            .filter(s => s.status?.toLowerCase().includes('invoice'))
-                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                            const invoiceStatus = [...statusHistory]
+                                                .filter(s => s.status?.toLowerCase().includes('invoice'))
+                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-                                        const reviewStatus = [...statusHistory]
-                                            .filter(s => s.status?.toLowerCase().includes('review'))
-                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                            const reviewStatus = [...statusHistory]
+                                                .filter(s => s.status?.toLowerCase().includes('review'))
+                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-                                        let backgroundColor = 'white';
+                                            let backgroundColor = 'white';
 
-                                        if (proposalStatus) {
-                                            const pStatus = proposalStatus.status.toLowerCase();
-                                            const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
-                                            const proposalCreated = ['created'].some(k => pStatus.includes(k));
+                                            if (proposalStatus) {
+                                                const pStatus = proposalStatus.status.toLowerCase();
+                                                const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
+                                                const proposalCreated = ['created'].some(k => pStatus.includes(k));
 
-                                            if (validProposal && !proposalCreated) {
-                                                backgroundColor = '#a5d6a7'; // green
-                                            } else if (!validProposal) {
-                                                backgroundColor = '#eeeeee'; // gray
-                                            } else if (proposalCreated) {
-                                                backgroundColor = '#fff59d'; // yellow
+                                                if (validProposal && !proposalCreated) {
+                                                    backgroundColor = '#a5d6a7'; // green
+                                                } else if (!validProposal) {
+                                                    backgroundColor = '#eeeeee'; // gray
+                                                } else if (proposalCreated) {
+                                                    backgroundColor = '#fff59d'; // yellow
+                                                }
                                             }
-                                        }
-                                        if (invoiceStatus) {
-                                            const iStatus = invoiceStatus.status.toLowerCase();
-                                            if (iStatus.includes('paid')) backgroundColor = '#a5d6a7';
-                                            else if (iStatus.includes('rejected') || iStatus.includes('deleted')) backgroundColor = '#eeeeee';
-                                            else if (iStatus.includes('created') || iStatus.includes('sent')) backgroundColor = '#ef9a9a';
-                                        }
-
-                                        const latestStatus = [...statusHistory].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                                        if (latestStatus) {
-                                            const diffInMs = new Date() - new Date(latestStatus.date);
-                                            const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-                                            if (diffInDays > urgentDays) {
-                                                backgroundColor = '#ef9a9a'; // override with red
+                                            if (invoiceStatus) {
+                                                const iStatus = invoiceStatus.status.toLowerCase();
+                                                if (iStatus.includes('paid')) backgroundColor = '#a5d6a7';
+                                                else if (iStatus.includes('rejected') || iStatus.includes('deleted')) backgroundColor = '#eeeeee';
+                                                else if (iStatus.includes('created') || iStatus.includes('sent')) backgroundColor = '#ef9a9a';
                                             }
-                                        }
 
-                                        return (
-                                            <div key={index}>
-                                                <ListItem
-                                                    sx={{
-                                                        backgroundColor,
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        '&:hover': {
-                                                            backgroundColor: '#f0f0f0',
-                                                            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                                                        },
-                                                    }}
-                                                    onClick={handleGoToClient(client._id)}
-                                                >
-                                                    <ListItemText
-                                                        primary={client.givenName + ' ' + client.familyName}
-                                                        secondary={moment(client.updatedAt).format('LL')}
-                                                    />
-                                                    <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                                        {getLatestStatus(client.statusHistory)}
-                                                    </Typography>
-                                                </ListItem>
-                                                {index < clients.length - 1 && <Divider />}
-                                            </div>
-                                        );
-                                    })}
-                            </List>
+                                            const latestStatus = [...statusHistory].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                            if (latestStatus) {
+                                                const diffInMs = new Date() - new Date(latestStatus.date);
+                                                const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+                                                if (diffInDays > urgentDays) {
+                                                    backgroundColor = '#ef9a9a'; // override with red
+                                                }
+                                            }
+
+                                            return (
+                                                <div key={index}>
+                                                    <ListItem
+                                                        sx={{
+                                                            backgroundColor,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            '&:hover': {
+                                                                backgroundColor: '#f0f0f0',
+                                                                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                                                            },
+                                                        }}
+                                                        onClick={handleGoToClient(client._id)}
+                                                    >
+                                                        <ListItemText
+                                                            primary={client.givenName + ' ' + client.familyName}
+                                                            secondary={moment(client.updatedAt).format('LL')}
+                                                        />
+                                                        <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                                            {getLatestStatus(client.statusHistory)}
+                                                        </Typography>
+                                                    </ListItem>
+                                                    {index < clients.length - 1 && <Divider />}
+                                                </div>
+                                            );
+                                        })}
+                                </List>
+                            )}
                         </CardContent>
                     </Card>
                 </Grid>
