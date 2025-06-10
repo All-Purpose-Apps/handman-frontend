@@ -102,9 +102,24 @@ const ProposalsPage = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     paddingLeft: 2,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
                                 }}
                             >
-                                <Typography style={{ color: textColor, fontWeight: 500 }}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: textColor,
+                                        fontWeight: 500,
+                                        fontSize: {
+                                            xs: '0.75rem',
+                                            sm: '0.85rem',
+                                            md: '0.95rem',
+                                            lg: '1rem',
+                                        },
+                                    }}
+                                >
                                     {(status || '').toUpperCase()}
                                 </Typography>
                             </Box>
@@ -161,9 +176,24 @@ const ProposalsPage = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         paddingLeft: 2,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
                                     }}
                                 >
-                                    <Typography style={{ color: textColor, fontWeight: 500 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: textColor,
+                                            fontWeight: 500,
+                                            fontSize: {
+                                                xs: '0.75rem',
+                                                sm: '0.85rem',
+                                                md: '0.95rem',
+                                                lg: '1rem',
+                                            },
+                                        }}
+                                    >
                                         {(status || '').toUpperCase()}
                                     </Typography>
                                 </Box>
@@ -192,42 +222,7 @@ const ProposalsPage = () => {
                         width: 150,
                         sortable: false,
                     },
-                    {
-                        field: 'status',
-                        headerName: 'Status',
-                        width: 200,
-                        sortable: true,
-                        renderCell: (params) => {
-                            const status = (params.value || '').toLowerCase();
-                            let backgroundColor = 'transparent';
-                            let textColor = 'white';
 
-                            if (status === 'accepted' || status === 'converted to invoice') {
-                                backgroundColor = 'green'; // light green
-                            } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
-                                backgroundColor = 'goldenrod'; // light yellow
-                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
-                                backgroundColor = 'gray'; // light gray
-                            }
-
-                            return (
-                                <Box
-                                    sx={{
-                                        width: '100%',
-                                        height: '100%',
-                                        backgroundColor,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        paddingLeft: 2,
-                                    }}
-                                >
-                                    <Typography style={{ color: textColor, fontWeight: 500 }}>
-                                        {(status || '').toUpperCase()}
-                                    </Typography>
-                                </Box>
-                            );
-                        },
-                    },
                     {
                         field: 'packagePrice',
                         headerName: 'Total',
@@ -261,6 +256,57 @@ const ProposalsPage = () => {
                                             Includes materials
                                         </Typography>
                                     )}
+                                </Box>
+                            );
+                        },
+                    },
+                    {
+                        field: 'status',
+                        headerName: 'Status',
+                        width: 300,
+                        sortable: true,
+                        renderCell: (params) => {
+                            const status = (params.value || '').toLowerCase();
+                            let backgroundColor = 'transparent';
+                            let textColor = 'white';
+
+                            if (status === 'accepted' || status === 'converted to invoice') {
+                                backgroundColor = 'green'; // light green
+                            } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
+                                backgroundColor = 'goldenrod'; // light yellow
+                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                                backgroundColor = 'gray'; // light gray
+                            }
+
+                            return (
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        backgroundColor,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        paddingLeft: 2,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: textColor,
+                                            fontWeight: 500,
+                                            fontSize: {
+                                                xs: '0.75rem',
+                                                sm: '0.85rem',
+                                                md: '0.95rem',
+                                                lg: '1rem',
+                                            },
+                                        }}
+                                    >
+                                        {(status || '').toUpperCase()}
+                                    </Typography>
                                 </Box>
                             );
                         },
