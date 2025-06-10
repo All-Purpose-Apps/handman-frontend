@@ -327,7 +327,19 @@ const ClientsPage = () => {
                                 borderRadius: 1,
                             }}
                         >
-                            <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    fontSize: {
+                                        xs: '0.75rem',
+                                        sm: '0.85rem',
+                                        md: '0.95rem',
+                                        lg: '1rem',
+                                    },
+                                }}
+                            >
                                 {recentStatus}
                             </Typography>
                         </Box>
@@ -373,7 +385,19 @@ const ClientsPage = () => {
                                     borderRadius: 1,
                                 }}
                             >
-                                <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: 'white',
+                                        fontWeight: 'bold',
+                                        fontSize: {
+                                            xs: '0.75rem',
+                                            sm: '0.85rem',
+                                            md: '0.95rem',
+                                            lg: '1rem',
+                                        },
+                                    }}
+                                >
                                     {recentStatus.toUpperCase()}
                                 </Typography>
                             </Box>
@@ -433,7 +457,19 @@ const ClientsPage = () => {
                                     borderRadius: 1,
                                 }}
                             >
-                                <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: 'white',
+                                        fontWeight: 'bold',
+                                        fontSize: {
+                                            xs: '0.75rem',
+                                            sm: '0.85rem',
+                                            md: '0.95rem',
+                                            lg: '1rem',
+                                        },
+                                    }}
+                                >
                                     {recentStatus.toUpperCase()}
                                 </Typography>
                             </Box>
@@ -508,7 +544,19 @@ const ClientsPage = () => {
                                     }}
                                 >
                                     <Typography variant="body1">{client.name}</Typography>
-                                    <Typography variant="body2" sx={{ fontWeight: 'bold', mt: 1 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            fontWeight: 'bold',
+                                            mt: 1,
+                                            fontSize: {
+                                                xs: '0.75rem',
+                                                sm: '0.85rem',
+                                                md: '0.95rem',
+                                                lg: '1rem',
+                                            },
+                                        }}
+                                    >
                                         {recentStatus.toUpperCase()}
                                     </Typography>
                                 </Card>
@@ -520,10 +568,10 @@ const ClientsPage = () => {
                         rows={filteredClients}
                         columns={columns}
                         pageSize={5}
-                        rowsPerPageOptions={[5, 10, 20]}
+                        // rowsPerPageOptions={[5, 10, 20]}
                         getRowId={(row) => row._id}
                         onRowClick={handleRowClick}
-                        pageSizeOptions={[5, 10, 25]}
+                        pageSizeOptions={[5, 10, 25, 50, 100]}
                         initialState={{
                             sorting: {
                                 sortModel: [{ field: 'name', sort: 'asc' }],
