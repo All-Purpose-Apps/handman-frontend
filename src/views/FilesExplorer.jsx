@@ -29,13 +29,13 @@ import { TreeItem } from '@mui/x-tree-view/TreeItem';
 
 const FilesExplorer = () => {
     const dispatch = useDispatch();
-    const { items: files, loading, error } = useSelector((state) => state.files);
+    const { items, loading, error } = useSelector((state) => state.files);
+    const { organized: files, folders } = items || {};
     const [searchTerm, setSearchTerm] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [renamingFile, setRenamingFile] = useState(null);
     const [newFileName, setNewFileName] = useState('');
-
     const renameInputRef = useRef(null);
 
     useEffect(() => {
@@ -110,7 +110,7 @@ const FilesExplorer = () => {
                     sx={{ mb: 2 }}
                 />
                 <SimpleTreeView sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                    {Object.keys(files).map((folderKey, folderIndex) => {
+                    {files && Object.keys(files).map((folderKey, folderIndex) => {
                         return (
                             < TreeItem key={folderKey} itemId={`folder-${folderIndex}`} label={folderKey}>
                                 {files[folderKey]
