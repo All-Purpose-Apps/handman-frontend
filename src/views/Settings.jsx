@@ -102,6 +102,11 @@ const SettingsPage = () => {
         <Box
             sx={{
                 display: 'flex',
+                flexDirection: {
+                    xs: 'column-reverse',
+                    md: 'column',
+                    lg: 'row',
+                },
                 justifyContent: 'flex-start',
                 alignItems: 'flex-start',
                 gap: 4,
@@ -153,7 +158,13 @@ const SettingsPage = () => {
                     >
                         Sort {sortAsc ? 'Descending' : 'Ascending'}
                     </Button>
-                    <List dense sx={{ maxHeight: 300, overflowY: 'auto' }}>
+                    <List
+                        dense
+                        sx={{
+                            maxHeight: { xs: 400, md: 300 },
+                            overflowY: 'auto',
+                        }}
+                    >
                         {filteredMaterials.map((mat) => (
                             <ListItem
                                 onClick={() => handleSelectMaterial(mat)}
