@@ -44,6 +44,41 @@ const getStatusColor = (status) => {
     }
 };
 
+const mobileColumns = [
+    { field: 'invoiceNumber', headerName: 'Invoice #', width: 100, align: 'center' },
+    {
+        field: 'client',
+        headerName: 'Client',
+        width: 150,
+        valueGetter: (params) =>
+            `${params.name}`,
+    },
+    {
+        field: 'status',
+        headerName: 'Status',
+        flex: 1,
+        minWidth: 120,
+        renderCell: (params) => {
+            const color = getStatusColor(params.value);
+            return (
+                <Box
+                    sx={{
+                        backgroundColor: color,
+                        color: '#fff',
+                        borderRadius: 1,
+                        px: 1,
+                        py: 0.5,
+                        textAlign: 'center',
+                        minWidth: 80,
+                    }}
+                >
+                    {params.value.toUpperCase()}
+                </Box>
+            );
+        },
+    },
+];
+
 const tabletColumns = [
     { field: 'invoiceNumber', headerName: 'Invoice #', width: 100, align: 'center' },
     {
@@ -183,11 +218,12 @@ const InvoicesPage = () => {
     const clients = useSelector((state) => state.clients.clients);
     const [searchText, setSearchText] = useState('');
     const [openModal, setOpenModal] = useState(false);
-    const isTablet = useMediaQuery('(max-width:1200px)');
+    const isTablet = useMediaQuery('(min-width:600px) and (max-width:1024px)');
+    const isMobile = useMediaQuery('(max-width:600px)');
 
     const columns = useMemo(() => {
-        return isTablet ? tabletColumns : desktopColumns;
-    }, [isTablet]);
+        return isTablet ? tabletColumns : isMobile ? mobileColumns : desktopColumns;
+    }, [isTablet, isMobile]);
 
     const filteredInvoices = useMemo(() => {
         return invoices.filter((invoice) => {
