@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios from '../utils/axiosInstance';
 
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { handleGoogleSignIn } from '../utils/handleGoogleSignIn';
