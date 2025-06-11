@@ -361,6 +361,16 @@ const ClientsPage = () => {
                         </Box>
                     );
                 },
+                sortComparator: (v1, v2, param1, param2) => {
+                    const getLatestStatus = (params) => {
+                        const history = [...params.value];
+                        const sorted = history.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        return sorted[0]?.status?.toLowerCase() || '';
+                    };
+                    const statusA = getLatestStatus(param1);
+                    const statusB = getLatestStatus(param2);
+                    return statusA.localeCompare(statusB);
+                },
             },
         ]
         : isTablet || window.innerWidth <= 1220
@@ -418,6 +428,16 @@ const ClientsPage = () => {
                                 </Typography>
                             </Box>
                         );
+                    },
+                    sortComparator: (v1, v2, param1, param2) => {
+                        const getLatestStatus = (params) => {
+                            const history = [...params.value];
+                            const sorted = history.sort((a, b) => new Date(b.date) - new Date(a.date));
+                            return sorted[0]?.status?.toLowerCase() || '';
+                        };
+                        const statusA = getLatestStatus(param1);
+                        const statusB = getLatestStatus(param2);
+                        return statusA.localeCompare(statusB);
                     },
                 },
             ]
@@ -490,6 +510,16 @@ const ClientsPage = () => {
                                 </Typography>
                             </Box>
                         );
+                    },
+                    sortComparator: (v1, v2, param1, param2) => {
+                        const getLatestStatus = (params) => {
+                            const history = [...params.value];
+                            const sorted = history.sort((a, b) => new Date(b.date) - new Date(a.date));
+                            return sorted[0]?.status?.toLowerCase() || '';
+                        };
+                        const statusA = getLatestStatus(param1);
+                        const statusB = getLatestStatus(param2);
+                        return statusA.localeCompare(statusB);
                     },
                 },
             ];
@@ -583,7 +613,7 @@ const ClientsPage = () => {
                             pageSizeOptions={[5, 10, 25, 50, 100]}
                             initialState={{
                                 sorting: {
-                                    sortModel: [{ field: 'name', sort: 'asc' }],
+                                    sortModel: [{ field: 'statusHistory', sort: 'desc' }],
                                 },
                                 pagination: {
                                     paginationModel: { pageSize: 10, page: 0 },
