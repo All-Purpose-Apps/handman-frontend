@@ -54,6 +54,7 @@ const ViewClient = () => {
     const [isStatusHistoryOpen, setIsStatusHistoryOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const isMobile = window.innerWidth <= 600;
 
     const { client, status, error } = useSelector((state) => state.clients);
 
@@ -615,12 +616,42 @@ const ViewClient = () => {
                                     </>
                                 )}
                             </Box>
+                            <Box
+                                sx={{
+                                    display: isMobile ? 'flex-row' : 'flex',
+                                    justifyContent: 'center',
+                                    gap: 1,
+                                    width: '100%',
+                                    mb: 2,
+                                    paddingTop: 2,
+                                }}
+                            >
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => navigate(`/invoices/create?clientId=${client._id}`)}
+                                    fullWidth={isMobile}
+                                    sx={{ marginBottom: { xs: 1, sm: 0 }, height: { xs: '48px' } }}
+                                >
+                                    Add Invoice
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    onClick={() => navigate(`/proposals/create?clientId=${client._id}`)}
+                                    fullWidth={isMobile}
+                                    sx={{ marginBottom: { xs: 1, sm: 0 }, height: { xs: '48px' } }}
+                                >
+                                    Add Proposal
+                                </Button>
+                            </Box>
                         </CardContent>
                     </Card>
                 </Grid>
 
                 {/* Invoices and Proposals */}
                 <Grid item xs={12} md={6}>
+
                     <Grid container spacing={2}>
                         {/* Invoices */}
                         <Grid item xs={12}>
