@@ -218,7 +218,10 @@ const ViewProposal = () => {
 
         if (isEditing) {
             await dispatch(
-                updateProposal({ ...editedProposal, fileUrl: '', updatedAt: moment().toISOString(), status: 'draft' })
+                updateProposal({
+                    ...editedProposal,
+                    fileUrl: '', updatedAt: moment().toISOString(), status: 'draft', signedPdfUrl: '',
+                })
             );
             if (materialsList && materialsList._id) {
                 await dispatch(
@@ -954,7 +957,9 @@ const ViewProposal = () => {
                                                 ) : (
                                                     <>
                                                         <TableCell>{item.description}</TableCell>
-                                                        <TableCell>${item.regularPrice}</TableCell>
+                                                        <TableCell>${item.regularPrice ?
+                                                            parseFloat(item.regularPrice).toFixed(2) : '0.00'
+                                                        }</TableCell>
                                                         <TableCell>
                                                             $
                                                             {item.discountPrice
