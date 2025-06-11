@@ -575,47 +575,47 @@ const ViewClient = () => {
                                                 Google Contacts
                                             </Button>
                                         </Box>
-                                        {/* Send Review Request Button (conditional) */}
-                                        {(() => {
-                                            const statusHistory = client.statusHistory || [];
-
-                                            const proposalStatus = [...statusHistory]
-                                                .filter(s => s.status?.toLowerCase().includes('proposal'))
-                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-                                            const invoiceStatus = [...statusHistory]
-                                                .filter(s => s.status?.toLowerCase().includes('invoice'))
-                                                .filter(s => !s.status.toLowerCase().includes('deleted'))
-                                                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-                                            const pStatus = proposalStatus?.status?.toLowerCase() || '';
-                                            const iStatus = invoiceStatus?.status?.toLowerCase() || '';
-
-                                            const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
-                                            const validInvoice = ['paid', 'approved'].some(k => iStatus.includes(k)) && new Date(invoiceStatus?.date) > new Date(proposalStatus?.date);
-
-                                            if (validProposal && validInvoice) {
-                                                return (
-                                                    <Box sx={{ width: '100%', mt: 1, textAlign: { xs: 'center', sm: 'center' } }}>
-                                                        <Button
-                                                            variant="contained"
-                                                            color="success"
-                                                            sx={{
-                                                                minWidth: { xs: '100%', sm: 'auto' }
-                                                            }}
-                                                            onClick={handleSendReview} // Replace with real function
-                                                        >
-                                                            Send Review Request
-                                                        </Button>
-                                                    </Box>
-                                                );
-                                            }
-
-                                            return null;
-                                        })()}
                                     </>
                                 )}
                             </Box>
+                            {(() => {
+                                const statusHistory = client.statusHistory || [];
+
+                                const proposalStatus = [...statusHistory]
+                                    .filter(s => s.status?.toLowerCase().includes('proposal'))
+                                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                                const invoiceStatus = [...statusHistory]
+                                    .filter(s => s.status?.toLowerCase().includes('invoice'))
+                                    .filter(s => !s.status.toLowerCase().includes('deleted'))
+                                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                                const pStatus = proposalStatus?.status?.toLowerCase() || '';
+                                const iStatus = invoiceStatus?.status?.toLowerCase() || '';
+
+                                const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
+                                const validInvoice = ['paid', 'approved'].some(k => iStatus.includes(k)) && new Date(invoiceStatus?.date) > new Date(proposalStatus?.date);
+
+                                if ((validProposal && validInvoice)) {
+                                    return (
+                                        <Box sx={{ width: '100%', mt: 1, textAlign: { xs: 'center', sm: 'center' } }}>
+                                            <Button
+                                                variant="contained"
+                                                color="success"
+                                                sx={{
+                                                    minWidth: { xs: '100%', sm: 'auto' },
+                                                    minHeight: '48px',
+                                                }}
+                                                onClick={handleSendReview} // Replace with real function
+                                            >
+                                                Send Review Request
+                                            </Button>
+                                        </Box>
+                                    );
+                                }
+
+                                return null;
+                            })()}
                             <Box
                                 sx={{
                                     display: isMobile ? 'flex-row' : 'flex',
