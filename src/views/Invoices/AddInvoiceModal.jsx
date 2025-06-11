@@ -34,12 +34,10 @@ export default function AddInvoiceModal({
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 600,
+        maxWidth: 600,
+        width: '90vw',
         maxHeight: '80vh',
         overflowY: 'auto',
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        p: 4,
     };
 
     return (
@@ -53,7 +51,7 @@ export default function AddInvoiceModal({
             aria-labelledby="modal-title"
             aria-describedby="modal-description"
         >
-            <Paper sx={modalStyle}>
+            <Paper sx={{ ...modalStyle, p: 4 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography id="modal-title" variant="h6" component="h2" gutterBottom>
                         Add New Invoice
@@ -142,9 +140,10 @@ export default function AddInvoiceModal({
                             )}
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography variant="h6">
-                                Subtotal 1: ${newInvoiceData.subTotal1.toFixed(2)}
-                            </Typography>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="h6">Subtotal 1:</Typography>
+                                <Typography>${newInvoiceData.subTotal1.toFixed(2)}</Typography>
+                            </Box>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
@@ -157,9 +156,10 @@ export default function AddInvoiceModal({
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography variant="h6">
-                                Subtotal 2: ${newInvoiceData.subTotal2.toFixed(2)}
-                            </Typography>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="h6">Subtotal 2:</Typography>
+                                <Typography>${newInvoiceData.subTotal2.toFixed(2)}</Typography>
+                            </Box>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
@@ -179,25 +179,23 @@ export default function AddInvoiceModal({
                                 </Select>
                             </FormControl>
                         </Grid>
-                        {newInvoiceData.paymentMethod === 'check' && (
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="Check Number"
-                                    name="checkNumber"
-                                    fullWidth
-                                    value={newInvoiceData.checkNumber}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </Grid>
-                        )}
-                        {newInvoiceData.paymentMethod === 'credit/debit' && (
-                            <Grid item xs={12}>
-                                <Typography variant="h6">
-                                    Credit Card Fee (3%): ${newInvoiceData.creditCardFee.toFixed(2)}
-                                </Typography>
-                            </Grid>
-                        )}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label="Check Number"
+                                name="checkNumber"
+                                fullWidth
+                                value={newInvoiceData.checkNumber}
+                                onChange={handleInputChange}
+                                disabled={newInvoiceData.paymentMethod !== 'check'}
+                                required={newInvoiceData.paymentMethod === 'check'}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="h6">Credit Card Fee (3%):</Typography>
+                                <Typography>${newInvoiceData.creditCardFee.toFixed(2)}</Typography>
+                            </Box>
+                        </Grid>
                         <Grid item xs={12}>
                             <TextField
                                 label="Deposit/Adjustment"
@@ -209,9 +207,10 @@ export default function AddInvoiceModal({
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <Typography variant="h6">
-                                Total: ${newInvoiceData.total.toFixed(2)}
-                            </Typography>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="h6">Total:</Typography>
+                                <Typography>${newInvoiceData.total.toFixed(2)}</Typography>
+                            </Box>
                         </Grid>
                     </Grid>
                     <Box display="flex" justifyContent="flex-end" marginTop={2}>

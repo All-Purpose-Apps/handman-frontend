@@ -356,7 +356,7 @@ const ProposalsPage = () => {
     const isEmpty = !loading && filteredProposalsFormatted.length === 0;
 
     return (
-        <Box padding={3}>
+        <Box style={{ padding: 20, paddingLeft: isMobile ? 10 : 20 }}>
             <Box
                 display="flex"
                 justifyContent="space-between"
