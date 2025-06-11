@@ -734,6 +734,7 @@ const ViewClient = () => {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Date</TableCell>
+                                        <TableCell>Time</TableCell>
                                         <TableCell>Status</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -741,8 +742,9 @@ const ViewClient = () => {
                                     {client.statusHistory.map((statusItem, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{moment(statusItem.date).format('MM/DD/YYYY')}</TableCell>
+                                            <TableCell>{moment(statusItem.date).format('HH:mm A')}</TableCell>
                                             <TableCell style={{ color: getStatusColor(statusItem.status) }}>
-                                                {statusItem.status}
+                                                {statusItem.status?.toUpperCase() || 'N/A'}
                                             </TableCell>
                                         </TableRow>
                                     ))}
