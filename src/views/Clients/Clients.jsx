@@ -249,9 +249,10 @@ const ClientsPage = () => {
             const contact = await dispatch(createGoogleContact(newClientData));
             const resourceName = contact.payload.contact.resourceName;
 
-            await dispatch(addClient({ ...newClientData, name: `${newClientData.givenName} ${newClientData.familyName}`, resourceName, statusHistory: [{ status: 'created by user', date: new Date().toISOString() }] }));
+            const response = await dispatch(addClient({ ...newClientData, name: `${newClientData.givenName} ${newClientData.familyName}`, resourceName, statusHistory: [{ status: 'created by user', date: new Date().toISOString() }] }));
+            console.log('Client added:', response);
             handleCloseModal();
-            navigate('/clients');
+            navigate(`/clients/${response.payload._id}`);
         } catch (error) {
             console.error('Error adding client:', error);
             alert('Failed to add client.');
@@ -429,16 +430,6 @@ const ClientsPage = () => {
                             </Box>
                         );
                     },
-                    sortComparator: (v1, v2, param1, param2) => {
-                        const getLatestStatus = (params) => {
-                            const history = [...params.value];
-                            const sorted = history.sort((a, b) => new Date(b.date) - new Date(a.date));
-                            return sorted[0]?.status?.toLowerCase() || '';
-                        };
-                        const statusA = getLatestStatus(param1);
-                        const statusB = getLatestStatus(param2);
-                        return statusA.localeCompare(statusB);
-                    },
                 },
             ]
             : [
@@ -470,6 +461,26 @@ const ClientsPage = () => {
                     flex: 1,
                     minWidth: 180,
                     sortable: true,
+                },
+                {
+                    field: 'createdAt',
+                    headerName: 'Created At',
+                    flex: 1,
+                    minWidth: 180,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        return moment(params).format('MMM D, YYYY h:mm A');
+                    }
+                },
+                {
+                    field: 'updatedAt',
+                    headerName: 'Updated At',
+                    flex: 1,
+                    minWidth: 180,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        return moment(params).format('MMM D, YYYY h:mm A');
+                    }
                 },
                 {
                     field: 'statusHistory',
@@ -510,16 +521,6 @@ const ClientsPage = () => {
                                 </Typography>
                             </Box>
                         );
-                    },
-                    sortComparator: (v1, v2, param1, param2) => {
-                        const getLatestStatus = (params) => {
-                            const history = [...params.value];
-                            const sorted = history.sort((a, b) => new Date(b.date) - new Date(a.date));
-                            return sorted[0]?.status?.toLowerCase() || '';
-                        };
-                        const statusA = getLatestStatus(param1);
-                        const statusB = getLatestStatus(param2);
-                        return statusA.localeCompare(statusB);
                     },
                 },
             ];
@@ -613,7 +614,7 @@ const ClientsPage = () => {
                             pageSizeOptions={[5, 10, 25, 50, 100]}
                             initialState={{
                                 sorting: {
-                                    sortModel: [{ field: 'statusHistory', sort: 'desc' }],
+                                    sortModel: [{ field: 'updatedAt', sort: 'desc' }],
                                 },
                                 pagination: {
                                     paginationModel: { pageSize: 10, page: 0 },

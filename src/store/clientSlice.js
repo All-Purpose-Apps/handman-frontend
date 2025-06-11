@@ -183,6 +183,7 @@ export const clientSlice = createSlice({
   name: 'clients',
   initialState,
   reducers: {},
+  client: {},
   extraReducers: (builder) => {
     builder
       // Handle fetchClients actions
@@ -219,7 +220,7 @@ export const clientSlice = createSlice({
       })
       .addCase(addClient.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.clients = action.payload; // Add the new client to the list
+        state.client = action.payload; // Add the new client to the list
       })
       .addCase(addClient.rejected, (state, action) => {
         state.status = 'failed';
