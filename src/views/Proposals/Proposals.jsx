@@ -352,13 +352,8 @@ const ProposalsPage = () => {
         );
     }
 
-    if (!loading && proposals.length === 0) {
-        return (
-            <Typography variant="h5" sx={{ mt: 4, textAlign: 'center' }}>
-                No proposals available.
-            </Typography>
-        );
-    }
+    // Determine if there are no proposals to show (after filtering)
+    const isEmpty = !loading && filteredProposalsFormatted.length === 0;
 
     return (
         <Box padding={3}>
@@ -418,6 +413,9 @@ const ProposalsPage = () => {
                         '& .MuiDataGrid-row': {
                             cursor: 'pointer',
                         },
+                    }}
+                    localeText={{
+                        noRowsLabel: isEmpty ? 'No proposals available.' : 'No matching results.',
                     }}
                 />
             </div>

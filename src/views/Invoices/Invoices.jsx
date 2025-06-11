@@ -228,6 +228,8 @@ const InvoicesPage = () => {
         });
     }, [invoices, searchText]);
 
+    const isEmpty = !loading && filteredInvoices.length === 0;
+
     const [newInvoiceData, setNewInvoiceData] = useState({
         invoiceNumber: '',
         invoiceDate: today,
@@ -463,9 +465,8 @@ const InvoicesPage = () => {
                     onRowClick={(params) => handleGoToInvoice(params.row._id)}
                     getRowId={(row) => row._id}
                     getRowHeight={(params) => {
-                        const minHeight = 60; // Set your desired minimum row height here
+                        const minHeight = 60;
                         const items = params.model.items || [];
-                        // Calculate content height based on the number of items
                         const contentHeight = items.length > 0 ? items.length * 24 + 16 : minHeight;
                         return Math.max(contentHeight, minHeight);
                     }}
@@ -477,6 +478,9 @@ const InvoicesPage = () => {
                         pagination: {
                             paginationModel: { pageSize: 10, page: 0 },
                         },
+                    }}
+                    localeText={{
+                        noRowsLabel: isEmpty ? 'No invoices available.' : 'No matching results.',
                     }}
                     sx={{
                         '& .MuiDataGrid-row:hover': {
