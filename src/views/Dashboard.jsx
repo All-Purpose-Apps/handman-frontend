@@ -67,7 +67,7 @@ const DashboardPage = () => {
     };
 
     const handleAddProposal = () => {
-        navigate('/proposals/new');
+        navigate('/proposals', { state: { openAddProposalModal: true } });
     };
 
     const handleGoToClient = (id) => () => {

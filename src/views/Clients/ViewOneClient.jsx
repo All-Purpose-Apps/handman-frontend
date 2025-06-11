@@ -215,6 +215,10 @@ const ViewClient = () => {
     const handleOpenDeleteDialog = () => setIsDeleteDialogOpen(true);
     const handleCloseDeleteDialog = () => setIsDeleteDialogOpen(false);
 
+    const handleNavigate = (path) => () => {
+        navigate(path, { state: { openAddInvoiceModal: true } });
+    };
+
     const createLabels = (label) => {
         if (label == 'givenName') {
             return 'First Name';
@@ -629,7 +633,7 @@ const ViewClient = () => {
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    onClick={() => navigate(`/invoices/create?clientId=${client._id}`)}
+                                    onClick={handleNavigate('/invoices')}
                                     fullWidth={isMobile}
                                     sx={{ marginBottom: { xs: 1, sm: 0 }, height: { xs: '48px' } }}
                                 >
@@ -638,7 +642,7 @@ const ViewClient = () => {
                                 <Button
                                     variant="contained"
                                     color="secondary"
-                                    onClick={() => navigate(`/proposals/create?clientId=${client._id}`)}
+                                    onClick={handleNavigate('/proposals/news')}
                                     fullWidth={isMobile}
                                     sx={{ marginBottom: { xs: 1, sm: 0 }, height: { xs: '48px' } }}
                                 >
