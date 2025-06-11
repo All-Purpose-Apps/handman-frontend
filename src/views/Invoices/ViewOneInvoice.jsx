@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { fetchOneInvoice, updateInvoice, deleteInvoice } from '../../store/invoiceSlice';
 import { fetchClients } from '../../store/clientSlice';
@@ -96,6 +97,8 @@ export default function ViewOneInvoice() {
                         ...editedInvoice,
                         client: newClientId,
                         fileUrl: '',
+                        signedPdfUrl: '',
+                        status: 'created',
                         updatedAt: new Date().toISOString(),
                     },
                 })

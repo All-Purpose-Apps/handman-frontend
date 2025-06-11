@@ -24,7 +24,8 @@ const ProposalsPage = () => {
     const dispatch = useDispatch();
     const [searchText, setSearchText] = useState('');
 
-    const proposals = useSelector((state) => state.proposals.proposals);
+    const proposalsRaw = useSelector((state) => state.proposals.proposals);
+    const proposals = Array.isArray(proposalsRaw) ? proposalsRaw : [];
     const loading = useSelector((state) => state.proposals.status === 'loading');
     const error = useSelector((state) => state.proposals.error);
     const { currentUser } = useAuth();
@@ -347,6 +348,14 @@ const ProposalsPage = () => {
         return (
             <Typography variant="h4">
                 Error: {typeof error === 'string' ? error : error?.msg || 'Unknown error'}
+            </Typography>
+        );
+    }
+
+    if (!loading && proposals.length === 0) {
+        return (
+            <Typography variant="h5" sx={{ mt: 4, textAlign: 'center' }}>
+                No proposals available.
             </Typography>
         );
     }
