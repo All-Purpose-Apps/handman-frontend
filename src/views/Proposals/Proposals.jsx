@@ -278,7 +278,7 @@ const ProposalsPage = () => {
                                 backgroundColor = 'green'; // light green
                             } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
                                 backgroundColor = 'goldenrod'; // light yellow
-                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft' || status === 'proposal pdf created') {
                                 backgroundColor = 'gray'; // light gray
                             }
 
