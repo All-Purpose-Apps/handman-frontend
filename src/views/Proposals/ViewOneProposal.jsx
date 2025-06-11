@@ -576,16 +576,16 @@ const ViewProposal = () => {
             >
                 Go to Invoice
             </Button>,
-            isEditing && (
-                <Button
-                    key="delete"
-                    variant="contained"
-                    color="error"
-                    onClick={handleOpenDeleteModal}
-                >
-                    Delete
-                </Button>
-            ),
+
+            <Button
+                key="delete"
+                variant="contained"
+                color="error"
+                onClick={handleOpenDeleteModal}
+            >
+                Delete
+            </Button>
+
         ];
         rightActions = [
             <Typography key="converted-msg" variant="body1" color="error">
