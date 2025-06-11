@@ -239,6 +239,8 @@ const ViewProposal = () => {
 
     const handleCreatePdf = async () => {
         setIsCreatingPdf(true);
+        setSendSuccessModalOpen(false);
+        setSendFailureModalOpen(false);
         const accessToken = localStorage.getItem('accessToken');
         try {
             const response = await axios.post(
@@ -255,6 +257,7 @@ const ViewProposal = () => {
                     ...editedProposal,
                     fileUrl: response.data.url,
                     updatedAt: moment().toISOString(),
+                    status: 'proposal pdf created',
                 })
             );
             await dispatch(fetchOneProposal(id));
@@ -1052,8 +1055,8 @@ const ViewProposal = () => {
                 )}
 
                 {/* Loading Modal */}
-                {/* Enhanced Loading/Status Modal for Sending Proposal */}
-                <Modal open={isSendingProposal || sendSuccessModalOpen || sendFailureModalOpen}>
+                {/* Enhanced Loading/Status Modal for Sending Proposal, Creating PDF, and Status */}
+                <Modal open={isSendingProposal || isCreatingPdf || sendSuccessModalOpen || sendFailureModalOpen}>
                     <Box
                         display="flex"
                         justifyContent="center"
@@ -1070,6 +1073,14 @@ const ViewProposal = () => {
                                     <CircularProgress />
                                     <Typography variant="h6" mt={2}>
                                         Sending Proposal...
+                                    </Typography>
+                                </>
+                            )}
+                            {isCreatingPdf && (
+                                <>
+                                    <CircularProgress />
+                                    <Typography variant="h6" mt={2}>
+                                        Creating PDF...
                                     </Typography>
                                 </>
                             )}
