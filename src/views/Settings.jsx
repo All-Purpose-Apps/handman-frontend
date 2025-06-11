@@ -39,12 +39,18 @@ const SettingsPage = () => {
     const [sortAsc, setSortAsc] = useState(true);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [editPrice, setEditPrice] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     // Get the current user from the context or state
 
     // Fetch all materials when the component mounts
     useEffect(() => {
-        dispatch(getAllMaterials());
+        const fetchMaterials = async () => {
+            setIsLoading(true);
+            await dispatch(getAllMaterials());
+            setIsLoading(false);
+        };
+        fetchMaterials();
     }, [dispatch]);
 
     const listOfMaterials = useSelector((state) => state.materials.items);
@@ -102,6 +108,7 @@ const SettingsPage = () => {
             dispatch(getAllMaterials());
         }
     };
+
 
     return (
         <Box>
@@ -198,49 +205,57 @@ const SettingsPage = () => {
                         <Typography variant="h5" gutterBottom>
                             Materials
                         </Typography>
-                        <TextField
-                            label="Search Materials"
-                            variant="outlined"
-                            fullWidth
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <Button
-                            sx={{ mt: 1, mb: 1 }}
-                            onClick={() => setSortAsc((prev) => !prev)}
-                        >
-                            Sort {sortAsc ? 'Descending' : 'Ascending'}
-                        </Button>
-                        <List
-                            dense
-                            sx={{
-                                maxHeight: { xs: 400, md: 300 },
-                                overflowY: 'auto',
-                            }}
-                        >
-                            {filteredMaterials.map((mat) => (
-                                <ListItem
-                                    onClick={() => handleSelectMaterial(mat)}
-                                    key={mat._id}
+                        {isLoading ? (
+                            <Typography variant="body1" sx={{ mt: 2 }}>
+                                Loading materials...
+                            </Typography>
+                        ) : (
+                            <>
+                                <TextField
+                                    label="Search Materials"
+                                    variant="outlined"
+                                    fullWidth
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <Button
+                                    sx={{ mt: 1, mb: 1 }}
+                                    onClick={() => setSortAsc((prev) => !prev)}
+                                >
+                                    Sort {sortAsc ? 'Descending' : 'Ascending'}
+                                </Button>
+                                <List
+                                    dense
                                     sx={{
-                                        cursor: 'pointer',
-                                        '&:hover': {
-                                            backgroundColor: 'action.hover',
-                                        },
+                                        maxHeight: { xs: 400, md: 300 },
+                                        overflowY: 'auto',
                                     }}
                                 >
-                                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                        <Typography variant="body1">{mat.name}</Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            ${mat.price.toFixed(2)}
-                                        </Typography>
-                                    </Box>
-                                </ListItem>
-                            ))}
-                        </List>
-                        <Button variant="contained" sx={{ mt: 2 }} onClick={handleOpen}>
-                            Add New Material
-                        </Button>
+                                    {filteredMaterials.map((mat) => (
+                                        <ListItem
+                                            onClick={() => handleSelectMaterial(mat)}
+                                            key={mat._id}
+                                            sx={{
+                                                cursor: 'pointer',
+                                                '&:hover': {
+                                                    backgroundColor: 'action.hover',
+                                                },
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                <Typography variant="body1">{mat.name}</Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    ${mat.price.toFixed(2)}
+                                                </Typography>
+                                            </Box>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                                <Button variant="contained" sx={{ mt: 2 }} onClick={handleOpen}>
+                                    Add New Material
+                                </Button>
+                            </>
+                        )}
                     </CardContent>
                 </Card>
             </Box>
