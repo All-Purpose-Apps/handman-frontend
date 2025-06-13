@@ -782,7 +782,7 @@ const ViewProposal = () => {
                                     ) : (
                                         <Typography variant="body1">
                                             <strong>Proposal Date:</strong>{' '}
-                                            {moment(proposal?.proposalDate).format('MM/DD/YYYY') ||
+                                            {moment.utc(proposal?.proposalDate).format('MM/DD/YYYY') ||
                                                 'Loading...'}
                                         </Typography>
                                     )}

@@ -129,7 +129,7 @@ const desktopColumns = [
         headerName: 'Invoice Date',
         width: 100,
         valueGetter: (params) =>
-            moment.utc(params).format('MM/DD/YYYY'),
+            moment.utc(params).format('MM/DD/YY'),
     },
     {
         field: 'client',
@@ -167,6 +167,13 @@ const desktopColumns = [
                 </ul>
             );
         },
+    },
+    {
+        field: 'updatedAt',
+        headerName: 'Last Updated',
+        width: 150,
+        valueGetter: (params) =>
+            moment.utc(params).format('MM/DD/YY hh:mm A'),
     },
     {
         field: 'status',
@@ -483,7 +490,7 @@ const InvoicesPage = () => {
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{
                         sorting: {
-                            sortModel: [{ field: 'name', sort: 'asc' }],
+                            sortModel: [{ field: 'updatedAt', sort: 'desc' }],
                         },
                         pagination: {
                             paginationModel: { pageSize: 10, page: 0 },
@@ -497,6 +504,7 @@ const InvoicesPage = () => {
                             cursor: 'pointer',
                         },
                     }}
+
                 />
             </div>
 

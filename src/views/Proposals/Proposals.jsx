@@ -43,7 +43,7 @@ const ProposalsPage = () => {
         const formatted = filtered.map((p) => ({
             ...p,
             formattedDate: p.proposalDate
-                ? moment(p.proposalDate).format('MMM DD, YYYY')
+                ? moment.utc(p.proposalDate).format('MM/DD/YYYY')
                 : '',
         }));
         return formatted;
@@ -152,6 +152,7 @@ const ProposalsPage = () => {
                         width: 150,
                         sortable: false,
                     },
+
                     {
                         field: 'status',
                         headerName: 'Status',
@@ -262,6 +263,15 @@ const ProposalsPage = () => {
                                     )}
                                 </Box>
                             );
+                        },
+                    },
+                    {
+                        field: 'updatedAt',
+                        headerName: 'Last Updated',
+                        width: 150,
+                        sortable: true,
+                        valueFormatter: (params) => {
+                            return moment(params.value).format('MM/DD/YY hh:mm A');
                         },
                     },
                     {
@@ -403,7 +413,7 @@ const ProposalsPage = () => {
                     }}
                     initialState={{
                         sorting: {
-                            sortModel: [{ field: 'proposalNumber', sort: 'asc' }],
+                            sortModel: [{ field: 'updatedAt', sort: 'desc' }],
                         },
                         pagination: {
                             paginationModel: { pageSize: 10, page: 0 },

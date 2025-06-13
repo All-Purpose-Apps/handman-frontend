@@ -448,7 +448,7 @@ Han-D-Man Pro<br>
                                     ) : (
                                         <Typography align="left">
                                             Invoice Date:{' '}
-                                            {moment.utc(editedInvoice?.invoiceDate).format('MM-DD-YYYY')}
+                                            {moment.utc(editedInvoice?.invoiceDate).format('MM/DD/YY')}
                                         </Typography>
                                     )}
                                 </Grid>
