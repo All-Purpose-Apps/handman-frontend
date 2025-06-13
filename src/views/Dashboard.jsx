@@ -53,7 +53,6 @@ const DashboardPage = () => {
     const clients = useSelector((state) => state.clients.clients);
     const invoices = useSelector((state) => state.invoices.invoices);
     const proposals = useSelector((state) => state.proposals.proposals);
-
     const handleNavigate = (path) => () => {
         navigate(path);
     };
@@ -209,6 +208,10 @@ const DashboardPage = () => {
                                 <List>
                                     {[...clients]
                                         .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                                        .filter(client => {
+                                            const latest = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                            return latest && !['imported from google', 'created by user'].includes(latest.status.toLowerCase());
+                                        })
                                         .slice(0, 10)
                                         .map((client, index) => {
                                             // Status color logic
@@ -252,7 +255,10 @@ const DashboardPage = () => {
                                             if (latestStatus) {
                                                 const diffInMs = new Date() - new Date(latestStatus.date);
                                                 const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-                                                if (diffInDays > urgentDays) {
+                                                if (
+                                                    diffInDays > urgentDays &&
+                                                    !['imported from google', 'created by user'].includes(latestStatus.status.toLowerCase())
+                                                ) {
                                                     backgroundColor = '#ef9a9a'; // override with red
                                                 }
                                             }
