@@ -35,11 +35,12 @@ const Login = () => {
     return (
         <Box
             display="flex"
-            justifyContent="flex-start"
+            justifyContent="center"
             alignItems="flex-start"
-            height="100vh"
             bgcolor="#f5f5f5"
-            p={4}
+            id="login-container"
+            p={{ xs: 4, md: 10 }}
+            m={2}
         >
             <Paper elevation={3} sx={{ padding: 4, borderRadius: 2, textAlign: 'center' }}>
                 <Typography variant="h4" gutterBottom>

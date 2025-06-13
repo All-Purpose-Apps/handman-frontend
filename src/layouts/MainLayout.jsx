@@ -17,7 +17,7 @@ function MainLayout() {
     const [showSidebar, setShowSidebar] = useState(false);
 
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: 'flex' }} className="main-layout">
             <CssBaseline />
 
             {/* Topbar */}
@@ -29,6 +29,7 @@ function MainLayout() {
             {/* Main Content */}
             <Box
                 component="main"
+                className="main-content"
                 sx={{
                     flexGrow: 1,
                     p: 3,

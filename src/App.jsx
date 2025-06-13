@@ -47,10 +47,10 @@ export default function App() {
         <Routes>
           <Route path="sign/:token" element={<SignDocument />} />
           <Route path="/signature/:document/:id" element={<Signature />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             {getRoutes()}
-            <Route path="/login" element={<Login />} />
             <Route path="*" element={<NoMatch />} />
           </Route>
         </Routes>
