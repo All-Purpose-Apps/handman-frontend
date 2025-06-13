@@ -331,7 +331,7 @@ const ViewClient = () => {
                                     textAlign: { xs: 'center', md: 'left' },
                                 }}
                             >
-                                {isEditing ? 'Edit Client' : client.givenName + ' ' + client.familyName}
+                                {isEditing ? 'Edit Client' : `${client.givenName || 'N/A'} ${client.familyName || 'N/A'}`}
                             </Typography>
                             <Divider sx={{ marginY: 1 }} />
                             {isEditing ? (
