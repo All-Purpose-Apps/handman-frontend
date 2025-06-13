@@ -25,6 +25,8 @@ export default function AddProposalForm() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
+    const { clientId } = location.state || {};
+
 
     const { proposalNumber: routeProposalNumber } = useParams();
     const [newProposalData, setNewProposalData] = useState({
@@ -69,6 +71,15 @@ export default function AddProposalForm() {
     useEffect(() => {
         dispatch(fetchClients());
         dispatch(fetchProposals());
+        if (clientId) {
+            const selectedClient = clients.find((client) => client._id === clientId);
+            if (selectedClient) {
+                setNewProposalData((prev) => ({
+                    ...prev,
+                    client: selectedClient,
+                }));
+            }
+        }
         const storedClient = localStorage.getItem('proposalClient');
         const storedItems = localStorage.getItem('proposalItems');
         if (storedClient) {

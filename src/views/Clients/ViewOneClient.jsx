@@ -216,7 +216,12 @@ const ViewClient = () => {
     const handleCloseDeleteDialog = () => setIsDeleteDialogOpen(false);
 
     const handleNavigate = (path) => () => {
-        navigate(path, { state: { openAddInvoiceModal: true } });
+        if (path === '/invoices') {
+            navigate(path, { state: { openAddInvoiceModal: true, clientId: client._id } });
+        }
+        if (path === '/proposals/new') {
+            navigate(path, { state: { openAddProposalModal: true, clientId: client._id } });
+        }
     };
 
     const createLabels = (label) => {
@@ -642,7 +647,7 @@ const ViewClient = () => {
                                 <Button
                                     variant="contained"
                                     color="secondary"
-                                    onClick={handleNavigate('/proposals/news')}
+                                    onClick={handleNavigate('/proposals/new')}
                                     fullWidth={isMobile}
                                     sx={{ marginBottom: { xs: 1, sm: 0 }, height: { xs: '48px' } }}
                                 >

@@ -212,6 +212,8 @@ const InvoicesPage = () => {
     const isTablet = useMediaQuery('(min-width:600px) and (max-width:1024px)');
     const isMobile = useMediaQuery('(max-width:600px)');
 
+    const { clientId } = location.state || {};
+
     const columns = useMemo(() => {
         return isTablet ? tabletColumns : isMobile ? mobileColumns : desktopColumns;
     }, [isTablet, isMobile]);
@@ -250,10 +252,18 @@ const InvoicesPage = () => {
     useEffect(() => {
         if (location.state?.openAddInvoiceModal) {
             setOpenModal(true);
-
+            if (clientId && clients.length > 0) {
+                const foundClient = clients.find((c) => c._id === clientId);
+                if (foundClient) {
+                    setNewInvoiceData((prevData) => ({
+                        ...prevData,
+                        client: foundClient,
+                    }));
+                }
+            }
             navigate(location.pathname, { replace: true, state: {} });
         }
-    }, [location.state, navigate]);
+    }, [location.state, navigate, clientId, clients]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -502,6 +512,7 @@ const InvoicesPage = () => {
                 handleAddInvoice={handleAddInvoice}
                 newInvoiceData={newInvoiceData}
                 clients={clients}
+                clientId={clientId}
             />
         </div>
     );
