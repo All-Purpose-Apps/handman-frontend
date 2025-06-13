@@ -148,7 +148,21 @@ const ClientsPage = () => {
         setFetchError(null);
         try {
             const { payload } = await dispatch(fetchClients());
-            setFilteredClients(payload);
+
+            // Sort by most recent status date
+            const sortedByRecentStatus = [...payload].sort((a, b) => {
+                const aDate = new Date(
+                    [...(a.statusHistory || [])]
+                        .sort((x, y) => new Date(y.date) - new Date(x.date))[0]?.date || 0
+                );
+                const bDate = new Date(
+                    [...(b.statusHistory || [])]
+                        .sort((x, y) => new Date(y.date) - new Date(x.date))[0]?.date || 0
+                );
+                return bDate - aDate;
+            });
+
+            setFilteredClients(sortedByRecentStatus);
         } catch (error) {
             console.error('Error fetching clients:', error);
             setFetchError('Failed to fetch clients. Please try again.');
@@ -321,13 +335,21 @@ const ClientsPage = () => {
                 flex: 1,
                 minWidth: 150,
                 sortable: true,
+                renderCell: (params) => {
+                    return `${params.row.givenName || 'N/A'} ${params.row.familyName || 'N/A'}`;
+                },
+                sortComparator: (v1, v2, cellParams1, cellParams2) => {
+                    const name1 = `${cellParams1.value || ''} ${cellParams1.value || ''}`;
+                    const name2 = `${cellParams2.value || ''} ${cellParams2.value || ''}`;
+                    return name1.localeCompare(name2);
+                }
             },
             {
                 field: 'statusHistory',
                 headerName: 'Status',
                 flex: 1,
                 minWidth: 150,
-                sortable: true,
+                sortable: false,
                 renderCell: (params) => {
                     const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
                     const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
@@ -362,16 +384,7 @@ const ClientsPage = () => {
                         </Box>
                     );
                 },
-                sortComparator: (v1, v2, param1, param2) => {
-                    const getLatestStatus = (params) => {
-                        const history = [...params.value];
-                        const sorted = history.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        return sorted[0]?.status?.toLowerCase() || '';
-                    };
-                    const statusA = getLatestStatus(param1);
-                    const statusB = getLatestStatus(param2);
-                    return statusA.localeCompare(statusB);
-                },
+
             },
         ]
         : isTablet || window.innerWidth <= 1220
@@ -382,6 +395,14 @@ const ClientsPage = () => {
                     flex: 1,
                     minWidth: 150,
                     sortable: true,
+                    renderCell: (params) => {
+                        return `${params.row.givenName || 'N/A'} ${params.row.familyName || 'N/A'}`;
+                    },
+                    sortComparator: (v1, v2, cellParams1, cellParams2) => {
+                        const name1 = `${cellParams1.value || ''} ${cellParams1.value || ''}`;
+                        const name2 = `${cellParams2.value || ''} ${cellParams2.value || ''}`;
+                        return name1.localeCompare(name2);
+                    }
                 },
                 {
                     field: 'email',
@@ -391,11 +412,21 @@ const ClientsPage = () => {
                     sortable: true,
                 },
                 {
+                    field: 'updatedAt',
+                    headerName: 'Updated At',
+                    flex: 1,
+                    minWidth: 150,
+                    sortable: true,
+                    valueFormatter: (params) => {
+                        return moment(params).format('MM/DD/YY h:mm A');
+                    }
+                },
+                {
                     field: 'statusHistory',
                     headerName: 'Status',
                     flex: 1,
                     minWidth: 150,
-                    sortable: true,
+                    sortable: false,
                     renderCell: (params) => {
                         const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
                         const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
@@ -439,6 +470,14 @@ const ClientsPage = () => {
                     flex: 1,
                     minWidth: 150,
                     sortable: true,
+                    renderCell: (params) => {
+                        return `${params.row.givenName || 'N/A'} ${params.row.familyName || 'N/A'}`;
+                    },
+                    sortComparator: (v1, v2, cellParams1, cellParams2) => {
+                        const name1 = `${cellParams1.value || ''} ${cellParams1.value || ''}`;
+                        const name2 = `${cellParams2.value || ''} ${cellParams2.value || ''}`;
+                        return name1.localeCompare(name2);
+                    }
                 },
                 {
                     field: 'email',
@@ -456,30 +495,23 @@ const ClientsPage = () => {
                     valueFormatter: (params) => formatPhoneNumber(params),
                 },
                 {
-                    field: 'address',
-                    headerName: 'Address',
-                    flex: 1,
-                    minWidth: 180,
-                    sortable: true,
-                },
-                {
                     field: 'createdAt',
                     headerName: 'Created At',
                     flex: 1,
-                    minWidth: 180,
+                    minWidth: 150,
                     sortable: true,
                     valueFormatter: (params) => {
-                        return moment(params).format('MMM D, YYYY h:mm A');
+                        return moment(params).format('MM/DD/YY h:mm A');
                     }
                 },
                 {
                     field: 'updatedAt',
                     headerName: 'Updated At',
                     flex: 1,
-                    minWidth: 180,
+                    minWidth: 150,
                     sortable: true,
                     valueFormatter: (params) => {
-                        return moment(params).format('MMM D, YYYY h:mm A');
+                        return moment(params).format('MM/DD/YY h:mm A');
                     }
                 },
                 {
@@ -487,7 +519,7 @@ const ClientsPage = () => {
                     headerName: 'Status',
                     flex: 1,
                     minWidth: 150,
-                    sortable: true,
+                    sortable: false,
                     renderCell: (params) => {
                         const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
                         const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
@@ -584,7 +616,7 @@ const ClientsPage = () => {
                                         color: '#fff',
                                     }}
                                 >
-                                    <Typography variant="body1">{client.name}</Typography>
+                                    <Typography variant="body1">{`${client.givenName || ''} ${client.familyName || ''}`}</Typography>
                                     <Typography
                                         variant="body2"
                                         sx={{
