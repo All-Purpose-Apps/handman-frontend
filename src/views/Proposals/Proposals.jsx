@@ -270,7 +270,7 @@ const ProposalsPage = () => {
                         headerName: 'Last Updated',
                         width: 150,
                         sortable: true,
-                        valueFormatter: (params) => {
+                        renderCell: (params) => {
                             return moment(params.value).format('MM/DD/YY hh:mm A');
                         },
                     },
@@ -364,6 +364,7 @@ const ProposalsPage = () => {
 
     // Determine if there are no proposals to show (after filtering)
     const isEmpty = !loading && filteredProposalsFormatted.length === 0;
+
 
     return (
         <Box style={{ padding: 20, paddingLeft: isMobile ? 10 : 20 }}>
