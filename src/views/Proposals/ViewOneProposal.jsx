@@ -121,6 +121,10 @@ const ViewProposal = () => {
                 console.error('Failed to fetch proposal:', response.error);
             }
         });
+        // If navigated from AddProposalForm, also fetch proposals
+        if (location?.state?.location?.from === '/proposals/new') {
+            dispatch(fetchProposals());
+        }
         dispatch(fetchInvoices());
         dispatch(fetchClients());
         // Fetch the proposal data when the component mounts        

@@ -95,7 +95,7 @@ export const proposalSlice = createSlice({
       })
       .addCase(fetchProposals.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.proposals = Array.isArray(action.payload) ? action.payload : [];
+        state.proposals = action.payload;
       })
       .addCase(fetchProposals.rejected, (state, action) => {
         state.status = 'failed';
@@ -119,7 +119,7 @@ export const proposalSlice = createSlice({
       })
       .addCase(addProposal.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.proposals = action.payload;
+        state.proposals.push(action.payload);
       })
       .addCase(addProposal.rejected, (state, action) => {
         state.status = 'failed';

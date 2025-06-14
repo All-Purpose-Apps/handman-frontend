@@ -36,6 +36,11 @@ const DashboardPage = () => {
     const [loading, setLoading] = useState(true);
     const [filteredClients, setFilteredClients] = useState([]);
 
+    // Selectors for clients, invoices, and proposals
+    const clients = useSelector((state) => state.clients.clients) || [];
+    const invoices = useSelector((state) => state.invoices.invoices) || [];
+    const proposals = useSelector((state) => state.proposals.proposals) || [];
+
     // Fetch clients, invoices, and proposals when the component mounts, only if a user is present
     useEffect(() => {
         const auth = getAuth();
@@ -46,13 +51,6 @@ const DashboardPage = () => {
                 dispatch(fetchInvoices()),
                 dispatch(fetchProposals())
             ]).finally(() => {
-                setFilteredClients([...clients]
-                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                    .filter(client => {
-                        const latest = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                        return latest && !['imported from google', 'created by user'].includes(latest.status.toLowerCase());
-                    })
-                    .slice(0, 10));
                 setLoading(false)
             });
         } else {
@@ -60,9 +58,19 @@ const DashboardPage = () => {
         }
     }, [dispatch]);
 
-    const clients = useSelector((state) => state.clients.clients);
-    const invoices = useSelector((state) => state.invoices.invoices);
-    const proposals = useSelector((state) => state.proposals.proposals);
+    // Update filteredClients whenever clients changes
+    useEffect(() => {
+        if (clients.length > 0) {
+            const updatedFilteredClients = [...clients]
+                .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                .filter(client => {
+                    const latest = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    return latest && !['imported from google', 'created by user'].includes(latest.status.toLowerCase());
+                })
+                .slice(0, 10);
+            setFilteredClients(updatedFilteredClients);
+        }
+    }, [clients]);
     const handleNavigate = (path) => () => {
         navigate(path);
     };
@@ -91,7 +99,7 @@ const DashboardPage = () => {
         ).status;
     };
 
-    // Combine invoices and proposals, sort by date (most recent first)
+    // Combine invoices and proposals, sort by date using precise timestamps (most recent first)
     const recentItems = [
         ...invoices.map((invoice) => ({
             ...invoice,
@@ -101,7 +109,9 @@ const DashboardPage = () => {
             ...proposal,
             type: 'Proposal'
         }))
-    ].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 10);
+    ]
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 10);
 
     if (loading) {
         return (
@@ -211,7 +221,7 @@ const DashboardPage = () => {
                             sx={{ backgroundColor: 'primary.main', color: 'white' }}
                         />
                         <CardContent>
-                            {filteredClients?.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                            {filteredClients?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
                                 .slice(0, 10).length === 0 ? (
                                 <Typography>No clients available</Typography>
                             ) : (
@@ -236,31 +246,56 @@ const DashboardPage = () => {
 
                                         if (proposalStatus) {
                                             const pStatus = proposalStatus.status.toLowerCase();
-                                            const validProposal = ['accepted', 'signed', 'approved', 'converted to invoice'].some(k => pStatus.includes(k));
-                                            const proposalCreated = ['created'].some(k => pStatus.includes(k));
 
-                                            if (validProposal && !proposalCreated) {
+                                            const isAcceptedOrSigned = ['accepted', 'signed', 'approved', 'converted to invoice'].some(status =>
+                                                pStatus.includes(status)
+                                            );
+                                            const isCreated = pStatus.includes('created') || pStatus.includes('sent');
+
+                                            if (isAcceptedOrSigned && !isCreated) {
                                                 backgroundColor = '#a5d6a7'; // green
-                                            } else if (!validProposal) {
-                                                backgroundColor = '#eeeeee'; // gray
-                                            } else if (proposalCreated) {
+                                            } else if (isCreated) {
                                                 backgroundColor = '#fff59d'; // yellow
+                                            } else {
+                                                backgroundColor = '#eeeeee'; // gray
                                             }
                                         }
                                         if (invoiceStatus) {
                                             const iStatus = invoiceStatus.status.toLowerCase();
-                                            if (iStatus.includes('paid')) backgroundColor = '#a5d6a7';
-                                            else if (iStatus.includes('rejected') || iStatus.includes('deleted')) backgroundColor = '#eeeeee';
-                                            else if (iStatus.includes('created') || iStatus.includes('sent')) backgroundColor = '#ef9a9a';
+
+                                            const isPaid = iStatus.includes('paid');
+                                            const isRejectedOrDeleted = iStatus.includes('rejected') || iStatus.includes('deleted');
+                                            const isCreatedOrSent = iStatus.includes('created') || iStatus.includes('sent');
+
+                                            if (isPaid) {
+                                                backgroundColor = '#a5d6a7'; // green
+                                            } else if (isRejectedOrDeleted) {
+                                                backgroundColor = '#eeeeee'; // gray
+                                            } else if (isCreatedOrSent) {
+                                                backgroundColor = '#fff59d'; // yellow
+                                            }
                                         }
 
-                                        const latestStatus = [...statusHistory].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                        // Find the most recent status entry
+                                        const latestStatus = statusHistory.reduce(
+                                            (latest, current) =>
+                                                new Date(current.date) > new Date(latest.date) ? current : latest,
+                                            statusHistory[0]
+                                        );
+
                                         if (latestStatus) {
-                                            const diffInMs = new Date() - new Date(latestStatus.date);
-                                            const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+                                            const statusAgeInDays =
+                                                (Date.now() - new Date(latestStatus.date).getTime()) /
+                                                (1000 * 60 * 60 * 24);
+                                            const ignoredStatuses = [
+                                                'imported from google',
+                                                'created by user',
+                                                'proposal deleted',
+                                                'invoice deleted'
+                                            ];
                                             if (
-                                                diffInDays > urgentDays &&
-                                                !['imported from google', 'created by user', 'proposal deleted', 'invoice deleted'].includes(latestStatus.status.toLowerCase())
+                                                statusAgeInDays > urgentDays &&
+                                                !ignoredStatuses.includes(latestStatus.status.toLowerCase())
                                             ) {
                                                 backgroundColor = '#ef9a9a'; // override with red
                                             }
@@ -283,7 +318,7 @@ const DashboardPage = () => {
                                                 >
                                                     <ListItemText
                                                         primary={client.givenName + ' ' + client.familyName}
-                                                        secondary={moment(client.updatedAt).format('LL')}
+                                                        secondary={moment(client.updatedAt).format('LLL')}
                                                     />
                                                     <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
                                                         {getLatestStatus(client.statusHistory)}
@@ -323,7 +358,7 @@ const DashboardPage = () => {
                                             >
                                                 <ListItemText
                                                     primary={`${item.type}: ${item.number || item.proposalNumber || item.invoiceNumber}`}
-                                                    secondary={`${moment(item.date).format('LL')}`}
+                                                    secondary={`${moment(item.date).format('LLL')}`}
                                                 />
                                                 <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
                                                     {item.status}
