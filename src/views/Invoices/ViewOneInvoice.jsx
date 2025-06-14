@@ -108,6 +108,7 @@ export default function ViewOneInvoice() {
         }
         setIsEditing(!isEditing);
     };
+
     const handleDeleteInvoice = () => {
         dispatch(deleteInvoice(id));
         navigate(-1);
@@ -191,6 +192,7 @@ export default function ViewOneInvoice() {
                     invoiceData: {
                         ...editedInvoice,
                         fileUrl: response.data.url,
+                        status: 'invoice pdf created',
                         updatedAt: new Date().toISOString(),
                     },
                     id: editedInvoice._id,
@@ -201,6 +203,12 @@ export default function ViewOneInvoice() {
             window.open(response.data.url);
         } catch (error) {
             console.error('Error creating PDF:', error);
+            if (error.response && error.response.status === 401) {
+                alert('Session expired. Please log in again.');
+                localStorage.removeItem('accessToken');
+                localStorage.setItem('signInInProgress', JSON.stringify(false));
+                window.location.href = '/login';
+            }
         } finally {
             setIsCreatingPdf(false);
         }
@@ -257,6 +265,15 @@ Han-D-Man Pro<br>
                     }
                 );
                 setSendSuccessModalOpen(true);
+                // Update invoice status to 'sent' after successful email
+                await dispatch(updateInvoice({
+                    id,
+                    invoiceData: {
+                        ...editedInvoice,
+                        status: 'sent',
+                        updatedAt: new Date().toISOString(),
+                    },
+                }));
             } catch (error) {
                 console.error('Error sending invoice:', error);
                 setSendFailureModalOpen(true);
@@ -378,7 +395,7 @@ Han-D-Man Pro<br>
                                                 ? 'success.main'
                                                 : editedInvoice?.status === 'sent'
                                                     ? 'info.main'
-                                                    : editedInvoice?.status === 'created'
+                                                    : editedInvoice?.status === 'created' || editedInvoice?.status === 'awaiting payment' || editedInvoice?.status === 'awaiting signature' || editedInvoice?.status === 'invoice pdf created'
                                                         ? 'warning.main'
                                                         : editedInvoice?.status === 'canceled'
                                                             ? 'error.main'
