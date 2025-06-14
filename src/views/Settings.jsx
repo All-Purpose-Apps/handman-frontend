@@ -139,18 +139,14 @@ const SettingsPage = () => {
                         mb: 3,
                         p: 2, display: 'flex', alignItems: 'center', gap: 2, backgroundColor: '#fff', boxShadow: 3
                     }}>
-                    <Box
-                        component="img"
-                        src={currentUser?.photoURL}
-                        alt={currentUser?.displayName || 'User avatar'}
-                        sx={{
-                            width: 64,
-                            height: 64,
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            boxShadow: 2,
-                        }}
-                    />
+                    {currentUser?.photoURL && (
+                        <Box
+                            component="img"
+                            src={currentUser.photoURL}
+                            alt={currentUser.displayName || 'User avatar'}
+                            sx={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', boxShadow: 2 }}
+                        />
+                    )}
                     <Box>
                         <Typography variant="h6">{currentUser?.displayName}</Typography>
                         <Typography variant="body2" color="text.secondary">{currentUser?.email}</Typography>
