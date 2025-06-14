@@ -320,11 +320,14 @@ const ClientsPage = () => {
         'INVOICE APPROVED': '#388e3c',
         'INVOICE REJECTED': '#b71c1c',
         'INVOICE PAID': '#ffd600',
-        'INVOICE PAID AND SIGNED': '#ffd600',
+        'INVOICE SIGNED AND PAID': '#388e3c',
         'INVOICE DELETED': '#757575',
         'APPOINTMENT SCHEDULED': '#1976d2',
         'TASK ASSIGNED': '#1976d2',
         'REVIEW REQUESTED': '#388e3c',
+        'PROPOSAL PDF CREATED': '#0288d1',
+        'INVOICE PDF CREATED': '#0288d1',
+
     }
 
     const columns = isMobile
