@@ -684,6 +684,16 @@ Han-D-Man Pro<br>
                                         Resend Invoice
                                     </Button>
                                 )}
+                                {/* Get Signature Button for Invoice */}
+                                {editedInvoice.fileUrl && editedInvoice.status === 'sent' && (
+                                    <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        onClick={() => navigate(`/signature/invoice/${invoice._id}`)}
+                                    >
+                                        Get Signature
+                                    </Button>
+                                )}
                             </Box>
                         </Grid>
                     </Grid>

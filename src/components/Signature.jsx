@@ -33,7 +33,6 @@ const Signature = () => {
 
         const signatureData = sigCanvas.current.toDataURL('image/png');
         try {
-
             if (document === 'proposal') {
                 const response = await axios.post(
                     `${import.meta.env.VITE_BACKEND_URL}/api/proposals/internal-upload-pdf-with-signature/${id}`,
@@ -50,6 +49,22 @@ const Signature = () => {
                 );
                 console.log('Upload successful:', response.data);
                 navigate(-1); // Navigate back after successful upload
+            } else if (document === 'invoice') {
+                const response = await axios.post(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/invoices/internal-upload-pdf-with-signature/${id}`,
+                    {
+                        signature: signatureData,
+                    },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                        },
+                        withCredentials: true,
+                    }
+                );
+
+                navigate(-1);
             } else {
                 console.warn('Unsupported document type:', document);
             }
