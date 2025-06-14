@@ -257,7 +257,7 @@ const DashboardPage = () => {
                                                 const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
                                                 if (
                                                     diffInDays > urgentDays &&
-                                                    !['imported from google', 'created by user'].includes(latestStatus.status.toLowerCase())
+                                                    !['imported from google', 'created by user', 'proposal deleted', 'invoice deleted'].includes(latestStatus.status.toLowerCase())
                                                 ) {
                                                     backgroundColor = '#ef9a9a'; // override with red
                                                 }
