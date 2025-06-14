@@ -34,6 +34,7 @@ const DashboardPage = () => {
 
     // Loading state for data fetching
     const [loading, setLoading] = useState(true);
+    const [filteredClients, setFilteredClients] = useState([]);
 
     // Fetch clients, invoices, and proposals when the component mounts, only if a user is present
     useEffect(() => {
@@ -44,7 +45,16 @@ const DashboardPage = () => {
                 dispatch(fetchClients()),
                 dispatch(fetchInvoices()),
                 dispatch(fetchProposals())
-            ]).finally(() => setLoading(false));
+            ]).finally(() => {
+                setFilteredClients([...clients]
+                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                    .filter(client => {
+                        const latest = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                        return latest && !['imported from google', 'created by user'].includes(latest.status.toLowerCase());
+                    })
+                    .slice(0, 10));
+                setLoading(false)
+            });
         } else {
             setLoading(false);
         }
@@ -118,6 +128,7 @@ const DashboardPage = () => {
             </Modal>
         );
     }
+
 
     return (
         <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -200,19 +211,13 @@ const DashboardPage = () => {
                             sx={{ backgroundColor: 'primary.main', color: 'white' }}
                         />
                         <CardContent>
-                            {[...clients]
+                            {filteredClients
                                 .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
                                 .slice(0, 10).length === 0 ? (
                                 <Typography>No clients available</Typography>
                             ) : (
                                 <List>
-                                    {[...clients]
-                                        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                                        .filter(client => {
-                                            const latest = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                                            return latest && !['imported from google', 'created by user'].includes(latest.status.toLowerCase());
-                                        })
-                                        .slice(0, 10)
+                                    {filteredClients
                                         .map((client, index) => {
                                             // Status color logic
                                             const statusHistory = client.statusHistory || [];
