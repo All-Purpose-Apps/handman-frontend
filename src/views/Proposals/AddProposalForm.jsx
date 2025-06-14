@@ -295,7 +295,7 @@ export default function AddProposalForm() {
                         </Grid>
                         <Grid item xs={12}>
                             <Autocomplete
-                                options={clients}
+                                options={[...clients].sort((a, b) => a.name.localeCompare(b.name))}
                                 getOptionLabel={(client) => `${client.name}`}
                                 value={newProposalData.client}
                                 onChange={handleClientChange}
