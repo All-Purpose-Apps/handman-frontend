@@ -227,76 +227,33 @@ const DashboardPage = () => {
                             ) : (
                                 <List>
                                     {filteredClients?.map((client, index) => {
-                                        // Status color logic
+                                        // Unified status color logic: use only the most recent status across all types
                                         const statusHistory = client.statusHistory || [];
-
-                                        const proposalStatus = [...statusHistory]
-                                            .filter(s => s.status?.toLowerCase().includes('proposal'))
-                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-                                        const invoiceStatus = [...statusHistory]
-                                            .filter(s => s.status?.toLowerCase().includes('invoice'))
-                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-                                        const reviewStatus = [...statusHistory]
-                                            .filter(s => s.status?.toLowerCase().includes('review'))
-                                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
+                                        const latestStatusEntry = [...statusHistory].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
                                         let backgroundColor = 'white';
 
-                                        if (proposalStatus) {
-                                            const pStatus = proposalStatus.status.toLowerCase();
-
-                                            const isAcceptedOrSigned = ['accepted', 'signed', 'approved', 'converted to invoice'].some(status =>
-                                                pStatus.includes(status)
-                                            );
-                                            const isCreated = pStatus.includes('created') || pStatus.includes('sent');
-
-                                            if (isAcceptedOrSigned && !isCreated) {
+                                        if (latestStatusEntry) {
+                                            const s = latestStatusEntry.status.toLowerCase();
+                                            if (s.includes('deleted')) {
+                                                backgroundColor = '#eeeeee'; // gray
+                                            } else if (s.includes('accepted') || s.includes('signed') || s.includes('approved') || s.includes('paid') || s.includes('paid in full')) {
                                                 backgroundColor = '#a5d6a7'; // green
-                                            } else if (isCreated) {
+                                            } else if (s.includes('created') || s.includes('sent')) {
                                                 backgroundColor = '#fff59d'; // yellow
+                                            } else if (s.includes('review')) {
+                                                backgroundColor = '#ffcc80'; // orange
                                             } else {
                                                 backgroundColor = '#eeeeee'; // gray
                                             }
-                                        }
-                                        if (invoiceStatus) {
-                                            const iStatus = invoiceStatus.status.toLowerCase();
 
-                                            const isPaid = iStatus.includes('paid');
-                                            const isRejectedOrDeleted = iStatus.includes('rejected') || iStatus.includes('deleted');
-                                            const isCreatedOrSent = iStatus.includes('created') || iStatus.includes('sent');
-
-                                            if (isPaid) {
-                                                backgroundColor = '#a5d6a7'; // green
-                                            } else if (isRejectedOrDeleted) {
-                                                backgroundColor = '#eeeeee'; // gray
-                                            } else if (isCreatedOrSent) {
-                                                backgroundColor = '#fff59d'; // yellow
-                                            }
-                                        }
-
-                                        // Find the most recent status entry
-                                        const latestStatus = statusHistory.reduce(
-                                            (latest, current) =>
-                                                new Date(current.date) > new Date(latest.date) ? current : latest,
-                                            statusHistory[0]
-                                        );
-
-                                        if (latestStatus) {
-                                            const statusAgeInDays =
-                                                (Date.now() - new Date(latestStatus.date).getTime()) /
-                                                (1000 * 60 * 60 * 24);
+                                            const statusAgeInDays = (Date.now() - new Date(latestStatusEntry.date).getTime()) / (1000 * 60 * 60 * 24);
                                             const ignoredStatuses = [
                                                 'imported from google',
                                                 'created by user',
                                                 'proposal deleted',
                                                 'invoice deleted'
                                             ];
-                                            if (
-                                                statusAgeInDays > urgentDays &&
-                                                !ignoredStatuses.includes(latestStatus.status.toLowerCase())
-                                            ) {
+                                            if (statusAgeInDays > urgentDays && !ignoredStatuses.includes(s)) {
                                                 backgroundColor = '#ef9a9a'; // override with red
                                             }
                                         }
