@@ -51,20 +51,30 @@ export default function AddProposalForm() {
 
     useEffect(() => {
         if (!newProposalData.proposalNumber) {
-            if (proposals.length > 0) {
-                const latestNumber = Math.max(
-                    ...proposals.map((p) =>
-                        parseInt(p.proposalNumber.replace(/\D/g, ''), 10)
-                    )
-                );
+            const storedProposalNumber = localStorage.getItem('proposalNumber');
+            if (storedProposalNumber) {
                 setNewProposalData((prev) => ({
                     ...prev,
-                    proposalNumber: `${latestNumber + 1}`,
+                    proposalNumber: storedProposalNumber,
                 }));
             } else {
-                setNewProposalData((prev) => ({ ...prev, proposalNumber: '9001' }));
+                if (proposals.length > 0) {
+                    const latestNumber = Math.max(
+                        ...proposals.map((p) =>
+                            parseInt(p.proposalNumber.replace(/\D/g, ''), 10)
+                        )
+                    );
+                    const nextNumber = `${latestNumber + 1}`;
+                    localStorage.setItem('proposalNumber', nextNumber);
+                    setNewProposalData((prev) => ({
+                        ...prev,
+                        proposalNumber: nextNumber,
+                    }));
+                } else {
+                    localStorage.setItem('proposalNumber', '9001');
+                    setNewProposalData((prev) => ({ ...prev, proposalNumber: '9001' }));
+                }
             }
-
         }
     }, [proposals, newProposalData.proposalNumber]);
 
@@ -201,6 +211,7 @@ export default function AddProposalForm() {
             }));
             localStorage.removeItem('proposalClient');
             localStorage.removeItem('proposalItems');
+            localStorage.removeItem('proposalNumber');
 
             navigate(`/proposals/${proposalData.payload._id}`, {
                 state: {
