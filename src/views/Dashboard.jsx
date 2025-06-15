@@ -99,19 +99,33 @@ const DashboardPage = () => {
         ).status;
     };
 
-    // Combine invoices and proposals, sort by date using precise timestamps (most recent first)
-    const recentItems = [
-        ...invoices.map((invoice) => ({
-            ...invoice,
-            type: 'Invoice'
-        })),
-        ...proposals.map((proposal) => ({
-            ...proposal,
-            type: 'Proposal'
-        }))
-    ]
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    // Combine invoices and proposals, sort urgent to top (oldest first), then non-urgent (newest first)
+    const now = Date.now();
+    const ignoredStatuses = ['imported from google', 'created by user', 'proposal deleted', 'invoice deleted'];
+
+    const combinedItems = [
+        ...invoices.map((invoice) => ({ ...invoice, type: 'Invoice' })),
+        ...proposals.map((proposal) => ({ ...proposal, type: 'Proposal' }))
+    ];
+
+    const sortedItems = combinedItems
+        .map((item) => {
+            const s = (item.status || '').toLowerCase();
+            const statusAgeInDays = (now - new Date(item.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
+            const isUrgent = statusAgeInDays > urgentDays && !ignoredStatuses.includes(s);
+            return { ...item, isUrgent };
+        })
+        .sort((a, b) => {
+            if (a.isUrgent && !b.isUrgent) return -1;
+            if (!a.isUrgent && b.isUrgent) return 1;
+            if (a.isUrgent && b.isUrgent) {
+                return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(); // oldest urgent first
+            }
+            return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); // newest non-urgent first
+        })
         .slice(0, 10);
+
+    const recentItems = sortedItems;
 
     if (loading) {
         return (
@@ -221,70 +235,84 @@ const DashboardPage = () => {
                             sx={{ backgroundColor: 'primary.main', color: 'white' }}
                         />
                         <CardContent>
-                            {filteredClients?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-                                .slice(0, 10).length === 0 ? (
+                            {filteredClients?.length === 0 ? (
                                 <Typography>No clients available</Typography>
                             ) : (
                                 <List>
-                                    {filteredClients?.map((client, index) => {
-                                        // Unified status color logic: use only the most recent status across all types
-                                        const statusHistory = client.statusHistory || [];
-                                        const latestStatusEntry = [...statusHistory].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                                        let backgroundColor = 'white';
+                                    {(() => {
+                                        const ignoredStatuses = ['imported from google', 'created by user', 'proposal deleted', 'invoice deleted'];
 
-                                        if (latestStatusEntry) {
+                                        const getStatusAgeInDays = (entry) =>
+                                            (Date.now() - new Date(entry.date).getTime()) / (1000 * 60 * 60 * 24);
+
+                                        const urgentClients = [];
+                                        const nonUrgentClients = [];
+
+                                        filteredClients.forEach((client) => {
+                                            const statusHistory = client.statusHistory || [];
+                                            const latestStatusEntry = [...statusHistory].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                                            if (!latestStatusEntry) return;
+
                                             const s = latestStatusEntry.status.toLowerCase();
-                                            if (s.includes('deleted')) {
-                                                backgroundColor = '#eeeeee'; // gray
-                                            } else if (s.includes('accepted') || s.includes('signed') || s.includes('approved') || s.includes('paid') || s.includes('paid in full')) {
-                                                backgroundColor = '#a5d6a7'; // green
-                                            } else if (s.includes('created') || s.includes('sent')) {
-                                                backgroundColor = '#fff59d'; // yellow
-                                            } else if (s.includes('review')) {
-                                                backgroundColor = '#ffcc80'; // orange
-                                            } else {
-                                                backgroundColor = '#eeeeee'; // gray
-                                            }
+                                            const isUrgent = getStatusAgeInDays(latestStatusEntry) > urgentDays && !ignoredStatuses.includes(s);
 
-                                            const statusAgeInDays = (Date.now() - new Date(latestStatusEntry.date).getTime()) / (1000 * 60 * 60 * 24);
-                                            const ignoredStatuses = [
-                                                'imported from google',
-                                                'created by user',
-                                                'proposal deleted',
-                                                'invoice deleted'
-                                            ];
-                                            if (statusAgeInDays > urgentDays && !ignoredStatuses.includes(s)) {
-                                                backgroundColor = '#ef9a9a'; // override with red
-                                            }
-                                        }
+                                            if (isUrgent) urgentClients.push({ ...client, latestStatusEntry });
+                                            else nonUrgentClients.push({ ...client, latestStatusEntry });
+                                        });
 
-                                        return (
-                                            <div key={index}>
-                                                <ListItem
-                                                    sx={{
-                                                        backgroundColor,
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        '&:hover': {
-                                                            backgroundColor: '#f0f0f0',
-                                                            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                                                        },
-                                                    }}
-                                                    onClick={handleGoToClient(client._id)}
-                                                >
-                                                    <ListItemText
-                                                        primary={client.givenName + ' ' + client.familyName}
-                                                        secondary={moment(client.updatedAt).format('LLL')}
-                                                    />
-                                                    <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                                        {getLatestStatus(client.statusHistory)}
-                                                    </Typography>
-                                                </ListItem>
-                                                {index < clients.length - 1 && <Divider />}
-                                            </div>
-                                        );
-                                    })}
+                                        urgentClients.sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)); // oldest first
+                                        nonUrgentClients.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)); // newest first
+
+                                        const orderedClients = [...urgentClients, ...nonUrgentClients];
+
+                                        return orderedClients.map((client, index) => {
+                                            const s = client.latestStatusEntry.status.toLowerCase();
+                                            const statusAgeInDays = getStatusAgeInDays(client.latestStatusEntry);
+                                            const isUrgent = statusAgeInDays > urgentDays && !ignoredStatuses.includes(s);
+
+                                            let backgroundColor = '#eeeeee';
+                                            if (s.includes('deleted')) backgroundColor = '#eeeeee';
+                                            else if (s.includes('accepted') || s.includes('signed') || s.includes('approved') || s.includes('paid') || s.includes('paid in full')) backgroundColor = '#a5d6a7';
+                                            else if (s.includes('created') || s.includes('sent')) backgroundColor = '#fff59d';
+                                            else if (s.includes('review')) backgroundColor = '#ffcc80';
+                                            if (isUrgent) backgroundColor = '#ef9a9a';
+
+                                            const sectionHeading =
+                                                index === 0 && urgentClients.length > 0
+                                                    ? <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Urgent Clients</Typography>
+                                                    : index === urgentClients.length && nonUrgentClients.length > 0
+                                                        ? <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Other Clients</Typography>
+                                                        : null;
+
+                                            return (
+                                                <div key={client._id}>
+                                                    {sectionHeading}
+                                                    <ListItem
+                                                        sx={{
+                                                            backgroundColor,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            '&:hover': {
+                                                                backgroundColor: '#f0f0f0',
+                                                                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                                                            },
+                                                        }}
+                                                        onClick={handleGoToClient(client._id)}
+                                                    >
+                                                        <ListItemText
+                                                            primary={client.givenName + ' ' + client.familyName}
+                                                            secondary={moment(client.updatedAt).format('LLL')}
+                                                        />
+                                                        <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                                            {client.latestStatusEntry.status}
+                                                        </Typography>
+                                                    </ListItem>
+                                                    {index < orderedClients.length - 1 && <Divider />}
+                                                </div>
+                                            );
+                                        });
+                                    })()}
                                 </List>
                             )}
                         </CardContent>
@@ -301,54 +329,63 @@ const DashboardPage = () => {
                         <CardContent>
                             {recentItems.length > 0 ? (
                                 <List>
-                                    {recentItems.map((item, index) => {
-                                        // Determine backgroundColor based on item.status, same logic as client statuses
-                                        let backgroundColor = 'white';
-                                        const s = (item.status || '').toLowerCase();
+                                    {(() => {
+                                        let urgentSectionShown = false;
+                                        let nonUrgentSectionShown = false;
+                                        return recentItems.map((item, index) => {
+                                            const s = (item.status || '').toLowerCase();
+                                            const statusAgeInDays = (Date.now() - new Date(item.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
+                                            const ignoredStatuses = ['imported from google', 'created by user', 'proposal deleted', 'invoice deleted'];
+                                            const isUrgent = statusAgeInDays > urgentDays && !ignoredStatuses.includes(s);
 
-                                        if (s.includes('deleted')) {
-                                            backgroundColor = '#eeeeee'; // gray
-                                        } else if (s.includes('accepted') || s.includes('signed') || s.includes('approved') || s.includes('paid') || s.includes('paid in full')) {
-                                            backgroundColor = '#a5d6a7'; // green
-                                        } else if (s.includes('created') || s.includes('sent')) {
-                                            backgroundColor = '#fff59d'; // yellow
-                                        } else if (s.includes('review')) {
-                                            backgroundColor = '#ffcc80'; // orange
-                                        } else {
-                                            backgroundColor = '#eeeeee'; // gray
-                                        }
+                                            let backgroundColor = '#eeeeee'; // default gray
+                                            if (s.includes('deleted')) backgroundColor = '#eeeeee';
+                                            else if (s.includes('accepted') || s.includes('signed') || s.includes('approved') || s.includes('paid') || s.includes('paid in full')) backgroundColor = '#a5d6a7';
+                                            else if (s.includes('created') || s.includes('sent')) backgroundColor = '#fff59d';
+                                            else if (s.includes('review')) backgroundColor = '#ffcc80';
 
-                                        const statusAgeInDays = (Date.now() - new Date(item.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
-                                        const ignoredStatuses = ['imported from google', 'created by user', 'proposal deleted', 'invoice deleted'];
-                                        if (statusAgeInDays > urgentDays && !ignoredStatuses.includes(s)) {
-                                            backgroundColor = '#ef9a9a'; // override with red
-                                        }
+                                            if (isUrgent) backgroundColor = '#ef9a9a';
 
-                                        return (
-                                            <div key={index}>
-                                                <ListItem
-                                                    onClick={() => navigate(`/${item.type.toLowerCase()}s/${item._id}`)}
-                                                    sx={{
-                                                        backgroundColor,
-                                                        cursor: 'pointer',
-                                                        '&:hover': {
-                                                            backgroundColor: '#f0f0f0',
-                                                            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                                                        },
-                                                    }}
-                                                >
-                                                    <ListItemText
-                                                        primary={`${item.type}: ${item.number || item.proposalNumber || item.invoiceNumber}`}
-                                                        secondary={`${moment(item.updatedAt).format('LLL')}`}
-                                                    />
-                                                    <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                                        {item.status}
-                                                    </Typography>
-                                                </ListItem>
-                                                {index < recentItems.length - 1 && <Divider />}
-                                            </div>
-                                        );
-                                    })}
+                                            const sectionHeading = (!urgentSectionShown && isUrgent) ? (
+                                                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                                                    Urgent Items
+                                                </Typography>
+                                            ) : (!nonUrgentSectionShown && !isUrgent) ? (
+                                                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                                                    Other Recent Items
+                                                </Typography>
+                                            ) : null;
+
+                                            if (isUrgent) urgentSectionShown = true;
+                                            else nonUrgentSectionShown = true;
+
+                                            return (
+                                                <div key={index}>
+                                                    {sectionHeading}
+                                                    <ListItem
+                                                        onClick={() => navigate(`/${item.type.toLowerCase()}s/${item._id}`)}
+                                                        sx={{
+                                                            backgroundColor,
+                                                            cursor: 'pointer',
+                                                            '&:hover': {
+                                                                backgroundColor: '#f0f0f0',
+                                                                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                                                            },
+                                                        }}
+                                                    >
+                                                        <ListItemText
+                                                            primary={`${item.type}: ${item.number || item.proposalNumber || item.invoiceNumber}`}
+                                                            secondary={`${moment(item.updatedAt).format('LLL')}`}
+                                                        />
+                                                        <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                                            {item.status}
+                                                        </Typography>
+                                                    </ListItem>
+                                                    {index < recentItems.length - 1 && <Divider />}
+                                                </div>
+                                            );
+                                        });
+                                    })()}
                                 </List>
                             ) : (
                                 <Typography>No recent items available</Typography>
