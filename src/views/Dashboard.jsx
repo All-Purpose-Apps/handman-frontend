@@ -301,29 +301,54 @@ const DashboardPage = () => {
                         <CardContent>
                             {recentItems.length > 0 ? (
                                 <List>
-                                    {recentItems.map((item, index) => (
-                                        <div key={index}>
-                                            <ListItem
-                                                onClick={() => navigate(`/${item.type.toLowerCase()}s/${item._id}`)}
-                                                sx={{
-                                                    cursor: 'pointer',
-                                                    '&:hover': {
-                                                        backgroundColor: '#f0f0f0',
-                                                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                                                    },
-                                                }}
-                                            >
-                                                <ListItemText
-                                                    primary={`${item.type}: ${item.number || item.proposalNumber || item.invoiceNumber}`}
-                                                    secondary={`${moment(item.updatedAt).format('LLL')}`}
-                                                />
-                                                <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                                    {item.status}
-                                                </Typography>
-                                            </ListItem>
-                                            {index < recentItems.length - 1 && <Divider />}
-                                        </div>
-                                    ))}
+                                    {recentItems.map((item, index) => {
+                                        // Determine backgroundColor based on item.status, same logic as client statuses
+                                        let backgroundColor = 'white';
+                                        const s = (item.status || '').toLowerCase();
+
+                                        if (s.includes('deleted')) {
+                                            backgroundColor = '#eeeeee'; // gray
+                                        } else if (s.includes('accepted') || s.includes('signed') || s.includes('approved') || s.includes('paid') || s.includes('paid in full')) {
+                                            backgroundColor = '#a5d6a7'; // green
+                                        } else if (s.includes('created') || s.includes('sent')) {
+                                            backgroundColor = '#fff59d'; // yellow
+                                        } else if (s.includes('review')) {
+                                            backgroundColor = '#ffcc80'; // orange
+                                        } else {
+                                            backgroundColor = '#eeeeee'; // gray
+                                        }
+
+                                        const statusAgeInDays = (Date.now() - new Date(item.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
+                                        const ignoredStatuses = ['imported from google', 'created by user', 'proposal deleted', 'invoice deleted'];
+                                        if (statusAgeInDays > urgentDays && !ignoredStatuses.includes(s)) {
+                                            backgroundColor = '#ef9a9a'; // override with red
+                                        }
+
+                                        return (
+                                            <div key={index}>
+                                                <ListItem
+                                                    onClick={() => navigate(`/${item.type.toLowerCase()}s/${item._id}`)}
+                                                    sx={{
+                                                        backgroundColor,
+                                                        cursor: 'pointer',
+                                                        '&:hover': {
+                                                            backgroundColor: '#f0f0f0',
+                                                            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                                                        },
+                                                    }}
+                                                >
+                                                    <ListItemText
+                                                        primary={`${item.type}: ${item.number || item.proposalNumber || item.invoiceNumber}`}
+                                                        secondary={`${moment(item.updatedAt).format('LLL')}`}
+                                                    />
+                                                    <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                                        {item.status}
+                                                    </Typography>
+                                                </ListItem>
+                                                {index < recentItems.length - 1 && <Divider />}
+                                            </div>
+                                        );
+                                    })}
                                 </List>
                             ) : (
                                 <Typography>No recent items available</Typography>
