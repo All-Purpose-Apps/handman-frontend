@@ -315,7 +315,7 @@ const DashboardPage = () => {
                                             >
                                                 <ListItemText
                                                     primary={`${item.type}: ${item.number || item.proposalNumber || item.invoiceNumber}`}
-                                                    secondary={`${moment(item.date).format('LLL')}`}
+                                                    secondary={`${moment(item.updatedAt).format('LLL')}`}
                                                 />
                                                 <Typography sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}>
                                                     {item.status}
