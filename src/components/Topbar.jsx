@@ -40,12 +40,21 @@ function Topbar({ setShowSidebar }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
-    // Fetch notifications from the Redux store
+    // Fetch notifications from the Redux store every 30 seconds
     useEffect(() => {
-        if (currentUser && status === 'idle') {
+        if (!currentUser) return;
+
+        const fetchAndRepeat = () => {
+            console.log('Fetching notifications...');
             dispatch(fetchNotifications());
-        }
-    }, [currentUser, status, dispatch]);
+        };
+
+        fetchAndRepeat(); // initial call
+
+        const interval = setInterval(fetchAndRepeat, 15000); // every 15 seconds
+
+        return () => clearInterval(interval);
+    }, [currentUser, dispatch]);
 
     // Compute unread count dynamically with useMemo
     const unreadCount = useMemo(() => {
@@ -202,11 +211,13 @@ function Topbar({ setShowSidebar }) {
                                 </IconButton>
                             </MenuItem>
                         ))}
-                        <MenuItem onClick={() => setShowAllNotifications((prev) => !prev)}>
-                            <Typography variant="body2" color="primary">
-                                {showAllNotifications ? 'Show Less' : 'View All Notifications'}
-                            </Typography>
-                        </MenuItem>
+                        {notifications.length > 5 && (
+                            <MenuItem onClick={() => setShowAllNotifications((prev) => !prev)}>
+                                <Typography variant="body2" color="primary">
+                                    {showAllNotifications ? 'Show Less' : 'View All Notifications'}
+                                </Typography>
+                            </MenuItem>
+                        )}
                     </>
                 ) : (
                     <MenuItem onClick={handleNotificationClose}>
