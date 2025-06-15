@@ -27,6 +27,7 @@ import { getAllMaterials } from '../store/materialsSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import useAutoLogout from '../hooks/useAutoLogout';
 
 const SettingsPage = () => {
     const { currentUser } = useAuth(); // Assuming you have a context or hook for authentication
@@ -40,6 +41,8 @@ const SettingsPage = () => {
     const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [editPrice, setEditPrice] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+
+    const { timeoutMinutes, setTimeoutDuration } = useAutoLogout();
 
     // Get the current user from the context or state
 
@@ -179,7 +182,33 @@ const SettingsPage = () => {
                         </Typography>
                     </CardContent>
                 </Card>
-
+                <Card
+                    className="session-timeout-card"
+                    sx={{ flex: 1, width: 'inherit' }}>
+                    <CardContent>
+                        <Typography variant="h5" gutterBottom>
+                            Session Timeout
+                        </Typography>
+                        <FormControl fullWidth>
+                            <InputLabel id="timeout-minutes-label">Minutes until logout</InputLabel>
+                            <Select
+                                labelId="timeout-minutes-label"
+                                value={timeoutMinutes}
+                                onChange={(e) => setTimeoutDuration(Number(e.target.value))}
+                                label="Minutes until logout"
+                            >
+                                {Array.from({ length: 12 }, (_, i) => (i + 1) * 5).map((mins) => (
+                                    <MenuItem key={mins} value={mins}>
+                                        {mins} minutes
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <Typography variant="body1" sx={{ mt: 2 }}>
+                            Currently set to: {timeoutMinutes} minutes
+                        </Typography>
+                    </CardContent>
+                </Card>
             </Box>
             <Box
                 sx={{
