@@ -7,6 +7,8 @@ import {
     Paper,
     TextField,
     Typography,
+    Checkbox,
+    FormControlLabel,
 } from '@mui/material';
 import { Autocomplete } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -20,6 +22,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import AddressAutocomplete from '../../components/AddressAutocomplete';
 
 export default function AddProposalForm() {
     const dispatch = useDispatch();
@@ -40,6 +43,7 @@ export default function AddProposalForm() {
         packagePrice: 0,
         fileUrl: '',
         materialsListId: null,
+        projectAddress: '',
     });
 
     const [materials, setMaterials] = useState([]);
@@ -48,6 +52,20 @@ export default function AddProposalForm() {
     const clients = useSelector((state) => state.clients.clients);
     const proposals = useSelector((state) => state.proposals.proposals);
     const materialsList = useSelector((state) => state.materials.materialsList);
+
+    // Project address state
+    const [projectAddress, setProjectAddress] = useState('');
+    const [sameAsClientAddress, setSameAsClientAddress] = useState(false);
+
+    useEffect(() => {
+        if (sameAsClientAddress && newProposalData.client?.address) {
+            setProjectAddress((prev) =>
+                newProposalData.client.address
+            );
+        } else if (!sameAsClientAddress) {
+            setProjectAddress('');
+        }
+    }, [sameAsClientAddress, newProposalData.client]);
 
     useEffect(() => {
         if (!newProposalData.proposalNumber) {
@@ -202,7 +220,8 @@ export default function AddProposalForm() {
     const handleAddProposal = async (event) => {
         event.preventDefault();
         try {
-            const proposalData = await dispatch(addProposal(newProposalData));
+            // Include projectAddress in the object sent to addProposal
+            const proposalData = await dispatch(addProposal({ ...newProposalData, projectAddress }));
             await dispatch(updateMaterialsList({
                 id: newProposalData.materialsListId,
                 materials,
@@ -319,6 +338,37 @@ export default function AddProposalForm() {
                                     />
                                 )}
                             />
+                            {newProposalData.client?.address && (
+                                <TextField
+                                    label="Client Address"
+                                    value={newProposalData.client.address}
+                                    fullWidth
+                                    margin="normal"
+                                    disabled
+                                />
+                            )}
+                            {newProposalData.client?.address && (
+                                <>
+                                    <Typography sx={{ mt: 2 }}>Project Address</Typography>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={sameAsClientAddress}
+                                                onChange={(e) =>
+                                                    setSameAsClientAddress((prev) => prev = e.target.checked)
+                                                }
+                                            />
+                                        }
+                                        label="Same as client address"
+                                    />
+                                    {!sameAsClientAddress && <AddressAutocomplete
+                                        value={projectAddress}
+                                        onChange={(val, isAutoComplete) => {
+                                            setProjectAddress(val);
+                                        }}
+                                    />}
+                                </>
+                            )}
                         </Grid>
 
                         {/* Items */}

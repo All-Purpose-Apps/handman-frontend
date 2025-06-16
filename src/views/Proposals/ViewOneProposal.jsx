@@ -764,7 +764,7 @@ const ViewProposal = () => {
                         </Box>
                     </Box>
                     <Grid container spacing={isMobile ? 2 : 4} direction={isMobile ? 'column' : 'row'}>
-                        <Grid item xs={12} md={4}>
+                        <Grid item xs={12} md={12}  >
                             <Box sx={{ mb: isMobile ? 2 : 0 }}>
                                 <Box
                                     display="flex"
@@ -834,10 +834,16 @@ const ViewProposal = () => {
                                             <strong>Client Name:</strong>{' '}
                                             {proposal?.client?.name || 'Loading...'}
                                         </Typography>
-                                        <Typography variant="body1">
-                                            <strong>Client Address:</strong>{' '}
-                                            {proposal?.client?.address || 'Loading...'}
-                                        </Typography>
+                                        <Box sx={{ marginTop: '10px', display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'column', lg: 'row' } }} >
+                                            <Typography variant="body1" sx={{ flex: 1 }}>
+                                                <strong>Client Address:</strong>{' '}
+                                                {proposal?.client?.address || 'Loading...'}
+                                            </Typography>
+                                            <Typography variant="body1" sx={{ flex: 1 }}>
+                                                <strong>Project Address:</strong>{' '}
+                                                {proposal?.projectAddress || 'N/A'}
+                                            </Typography>
+                                        </Box>
                                     </>
                                 )}
 
@@ -1145,7 +1151,7 @@ const ViewProposal = () => {
                         </Box>
                     </Box>
                 </Modal>
-            </Card>
+            </Card >
 
             <Modal
                 open={missingPdfModalOpen}
