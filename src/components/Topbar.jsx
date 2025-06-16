@@ -62,6 +62,12 @@ function Topbar({ setShowSidebar }) {
         };
     }, [currentUser, dispatch, socket]);
 
+    useEffect(() => {
+        if (currentUser) {
+            dispatch(fetchNotifications());
+        }
+    }, [currentUser, dispatch]);
+
     // Compute unread count dynamically with useMemo
     const unreadCount = useMemo(() => {
         return notifications.filter((n) => !n.isRead).length;
@@ -75,6 +81,9 @@ function Topbar({ setShowSidebar }) {
     // Handle closing the notification menu
     const handleNotificationClose = () => {
         setAnchorEl(null);
+        dispatch(markAllNotificationsAsRead()).then(() => {
+            dispatch(fetchNotifications());
+        });
     };
 
     // Handle marking a notification as read (unused in new code, kept if needed elsewhere)
