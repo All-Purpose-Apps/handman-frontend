@@ -23,13 +23,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotifications, markNotificationAsRead, clearNotifications, markAllNotificationsAsRead } from '../store/notificationSlice';
 import dayjs from 'dayjs'; // For formatting timestamps
+import { useSocket } from '../contexts/SocketContext';
+
 
 function Topbar({ setShowSidebar }) {
+
     const auth = getAuth(app);
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const dispatch = useDispatch();
 
+    const tenantId = currentUser?.email?.split('@')[0];
+    const socket = useSocket();
 
     // Get notifications from Redux store
     const notifications = useSelector((state) => state.notifications.notifications);
@@ -40,21 +45,22 @@ function Topbar({ setShowSidebar }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
-    // Fetch notifications from the Redux store every 30 seconds
-    useEffect(() => {
-        if (!currentUser) return;
 
-        const fetchAndRepeat = () => {
-            console.log('Fetching notifications...');
+    // Listen for newNotification event from socket.io and fetch notifications
+    useEffect(() => {
+        if (!currentUser || !socket) return;
+
+        const handleNewNotification = (notification) => {
+            console.log('Received new notification:', notification);
             dispatch(fetchNotifications());
         };
 
-        fetchAndRepeat(); // initial call
+        socket.on('newNotification', handleNewNotification);
 
-        const interval = setInterval(fetchAndRepeat, 15000); // every 15 seconds
-
-        return () => clearInterval(interval);
-    }, [currentUser, dispatch]);
+        return () => {
+            socket.off('newNotification', handleNewNotification);
+        };
+    }, [currentUser, dispatch, socket]);
 
     // Compute unread count dynamically with useMemo
     const unreadCount = useMemo(() => {
@@ -119,6 +125,22 @@ function Topbar({ setShowSidebar }) {
         }
     };
 
+    const handleTestNotification = async () => {
+        const accessToken = localStorage.getItem('accessToken');
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/test-socket`, {
+                credentials: 'include',
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+            const data = await res.json();
+            console.log('Triggered test notification:', data);
+        } catch (err) {
+            console.error('Failed to test notification:', err);
+        }
+    };
+
     return (
         <AppBar
             position="fixed"
@@ -145,9 +167,14 @@ function Topbar({ setShowSidebar }) {
                 </IconButton>}
 
                 {currentUser && (
-                    <Button color="inherit" onClick={handleLogout}>
-                        Logout
-                    </Button>
+                    <>
+                        <Button color="inherit" onClick={handleLogout}>
+                            Logout
+                        </Button>
+                        <Button color="inherit" onClick={handleTestNotification}>
+                            Test Notification
+                        </Button>
+                    </>
                 )}
             </Toolbar>
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import NoMatch from './views/NoMatch';
@@ -9,8 +10,16 @@ import AuthWatcher from './components/AuthWatcher.jsx';
 import SignDocument from './views/User/SignDocument.jsx';
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
 import Signature from './components/Signature.jsx';
+import { SocketProvider } from './contexts/SocketContext.jsx';
+import { getAuth, signOut } from 'firebase/auth';
+import { CircularProgress, Box } from '@mui/material';
+
 
 export default function App() {
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+
   const getRoutes = () => {
     return routes.map((route, index) => {
       const Component = route.component; // Extract the component
@@ -40,6 +49,31 @@ export default function App() {
     });
   };
 
+  const [authLoaded, setAuthLoaded] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(() => {
+      setAuthLoaded(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  if (!authLoaded) {
+    return (
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          bgcolor: '#f4f6f8',
+        }}
+      >
+        <CircularProgress size={64} thickness={4} />
+      </Box>
+    );
+  }
+
   return (
     <SettingsProvider>
       <AuthProvider>
@@ -48,7 +82,18 @@ export default function App() {
           <Route path="sign/:token" element={<SignDocument />} />
           <Route path="/signature/:document/:id" element={<Signature />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<MainLayout />}>
+          <Route
+            path="/"
+            element={
+              user?.email ? (
+                <SocketProvider tenantId={user.email.split('@')[0]}>
+                  <MainLayout />
+                </SocketProvider>
+              ) : (
+                <MainLayout />
+              )
+            }
+          >
             <Route index element={<Navigate to="/dashboard" replace />} />
             {getRoutes()}
             <Route path="*" element={<NoMatch />} />
