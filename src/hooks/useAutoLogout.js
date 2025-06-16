@@ -44,6 +44,7 @@ const useAutoLogout = () => {
       // Sign out after full timeout
       timer = setTimeout(() => {
         signOut(auth).then(() => {
+          localStorage.setItem('signInInProgress', JSON.stringify(false));
           window.location.href = '/login';
         });
       }, timeoutMinutes * 60 * 1000);
