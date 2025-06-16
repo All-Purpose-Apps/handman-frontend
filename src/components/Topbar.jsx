@@ -70,10 +70,6 @@ function Topbar({ setShowSidebar }) {
     // Handle opening the notification menu
     const handleNotificationClick = (event) => {
         setAnchorEl(event.currentTarget);
-        dispatch(markAllNotificationsAsRead()).then(() => {
-            // After marking all as read, fetch notifications again to update the state
-            dispatch(fetchNotifications());
-        });
     };
 
     // Handle closing the notification menu
@@ -126,114 +122,133 @@ function Topbar({ setShowSidebar }) {
     };
 
     return (
-        <AppBar
-            position="fixed"
-            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        >
-            <Toolbar>
-                <IconButton
-                    color="inherit"
-                    edge="start"
-                    onClick={() => setShowSidebar((prev) => !prev)}
-                    sx={{ mr: 2, display: { xs: 'block', sm: 'block', md: 'none' } }}
-                >
-                    <MenuIcon />
-                </IconButton>
-                <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                    {currentUser ? `Welcome, ${currentUser.displayName || currentUser.email}` : 'Welcome'}
-                </Typography>
-
-                {/* Notification Bell Icon */}
-                {currentUser && <IconButton color="inherit" onClick={handleNotificationClick}>
-                    <Badge badgeContent={unreadCount} color="error">
-                        <NotificationsIcon />
-                    </Badge>
-                </IconButton>}
-
-                {currentUser && (
-                    <>
-                        <Button color="inherit" onClick={handleLogout}>
-                            Logout
-                        </Button>
-                    </>
-                )}
-            </Toolbar>
-
-            {/* Notification Dropdown Menu */}
-            <Menu
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleNotificationClose}
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                }}
-                slotProps={{
-                    paper: {
-                        sx: {
-                            minWidth: 320,
-                            maxWidth: 'unset',
-                        },
-                    },
-                }}
+        <>
+            <style>
+                {`
+          @keyframes fadeIn {
+            to {
+              opacity: 1;
+            }
+          }
+        `}
+            </style>
+            <AppBar
+                position="fixed"
+                sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
             >
-                {notifications.length > 0 ? (
-                    <>
-                        <MenuItem onClick={handleClearAllNotifications}>
-                            <Typography variant="body2" color="primary">
-                                Clear All Notifications
-                            </Typography>
-                        </MenuItem>
-                        <Divider />
-                        {slicedNotifications.map((notification) => (
-                            <MenuItem
-                                key={notification._id}
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-start',
-                                    backgroundColor: notification.isRead ? '#ffffff' : '#e3f2fd',
-                                    gap: 1,
-                                    px: 2,
-                                    py: 1.5,
-                                    borderBottom: '1px solid #f0f0f0',
-                                }}
-                            >
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2">
-                                        {notification.message}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {dayjs(notification.date).format('MMM D, YYYY h:mm A')}
-                                    </Typography>
-                                </Box>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => handleNotificationDismiss(notification._id)}
-                                >
-                                    <CloseIcon fontSize="small" />
-                                </IconButton>
-                            </MenuItem>
-                        ))}
-                        {notifications.length > 5 && (
-                            <MenuItem onClick={() => setShowAllNotifications((prev) => !prev)}>
+                <Toolbar>
+                    <IconButton
+                        color="inherit"
+                        edge="start"
+                        onClick={() => setShowSidebar((prev) => !prev)}
+                        sx={{ mr: 2, display: { xs: 'block', sm: 'block', md: 'none' } }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                        {currentUser ? `Welcome, ${currentUser.displayName || currentUser.email}` : 'Welcome'}
+                    </Typography>
+
+                    {/* Notification Bell Icon */}
+                    {currentUser && <IconButton color="inherit" onClick={handleNotificationClick}>
+                        <Badge badgeContent={unreadCount} color="error">
+                            <NotificationsIcon />
+                        </Badge>
+                    </IconButton>}
+
+                    {currentUser && (
+                        <>
+                            <Button color="inherit" onClick={handleLogout}>
+                                Logout
+                            </Button>
+                        </>
+                    )}
+                </Toolbar>
+
+                {/* Notification Dropdown Menu */}
+                <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleNotificationClose}
+                    anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                minWidth: 320,
+                                maxWidth: 'unset',
+                            },
+                        },
+                    }}
+                >
+                    {notifications.length > 0 ? (
+                        <>
+                            <MenuItem onClick={handleClearAllNotifications}>
                                 <Typography variant="body2" color="primary">
-                                    {showAllNotifications ? 'Show Less' : 'View All Notifications'}
+                                    Clear All Notifications
                                 </Typography>
                             </MenuItem>
-                        )}
-                    </>
-                ) : (
-                    <MenuItem onClick={handleNotificationClose}>
-                        No new notifications
-                    </MenuItem>
-                )}
-            </Menu>
-        </AppBar>
+                            <Divider />
+                            <MenuItem onClick={() => dispatch(markAllNotificationsAsRead()).then(() => dispatch(fetchNotifications()))}>
+                                <Typography variant="body2" color="primary">
+                                    Mark All as Read
+                                </Typography>
+                            </MenuItem>
+                            <Divider />
+                            {slicedNotifications.map((notification) => (
+                                <MenuItem
+                                    key={notification._id}
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                        backgroundColor: notification.isRead ? '#ffffff' : '#e3f2fd',
+                                        gap: 1,
+                                        px: 2,
+                                        py: 1.5,
+                                        borderBottom: '1px solid #f0f0f0',
+                                        opacity: 0,
+                                        animation: 'fadeIn 0.5s ease-in forwards',
+                                    }}
+                                >
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography variant="body2" sx={{ fontWeight: notification.isRead ? 'normal' : 'bold' }}>
+                                            {notification.message}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {dayjs(notification.date).format('MMM D, YYYY h:mm A')}
+                                        </Typography>
+                                    </Box>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleNotificationDismiss(notification._id)}
+                                    >
+                                        <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                </MenuItem>
+                            ))}
+                            {notifications.length > 5 && (
+                                <MenuItem onClick={() => setShowAllNotifications((prev) => !prev)}>
+                                    <Typography variant="body2" color="primary">
+                                        {showAllNotifications ? 'Show Less' : 'View All Notifications'}
+                                    </Typography>
+                                </MenuItem>
+                            )}
+                        </>
+                    ) : (
+                        <MenuItem onClick={handleNotificationClose}>
+                            No new notifications
+                        </MenuItem>
+                    )}
+                </Menu>
+            </AppBar>
+        </>
     );
 }
 
