@@ -145,7 +145,7 @@ const SettingsPage = () => {
                     {currentUser?.photoURL && (
                         <Box
                             component="img"
-                            src={currentUser.photoURL}
+                            src={currentUser?.photoURL}
                             alt={currentUser.displayName || 'User avatar'}
                             sx={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', boxShadow: 2 }}
                         />
