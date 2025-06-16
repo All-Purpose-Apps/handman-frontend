@@ -125,22 +125,6 @@ function Topbar({ setShowSidebar }) {
         }
     };
 
-    const handleTestNotification = async () => {
-        const accessToken = localStorage.getItem('accessToken');
-        try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/test-socket`, {
-                credentials: 'include',
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            });
-            const data = await res.json();
-            console.log('Triggered test notification:', data);
-        } catch (err) {
-            console.error('Failed to test notification:', err);
-        }
-    };
-
     return (
         <AppBar
             position="fixed"
@@ -170,9 +154,6 @@ function Topbar({ setShowSidebar }) {
                     <>
                         <Button color="inherit" onClick={handleLogout}>
                             Logout
-                        </Button>
-                        <Button color="inherit" onClick={handleTestNotification}>
-                            Test Notification
                         </Button>
                     </>
                 )}
