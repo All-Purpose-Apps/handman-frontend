@@ -824,7 +824,6 @@ const ViewProposal = () => {
                                         >
                                             <ListItemAvatar>
                                                 <Avatar>
-
                                                     {proposal?.client?.name?.charAt(0)}
                                                 </Avatar>
                                             </ListItemAvatar>

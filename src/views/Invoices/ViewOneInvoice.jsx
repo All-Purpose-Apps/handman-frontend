@@ -26,6 +26,7 @@ import {
     CircularProgress,
     Fade,
     Backdrop,
+    ListItemText
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import moment from 'moment';
@@ -438,7 +439,7 @@ Han-D-Man Pro<br>
                                     <ListItemAvatar>
                                         <Avatar>{invoice?.client?.name?.charAt(0)}</Avatar>
                                     </ListItemAvatar>
-                                    <Typography variant="h6">{invoice?.client?.name}</Typography>
+                                    <ListItemText primary={invoice?.client?.name} secondary="Click to view details" />
                                 </ListItemButton>
                             )}
                         </Grid>
