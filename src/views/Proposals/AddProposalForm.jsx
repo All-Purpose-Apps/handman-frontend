@@ -110,6 +110,18 @@ export default function AddProposalForm() {
         }
         const storedClient = localStorage.getItem('proposalClient');
         const storedItems = localStorage.getItem('proposalItems');
+        const storedProjectAddress = localStorage.getItem('projectAddress');
+        const storedSameAsClientAddress = localStorage.getItem('sameAsClientAddress');
+
+        if (storedSameAsClientAddress) {
+            setSameAsClientAddress(JSON.parse(storedSameAsClientAddress));
+        }
+        if (storedProjectAddress) {
+            setProjectAddress(JSON.parse(storedProjectAddress));
+        }
+        if (storedProjectAddress) {
+            setSameAsClientAddress(JSON.parse(storedProjectAddress));
+        }
         if (storedClient) {
             setNewProposalData((prev) => ({
                 ...prev,
@@ -203,6 +215,9 @@ export default function AddProposalForm() {
     const handleClose = () => {
         localStorage.removeItem('proposalClient');
         localStorage.removeItem('proposalItems');
+        localStorage.removeItem('projectAddress');
+        localStorage.removeItem('proposalNumber');
+        localStorage.removeItem('sameAsClientAddress');
         dispatch(deleteMaterialsList(newProposalData.materialsListId));
         setNewProposalData({
             proposalNumber: '',
@@ -231,6 +246,8 @@ export default function AddProposalForm() {
             localStorage.removeItem('proposalClient');
             localStorage.removeItem('proposalItems');
             localStorage.removeItem('proposalNumber');
+            localStorage.removeItem('projectAddress');
+            localStorage.removeItem('sameAsClientAddress');
 
             navigate(`/proposals/${proposalData.payload._id}`, {
                 state: {
@@ -250,6 +267,9 @@ export default function AddProposalForm() {
     const handleAddMaterials = () => {
         localStorage.setItem('proposalClient', JSON.stringify(newProposalData.client));
         localStorage.setItem('proposalItems', JSON.stringify(newProposalData.items));
+        localStorage.setItem('projectAddress', JSON.stringify(projectAddress));
+        localStorage.setItem('sameAsClientAddress', JSON.stringify(sameAsClientAddress));
+
         navigate(`/proposal/${newProposalData.proposalNumber}/materials-list`,
             {
                 state: {
@@ -355,7 +375,7 @@ export default function AddProposalForm() {
                                             <Checkbox
                                                 checked={sameAsClientAddress}
                                                 onChange={(e) =>
-                                                    setSameAsClientAddress((prev) => prev = e.target.checked)
+                                                    setSameAsClientAddress(e.target.checked)
                                                 }
                                             />
                                         }

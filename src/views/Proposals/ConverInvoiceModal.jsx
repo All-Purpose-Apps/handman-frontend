@@ -1,6 +1,7 @@
-import React from 'react'
-import { TextField, Typography, Box, Button, Modal, Paper, Grid, Autocomplete, FormControl, InputLabel, Select, MenuItem, IconButton } from '@mui/material'
+import React, { useState, useEffect } from 'react'
+import { TextField, Typography, Box, Button, Modal, Paper, Grid, Autocomplete, FormControl, InputLabel, Select, MenuItem, IconButton, Switch, FormControlLabel } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddressAutocomplete from '../../components/AddressAutocomplete';
 
 export default function ConvertInvoiceModal({
     openModal,
@@ -13,6 +14,15 @@ export default function ConvertInvoiceModal({
     handleAddItem,
     handleAddInvoice,
     clients }) {
+    const [invoiceAddress, setInvoiceAddress] = useState('');
+    const [useClientAddress, setUseClientAddress] = useState(true);
+
+    useEffect(() => {
+        if (useClientAddress && newInvoiceData.client?.address) {
+            setInvoiceAddress(newInvoiceData.client.address);
+        }
+    }, [useClientAddress, newInvoiceData.client]);
+
     const modalStyle = {
         position: 'absolute',
         top: '50%',
@@ -79,6 +89,32 @@ export default function ConvertInvoiceModal({
                                     />
                                 )}
                             />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                                <Typography variant="body2" sx={{ flex: 1 }}>
+                                    <strong>Client Address:</strong> {newInvoiceData.client?.address || 'N/A'}
+                                </Typography>
+                                <Typography variant="body2" sx={{ flex: 1 }}>
+                                    <strong>Invoice Address:</strong> {invoiceAddress || 'N/A'}
+                                </Typography>
+                            </Box>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={useClientAddress}
+                                        onChange={(e) => setUseClientAddress(e.target.checked)}
+                                    />
+                                }
+                                label="Same as client address"
+                                sx={{ mt: 1 }}
+                            />
+                            {!useClientAddress && (
+                                <AddressAutocomplete
+                                    value={invoiceAddress}
+                                    onChange={(val, isAutoComplete) => setInvoiceAddress(val)}
+                                />
+                            )}
                         </Grid>
                         {/* Items */}
                         <Grid item xs={12}>
