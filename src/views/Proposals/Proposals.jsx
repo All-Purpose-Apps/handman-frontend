@@ -75,8 +75,15 @@ const ProposalsPage = () => {
                 {
                     field: 'proposalNumber',
                     headerName: 'Proposal #',
-                    width: 120,
+                    width: 80,
                     sortable: true,
+                },
+                {
+                    field: 'client',
+                    headerName: 'Client',
+                    width: 150,
+                    sortable: true,
+                    valueGetter: (params) => params.name || 'N/A',
                 },
                 {
                     field: 'status',
@@ -92,7 +99,7 @@ const ProposalsPage = () => {
                             backgroundColor = 'green'; // light green
                         } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
                             backgroundColor = 'goldenrod'; // light yellow
-                        } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                        } else if (status === 'rejected' || status === 'deleted' || status === 'draft' || status === 'proposal pdf created') {
                             backgroundColor = 'gray'; // light gray
                         }
 
@@ -167,7 +174,7 @@ const ProposalsPage = () => {
                                 backgroundColor = 'green'; // light green
                             } else if (status === 'sent' || status === 'viewed' || status === 'sent to client') {
                                 backgroundColor = 'goldenrod'; // light yellow
-                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft') {
+                            } else if (status === 'rejected' || status === 'deleted' || status === 'draft' || status === 'proposal pdf created') {
                                 backgroundColor = 'gray'; // light gray
                             }
 
