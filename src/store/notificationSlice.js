@@ -45,6 +45,7 @@ export const markNotificationAsRead = createAsyncThunk('notifications/markNotifi
     );
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to mark notification as read');
   }
 });

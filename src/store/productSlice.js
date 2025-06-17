@@ -24,6 +24,7 @@ export const fetchLowesProducts = createAsyncThunk('products/fetchLowesProducts'
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Something went wrong');
   }
 });
@@ -42,6 +43,7 @@ export const fetchHomeDepotProducts = createAsyncThunk('products/fetchHomeDepotP
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Something went wrong');
   }
 });

@@ -20,6 +20,7 @@ export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (_
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Something went wrong');
   }
 });
@@ -36,6 +37,7 @@ export const fetchOneInvoice = createAsyncThunk('invoices/fetchOneInvoice', asyn
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to fetch invoice');
   }
 });
@@ -52,6 +54,7 @@ export const addInvoice = createAsyncThunk('invoices/addInvoice', async (invoice
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to add invoice');
   }
 });
@@ -70,6 +73,7 @@ export const updateInvoice = createAsyncThunk('invoices/updateInvoice', async ({
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to update invoice');
   }
 });
@@ -85,6 +89,7 @@ export const deleteInvoice = createAsyncThunk('invoices/deleteInvoice', async (i
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to delete invoice');
   }
 });
@@ -104,6 +109,7 @@ export const sendInvoiceToClient = createAsyncThunk('invoices/sendInvoiceToClien
     );
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to send invoice to client');
   }
 });

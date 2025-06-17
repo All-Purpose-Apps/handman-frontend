@@ -264,7 +264,7 @@ const ClientsPage = () => {
             const resourceName = contact.payload.contact.resourceName;
 
             const response = await dispatch(addClient({ ...newClientData, name: `${newClientData.givenName} ${newClientData.familyName}`, resourceName, statusHistory: [{ status: 'created by user', date: new Date().toISOString() }] }));
-            console.log('Client added:', response);
+
             handleCloseModal();
             navigate(`/clients/${response.payload._id}`);
         } catch (error) {

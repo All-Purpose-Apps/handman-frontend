@@ -44,6 +44,7 @@ export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to fetch client');
   }
 });
@@ -76,6 +77,7 @@ export const updateClient = createAsyncThunk('clients/updateClient', async (clie
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to update client');
   }
 });
@@ -95,6 +97,7 @@ export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ re
     });
     return clientId;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to delete client');
   }
 });
@@ -132,6 +135,7 @@ export const createGoogleContact = createAsyncThunk('clients/createGoogleContact
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     if (error.response?.status === 401) {
       await signOut(auth);
       handleGoogleSignIn(auth);

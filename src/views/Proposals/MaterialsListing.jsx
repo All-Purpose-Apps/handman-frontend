@@ -136,7 +136,7 @@ const MaterialsListing = () => {
         setSnackbar({ open: true, message: 'Please ensure all fields are filled correctly.', severity: 'error' });
         return;
       }
-      console.log('Creating new materials list');
+
       dispatch(
         createMaterialsList({
           proposal: proposalNumber,

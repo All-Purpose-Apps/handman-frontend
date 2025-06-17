@@ -144,7 +144,6 @@ const FilesExplorer = () => {
                                                         />
                                                         <Tooltip title="Save">
                                                             <IconButton size="small" onClick={() => {
-                                                                console.log('Renaming file:', renamingFile.name, 'to', newFileName);
                                                                 // Dispatch renameFile action
                                                                 dispatch(renameFile({ oldName: renamingFile.name, newName: newFileName }));
                                                                 setRenamingFile(null);

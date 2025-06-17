@@ -25,6 +25,7 @@ export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async 
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     if (error.response?.status === 401) {
       handleGoogleSignIn(auth);
     }
@@ -45,6 +46,7 @@ export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     if (error.response?.status === 401) {
       handleGoogleSignIn(auth);
     }
@@ -69,6 +71,7 @@ export const createCalendarEvent = createAsyncThunk('calendar/createCalendarEven
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || error.message || 'Something went wrong');
   }
 });
@@ -90,6 +93,7 @@ export const updateCalendarEvent = createAsyncThunk('calendar/updateCalendarEven
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || error.message || 'Something went wrong');
   }
 });
@@ -111,6 +115,7 @@ export const deleteCalendarEvent = createAsyncThunk('calendar/deleteCalendarEven
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || error.message || 'Something went wrong');
   }
 });

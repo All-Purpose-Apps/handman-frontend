@@ -51,7 +51,6 @@ function Topbar({ setShowSidebar }) {
         if (!currentUser || !socket) return;
 
         const handleNewNotification = (notification) => {
-            console.log('Received new notification:', notification);
             dispatch(fetchNotifications());
         };
 

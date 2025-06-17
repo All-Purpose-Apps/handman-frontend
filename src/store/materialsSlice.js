@@ -35,6 +35,7 @@ export const addMaterial = createAsyncThunk('materials/addMaterial', async (mate
     });
     return response.data;
   } catch (err) {
+    console.log(err);
     return rejectWithValue(err.response?.data || err.message);
   }
 });
@@ -50,6 +51,7 @@ export const deleteMaterial = createAsyncThunk('materials/deleteMaterial', async
     });
     return response.data;
   } catch (err) {
+    console.log(err);
     return rejectWithValue(err.response?.data || err.message);
   }
 });
@@ -81,6 +83,7 @@ export const createMaterialsList = createAsyncThunk('materials/createMaterialsLi
     });
     return response.data;
   } catch (err) {
+    console.error('Error creating materials list:', err);
     return rejectWithValue(err.response?.data || err.message);
   }
 });
@@ -96,6 +99,7 @@ export const getMaterialList = createAsyncThunk('materials/getMaterialList', asy
     });
     return response.data;
   } catch (err) {
+    console.error('Error fetching material list:', err);
     return rejectWithValue(err.response?.data || err.message);
   }
 });
@@ -111,6 +115,7 @@ export const getMaterialListById = createAsyncThunk('materials/getMaterialListBy
     });
     return response.data;
   } catch (err) {
+    console.error('Error fetching material list by ID:', err);
     return rejectWithValue(err.response?.data || err.message);
   }
 });

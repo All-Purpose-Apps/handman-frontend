@@ -21,7 +21,6 @@ const Signature = () => {
     const sigCanvas = useRef({});
     const navigate = useNavigate();
     const { document, id } = useParams();
-    console.log('Document:', document === 'proposal', 'ID:', id);
 
     const handleClearSignature = () => {
         sigCanvas.current.clear();
@@ -47,7 +46,6 @@ const Signature = () => {
                         withCredentials: true,
                     }
                 );
-                console.log('Upload successful:', response.data);
                 navigate(-1); // Navigate back after successful upload
             } else if (document === 'invoice') {
                 const response = await axios.post(

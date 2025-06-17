@@ -24,12 +24,10 @@ export const SocketProvider = ({ tenantId, children }) => {
         });
 
         socketRef.current.on('connect', () => {
-            console.log('Socket connected:', socketRef.current.id);
             setIsConnected(true);
         });
 
         socketRef.current.on('disconnect', () => {
-            console.log('Socket disconnected');
             setIsConnected(false);
         });
 

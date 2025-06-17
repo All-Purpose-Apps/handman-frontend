@@ -20,6 +20,7 @@ export const fetchLastSync = createAsyncThunk('lastSync/fetchLastSync', async (_
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to fetch last sync');
   }
 });
@@ -41,6 +42,7 @@ export const updateLastSync = createAsyncThunk('lastSync/updateLastSync', async 
 
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to update last sync');
   }
 });

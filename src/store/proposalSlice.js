@@ -19,6 +19,7 @@ export const fetchProposals = createAsyncThunk('proposals/fetchProposals', async
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Something went wrong');
   }
 });
@@ -34,6 +35,7 @@ export const fetchOneProposal = createAsyncThunk('proposals/fetchOneProposal', a
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to fetch proposal');
   }
 });
@@ -49,6 +51,7 @@ export const addProposal = createAsyncThunk('proposals/addProposal', async (prop
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to add proposal');
   }
 });
@@ -64,6 +67,7 @@ export const updateProposal = createAsyncThunk('proposals/updateProposal', async
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to update proposal');
   }
 });
@@ -79,6 +83,7 @@ export const deleteProposal = createAsyncThunk('proposals/deleteProposal', async
     });
     return response.data;
   } catch (error) {
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to delete proposal');
   }
 });
