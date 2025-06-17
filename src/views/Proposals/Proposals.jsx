@@ -23,6 +23,7 @@ const ProposalsPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [searchText, setSearchText] = useState('');
+    const [checkboxSelection, setCheckboxSelection] = useState(true);
 
     const proposalsRaw = useSelector((state) => state.proposals.proposals);
     const proposals = Array.isArray(proposalsRaw) ? proposalsRaw : [];
@@ -32,9 +33,10 @@ const ProposalsPage = () => {
 
     const filteredProposalsFormatted = useMemo(() => {
         const filtered = proposals.filter((proposal) =>
-            ['proposalNumber', 'proposalTitle', 'clientName', 'status'].some((field) =>
+            ['proposalNumber', 'proposalTitle', 'status'].some((field) =>
                 proposal[field]?.toString().toLowerCase().includes(searchText.toLowerCase())
             ) ||
+            proposal?.client?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
             proposal?.items?.some((item) =>
                 item.description.toLowerCase().includes(searchText.toLowerCase())
             )
@@ -412,6 +414,7 @@ const ProposalsPage = () => {
                     pageSizeOptions={[5, 10, 20]}
                     onRowClick={handleRowClick}
                     getRowId={(row) => row._id}
+                    checkboxSelection={checkboxSelection}
                     getRowHeight={(params) => {
                         const minHeight = 60;
                         const items = params.model.items || [];
