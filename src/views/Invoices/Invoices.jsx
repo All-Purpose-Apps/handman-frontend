@@ -181,24 +181,37 @@ const desktopColumns = [
         flex: 1,
         minWidth: 120,
         renderCell: (params) => {
-            const color = getStatusColor(params.value);
+            const status = (params.value || '').toLowerCase();
+            const color = getStatusColor(status);
             return (
                 <Box
                     sx={{
+                        width: '100%',
+                        height: '100%',
                         backgroundColor: color,
-                        color: '#fff',
-                        borderRadius: 1,
-                        px: 1,
-                        py: 0.5,
-                        textAlign: 'center',
-                        minWidth: 80,
-                        fontWeight: 'bold',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        fontSize: '1.2rem', // 14px
+                        display: 'flex',
+                        alignItems: 'center',
+                        paddingLeft: 2,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                     }}
                 >
-                    {params.value}
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: 'white',
+                            fontWeight: 500,
+                            fontSize: {
+                                xs: '0.75rem',
+                                sm: '0.85rem',
+                                md: '0.95rem',
+                                lg: '1rem',
+                            },
+                        }}
+                    >
+                        {(status || '').toUpperCase()}
+                    </Typography>
                 </Box>
             );
         },
