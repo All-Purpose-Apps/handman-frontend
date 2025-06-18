@@ -26,6 +26,8 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       const auth = getAuth();
       try {
+        localStorage.removeItem('accessToken');
+        localStorage.setItem('signInInProgress', JSON.stringify(false));
         await signOut(auth);
         window.location.href = '/login';
       } catch (signOutError) {

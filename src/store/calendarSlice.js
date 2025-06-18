@@ -26,9 +26,6 @@ export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async 
     return response.data;
   } catch (error) {
     console.log(error);
-    if (error.response?.status === 401) {
-      handleGoogleSignIn(auth);
-    }
     return rejectWithValue(error.response?.data || error.message || 'Something went wrong');
   }
 });
@@ -47,9 +44,6 @@ export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({
     return response.data;
   } catch (error) {
     console.log(error);
-    if (error.response?.status === 401) {
-      handleGoogleSignIn(auth);
-    }
     return rejectWithValue(error.response?.data || error.message || 'Something went wrong');
   }
 });

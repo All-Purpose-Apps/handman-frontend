@@ -24,10 +24,6 @@ export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, {
     return response.data;
   } catch (error) {
     console.log(error);
-    if (error.response?.status === 401) {
-      await signOut(auth);
-      handleGoogleSignIn(auth);
-    }
     return rejectWithValue(error.response?.data || 'Something went wrong');
   }
 });
@@ -115,10 +111,6 @@ export const syncClients = createAsyncThunk('clients/syncClients', async (client
     return response.data;
   } catch (error) {
     console.log('error', error.response);
-    if (error.response?.status === 401) {
-      await signOut(auth);
-      handleGoogleSignIn(auth);
-    }
     return rejectWithValue(error.response?.data || 'Failed to sync clients');
   }
 });
@@ -136,10 +128,6 @@ export const createGoogleContact = createAsyncThunk('clients/createGoogleContact
     return response.data;
   } catch (error) {
     console.log(error);
-    if (error.response?.status === 401) {
-      await signOut(auth);
-      handleGoogleSignIn(auth);
-    }
     return rejectWithValue(error.response?.data || 'Failed to create Google contact');
   }
 });
