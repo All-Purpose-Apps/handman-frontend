@@ -47,6 +47,8 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 
+import AddressAutocomplete from '../../components/AddressAutocomplete';
+
 const ViewClient = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
@@ -57,7 +59,6 @@ const ViewClient = () => {
     const isMobile = window.innerWidth <= 600;
 
     const { client, status, error } = useSelector((state) => state.clients);
-
     // State variables for edit mode and form data
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
@@ -66,7 +67,13 @@ const ViewClient = () => {
         email: '',
         phone: '',
         address: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        zip: '',
     });
+    // Track if address was selected from autocomplete
+    const [selectedFromAutocomplete, setSelectedFromAutocomplete] = useState(false);
 
 
 
@@ -82,7 +89,12 @@ const ViewClient = () => {
                 email: client.email || '',
                 phone: client.phone || '',
                 address: client.address || '',
+                streetAddress: client.streetAddress || '',
+                city: client.city || '',
+                state: client.state || '',
+                zip: client.zip || '',
             });
+            setSelectedFromAutocomplete(false);
         }
     }, [client]);
 
@@ -146,15 +158,27 @@ const ViewClient = () => {
             familyName: client.familyName || '',
             email: client.email || '',
             phone: client.phone || '',
-            address: client.address || '',
+            streetAddress: client.streetAddress || '',
+            city: client.city || '',
+            state: client.state || '',
+            zip: client.zip || '',
         });
+        setSelectedFromAutocomplete(false);
     };
 
 
     const handleSave = async () => {
+        if (!selectedFromAutocomplete) {
+            alert('Please select a valid address from the suggestions.');
+            return;
+        }
+        if (!formData.streetAddress || !formData.city || !formData.state || !formData.zip) {
+            alert('Please select a valid address from the suggestions.');
+            return;
+        }
         setIsSaving(true);
         try {
-            await dispatch(updateClient({ ...formData, updatedAt: new Date(), id }));
+            await dispatch(updateClient({ ...formData, id, address: `${formData.streetAddress}, ${formData.city}, ${formData.state} ${formData.zip}` }));
             await dispatch(fetchOneClient(id));
             setIsEditing(false);
         } catch (error) {
@@ -231,8 +255,12 @@ const ViewClient = () => {
         if (label == 'familyName') {
             return 'Last Name';
         }
+        if (label == 'streetAddress') {
+            return 'Address';
+        }
         return label.charAt(0).toUpperCase() + label.slice(1)
     }
+
     const handleSendReview = async () => {
         const accessToken = localStorage.getItem('accessToken');
         try {
@@ -336,7 +364,7 @@ const ViewClient = () => {
                             <Divider sx={{ marginY: 1 }} />
                             {isEditing ? (
                                 <>
-                                    {['givenName', 'familyName', 'email', 'phone', 'address'].map((field) => (
+                                    {['givenName', 'familyName', 'email', 'phone'].map((field) => (
                                         <Box sx={{ marginBottom: 1 }} key={field}>
                                             <TextField
                                                 label={createLabels(field)}
@@ -351,6 +379,29 @@ const ViewClient = () => {
                                             />
                                         </Box>
                                     ))}
+                                    <Box sx={{ marginBottom: 1 }}>
+                                        <AddressAutocomplete
+                                            value={formData.address}
+                                            onChange={(addressObj, isPlaceObj) => {
+                                                setSelectedFromAutocomplete(isPlaceObj);
+                                                if (isPlaceObj) {
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        address: addressObj.address,
+                                                        streetAddress: addressObj.streetAddress,
+                                                        city: addressObj.city,
+                                                        state: addressObj.state,
+                                                        zip: addressObj.zip,
+                                                    }));
+                                                } else {
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        streetAddress: addressObj,
+                                                    }));
+                                                }
+                                            }}
+                                        />
+                                    </Box>
                                 </>
                             ) : (
                                 <>
@@ -539,10 +590,17 @@ const ViewClient = () => {
                                                 color="primary"
                                                 onClick={handleSave}
                                                 startIcon={<SaveIcon />}
-                                                disabled={isSaving}
+                                                disabled={
+                                                    isSaving ||
+                                                    !selectedFromAutocomplete ||
+                                                    !formData.streetAddress ||
+                                                    !formData.city ||
+                                                    !formData.state ||
+                                                    !formData.zip
+                                                }
                                                 sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
                                             >
-                                                Save
+                                                {isSaving ? 'Saving...' : 'Save'}
                                             </Button>
                                         </Box>
                                         <Box sx={{ flex: 1, width: '100%', textAlign: { xs: 'center', sm: 'end' } }}>
