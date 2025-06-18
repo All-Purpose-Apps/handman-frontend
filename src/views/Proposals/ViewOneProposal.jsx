@@ -689,7 +689,7 @@ const ViewProposal = () => {
                     variant="contained"
                     onClick={handleCreatePdf}
                 >
-                    Create PDF
+                    {proposal.fileUrl ? 'Regenerate PDF' : 'Create PDF'}
                 </Button>
             ),
             proposal.fileUrl && (
