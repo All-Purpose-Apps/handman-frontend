@@ -15,15 +15,32 @@ import {
     useMediaQuery,
     Modal,
     CircularProgress,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
 import moment from 'moment';
 import { useAuth } from '../../contexts/AuthContext';
+import { deleteMultipleProposals } from '../../store/proposalSlice';
 
 const ProposalsPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [searchText, setSearchText] = useState('');
-    const [checkboxSelection, setCheckboxSelection] = useState(true);
+
+    const [rowSelectionModel, setRowSelectionModel] = useState([]);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const handleDeleteConfirmed = () => {
+        dispatch(deleteMultipleProposals(rowSelectionModel)).finally(() => {
+            dispatch(fetchProposals());
+            setDeleteModalOpen(false);
+            setRowSelectionModel([]);
+        });
+    };
+
+
 
     const proposalsRaw = useSelector((state) => state.proposals.proposals);
     const proposals = Array.isArray(proposalsRaw) ? proposalsRaw : [];
@@ -69,7 +86,11 @@ const ProposalsPage = () => {
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+    const handleDeleteSelected = () => {
+        if (rowSelectionModel.length === 0) return;
+        setDeleteModalOpen(true);
+    };
 
     const columns = useMemo(() => {
         return isMobile
@@ -165,7 +186,7 @@ const ProposalsPage = () => {
                     {
                         field: 'status',
                         headerName: 'Status',
-                        width: 200,
+                        width: 250,
                         sortable: true,
                         renderCell: (params) => {
                             const status = (params.value || '').toLowerCase();
@@ -376,71 +397,113 @@ const ProposalsPage = () => {
 
 
     return (
-        <Box style={{ padding: 20, paddingLeft: isMobile ? 10 : 20 }}>
-            <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                marginBottom={2}
-            >
-                <Typography variant="h4" gutterBottom>
-                    Proposals
-                </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => navigate('/proposals/new')}
+        <>
+            <Box style={{ padding: 20, paddingLeft: isMobile ? 10 : 20 }}>
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    marginBottom={2}
                 >
-                    Add Proposal
-                </Button>
-            </Box>
+                    <Typography variant="h4" gutterBottom>
+                        Proposals
+                    </Typography>
+                    <Box>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={() => handleDeleteSelected()}
+                            style={{ marginRight: 10 }}
+                            disabled={rowSelectionModel.length === 0}
+                            sx={{
+                                display: rowSelectionModel.length === 0 ? 'none' : 'inline-flex',
+                            }}
+                        >
+                            Delete Selected
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate('/proposals/new')}
+                        >
+                            Add Proposal
+                        </Button>
 
-            <Box marginBottom={2}>
-                <TextField
-                    label="Search Proposals"
-                    variant="outlined"
-                    value={searchText}
-                    onChange={handleSearch}
-                    style={{ width: '100%' }}
-                />
-            </Box>
+                    </Box>
+                </Box>
 
-            <div style={{ height: 500, width: '100%' }}>
-                <DataGrid
-                    rows={filteredProposalsFormatted}
-                    columns={columns}
-                    pageSize={10}
-                    rowsPerPageOptions={[5, 10, 20]}
-                    pageSizeOptions={[5, 10, 20]}
-                    onRowClick={handleRowClick}
-                    getRowId={(row) => row._id}
-                    checkboxSelection={checkboxSelection}
-                    getRowHeight={(params) => {
-                        const minHeight = 60;
-                        const items = params.model.items || [];
-                        const contentHeight =
-                            items.length > 0 ? items.length * 24 + 16 : minHeight;
-                        return Math.max(contentHeight, minHeight);
-                    }}
-                    initialState={{
-                        sorting: {
-                            sortModel: [{ field: 'updatedAt', sort: 'desc' }],
-                        },
-                        pagination: {
-                            paginationModel: { pageSize: 10, page: 0 },
-                        },
-                    }}
-                    sx={{
-                        '& .MuiDataGrid-row': {
-                            cursor: 'pointer',
-                        },
-                    }}
-                    localeText={{
-                        noRowsLabel: isEmpty ? 'No proposals available.' : 'No matching results.',
-                    }}
-                />
-            </div>
-        </Box>
+                <Box marginBottom={2}>
+                    <TextField
+                        label="Search Proposals"
+                        variant="outlined"
+                        value={searchText}
+                        onChange={handleSearch}
+                        style={{ width: '100%' }}
+                    />
+                </Box>
+
+                <div style={{ height: 500, width: '100%' }}>
+                    <DataGrid
+                        rows={filteredProposalsFormatted}
+                        columns={columns}
+                        pageSize={10}
+                        rowsPerPageOptions={[5, 10, 20, 50, 100]}
+                        pageSizeOptions={[5, 10, 20, 50, 100]}
+                        onRowClick={handleRowClick}
+                        getRowId={(row) => row._id}
+                        checkboxSelection
+                        onRowSelectionModelChange={(newRowSelectionModel) => {
+                            setRowSelectionModel(newRowSelectionModel);
+                        }}
+                        rowSelectionModel={rowSelectionModel}
+                        getRowHeight={(params) => {
+                            const minHeight = 60;
+                            const items = params.model.items || [];
+                            const contentHeight =
+                                items.length > 0 ? items.length * 24 + 16 : minHeight;
+                            return Math.max(contentHeight, minHeight);
+                        }}
+                        initialState={{
+                            sorting: {
+                                sortModel: [{ field: 'updatedAt', sort: 'desc' }],
+                            },
+                            pagination: {
+                                paginationModel: { pageSize: 10, page: 0 },
+                            },
+                        }}
+                        sx={{
+                            '& .MuiDataGrid-row': {
+                                cursor: 'pointer',
+                            },
+                        }}
+                        localeText={{
+                            noRowsLabel: isEmpty ? 'No proposals available.' : 'No matching results.',
+                        }}
+                    />
+                </div>
+            </Box>
+            {/* Add modal for confirming delete */}
+            <Dialog
+                open={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+            >
+                <DialogTitle>Confirm Delete</DialogTitle>
+                <DialogContent>
+                    {loading ? <CircularProgress /> :
+                        <DialogContentText>
+                            Are you sure you want to delete the selected proposals?
+                        </DialogContentText>}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteModalOpen(false)} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleDeleteConfirmed} color="secondary">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 };
 

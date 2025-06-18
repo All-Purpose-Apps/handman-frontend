@@ -88,6 +88,26 @@ export const deleteProposal = createAsyncThunk('proposals/deleteProposal', async
   }
 });
 
+export const deleteMultipleProposals = createAsyncThunk('proposals/deleteMultipleProposals', async (proposalIds, { rejectWithValue }) => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/api/proposals/delete-multiple`,
+      { ids: proposalIds },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          withCredentials: true,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return rejectWithValue(error.response?.data || 'Failed to delete proposals');
+  }
+});
+
 export const proposalSlice = createSlice({
   name: 'proposals',
   initialState,
@@ -127,6 +147,18 @@ export const proposalSlice = createSlice({
         state.proposals.push(action.payload);
       })
       .addCase(addProposal.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(deleteMultipleProposals.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteMultipleProposals.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.proposals = action.payload;
+      })
+      .addCase(deleteMultipleProposals.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || action.error.message;
       });
