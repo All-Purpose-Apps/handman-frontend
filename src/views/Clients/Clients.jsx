@@ -696,7 +696,7 @@ const ClientsPage = () => {
                                                 },
                                             }}
                                         >
-                                            {recentStatus.toUpperCase()}
+                                            {recentStatus.toUpperCase()} - {moment(client.updatedAt).format('MM/DD/YY h:mm A')}
                                         </Typography>
                                     </Card>
                                 );
