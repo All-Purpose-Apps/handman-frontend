@@ -19,7 +19,25 @@ const AddressAutocomplete = ({ value, onChange }) => {
         if (autocompleteRef.current) {
             const place = autocompleteRef.current.getPlace();
             setAddress(place.formatted_address || '');
-            onChange(place.formatted_address || '', true);
+
+            const components = place.address_components || [];
+            const getComponent = (types) =>
+                components.find(c => types.every(t => c.types.includes(t)))?.long_name || '';
+
+            const streetNumber = getComponent(['street_number']);
+            const route = getComponent(['route']);
+            const city = getComponent(['locality']) || getComponent(['sublocality']);
+            const state = getComponent(['administrative_area_level_1']);
+            const zip = getComponent(['postal_code']);
+            const streetAddress = [streetNumber, route].filter(Boolean).join(' ');
+
+            onChange({
+                fullAddress: place.formatted_address || '',
+                streetAddress,
+                city,
+                state,
+                zip,
+            }, true);
         }
     };
 

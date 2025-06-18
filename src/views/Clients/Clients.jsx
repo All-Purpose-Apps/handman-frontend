@@ -87,6 +87,11 @@ const ClientsPage = () => {
         familyName: '',
         email: '',
         phone: '',
+        address: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        zip: ''
     });
     const [loading, setLoading] = useState(false);
     const [isFetchingClients, setIsFetchingClients] = useState(false);
@@ -278,22 +283,52 @@ const ClientsPage = () => {
             familyName: '',
             email: '',
             phone: '',
+            address: '',
+            streetAddress: '',
+            city: '',
+            state: '',
+            zip: ''
         });
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setNewClientData({ ...newClientData, [name]: value });
+        setNewClientData((prevData) => ({
+            ...prevData,
+            [name]: value
+        }));
+    };
+
+    // Handles address change from AddressAutocomplete
+    const handleAddressChange = (addressObj, isValidSelection) => {
+        setNewClientData((prevData) => ({
+            ...prevData,
+            ...{
+                address: addressObj.fullAddress,
+                streetAddress: addressObj.streetAddress,
+                city: addressObj.city,
+                state: addressObj.state,
+                zip: addressObj.zip
+            }
+        }));
     };
 
     const handleAddClient = async (e) => {
         e.preventDefault();
         setIsCreatingClient(true);
         try {
-            const contact = await dispatch(createGoogleContact(newClientData));
+            // Derive address string if not already present
+            const fullAddress = newClientData.address || `${newClientData.streetAddress}, ${newClientData.city}, ${newClientData.state} ${newClientData.zip}`;
+
+            const contact = await dispatch(createGoogleContact({ ...newClientData, address: fullAddress }));
             const resourceName = contact.payload.contact.resourceName;
 
-            const response = await dispatch(addClient({ ...newClientData, name: `${newClientData.givenName} ${newClientData.familyName}`, resourceName, statusHistory: [{ status: 'created by user', date: new Date().toISOString() }] }));
+            const response = await dispatch(addClient({
+                ...newClientData,
+                name: `${newClientData.givenName} ${newClientData.familyName}`,
+                resourceName,
+                statusHistory: [{ status: 'created by user', date: new Date().toISOString() }]
+            }));
 
             handleCloseModal();
             navigate(`/clients/${response.payload._id}`);
@@ -739,6 +774,7 @@ const ClientsPage = () => {
                 openModal={openModal}
                 newClientData={newClientData}
                 handleInputChange={handleInputChange}
+                handleAddressChange={handleAddressChange}
             />
             <Modal
                 open={isCreatingClient}

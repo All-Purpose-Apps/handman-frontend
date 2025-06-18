@@ -6,7 +6,17 @@ export default function AddClientModal({
     handleAddClient,
     openModal,
     handleCloseModal,
-    newClientData = { givenName: '', familyName: '', email: '', phone: '', address: '' },
+    newClientData = {
+        givenName: '',
+        familyName: '',
+        email: '',
+        phone: '',
+        address: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        zip: ''
+    },
     handleInputChange
 }) {
     const [selectedFromAutocomplete, setSelectedFromAutocomplete] = useState(false);
@@ -24,16 +34,19 @@ export default function AddClientModal({
 
     const handleAddressChange = (address, isValidSelection) => {
         setSelectedFromAutocomplete(isValidSelection);
-        handleInputChange({
-            target: {
-                name: 'address',
-                value: address,
-            },
+        Object.entries({
+            address: address.fullAddress,
+            streetAddress: address.streetAddress,
+            city: address.city,
+            state: address.state,
+            zip: address.zip
+        }).forEach(([name, value]) => {
+            handleInputChange({ target: { name, value } });
         });
     };
 
     const isFormValid = () => {
-        const { givenName = '', familyName = '', email = '', phone = '', address = '' } = newClientData;
+        const { givenName = '', familyName = '', email = '', phone = '', address = '', streetAddress = '', city = '', state = '', zip = '' } = newClientData;
 
         return (
             selectedFromAutocomplete &&
@@ -41,7 +54,11 @@ export default function AddClientModal({
             familyName.trim() &&
             email.trim() &&
             phone.trim() &&
-            address.trim()
+            address.trim() &&
+            streetAddress.trim() &&
+            city.trim() &&
+            state.trim() &&
+            zip.trim()
         );
     };
 
