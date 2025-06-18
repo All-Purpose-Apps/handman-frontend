@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { handleGoogleSignIn } from '../utils/handleGoogleSignIn';
+import { getAuth } from 'firebase/auth';
 import axios from '../utils/axiosInstance';
 
 const initialState = {
@@ -14,13 +13,7 @@ const initialState = {
 export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, { rejectWithValue }) => {
   const auth = getAuth();
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -31,13 +24,7 @@ export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, {
 // Fetch a single client by ID
 export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (clientId, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients/${clientId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients/${clientId}`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -48,13 +35,7 @@ export const fetchOneClient = createAsyncThunk('clients/fetchOneClient', async (
 // Add a new client
 export const addClient = createAsyncThunk('clients/addClient', async (client, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients`, client, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients`, client);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -64,13 +45,7 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
 
 export const updateClient = createAsyncThunk('clients/updateClient', async (client, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/clients/${client.id}`, client, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/clients/${client.id}`, client);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -80,7 +55,6 @@ export const updateClient = createAsyncThunk('clients/updateClient', async (clie
 
 export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ resourceName, id }, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
     await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/google/contacts`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -101,13 +75,7 @@ export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ re
 export const syncClients = createAsyncThunk('clients/syncClients', async (clients, { rejectWithValue }) => {
   const auth = getAuth();
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/sync`, clients, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/sync`, clients);
     return response.data;
   } catch (error) {
     console.log('error', error.response);
@@ -118,13 +86,7 @@ export const syncClients = createAsyncThunk('clients/syncClients', async (client
 export const createGoogleContact = createAsyncThunk('clients/createGoogleContact', async (contact, { rejectWithValue }) => {
   const auth = getAuth();
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/google/contacts`, contact, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/google/contacts`, contact);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -136,7 +98,6 @@ export const clearClientHistory = createAsyncThunk('clients/clearClientHistory',
   const auth = getAuth();
   // Clear the client history by making a DELETE request to the backend with the client ID in the body
   try {
-    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.post(
       `${import.meta.env.VITE_BACKEND_URL}/api/clients/clear-status-history`,
       { clientId },
@@ -156,13 +117,7 @@ export const clearClientHistory = createAsyncThunk('clients/clearClientHistory',
 
 export const sendReviewRequestEmail = createAsyncThunk('clients//send-review-request', async (clientId, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/send-review-request`, clientId, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/send-review-request`, clientId);
     return response.data;
   } catch (error) {
     console.log(error);

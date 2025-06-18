@@ -3,13 +3,7 @@ import axios from '../utils/axiosInstance';
 
 export const fetchFiles = createAsyncThunk('files/fetchFiles', async (_, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/files`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/files`);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch files:', error);
@@ -19,13 +13,8 @@ export const fetchFiles = createAsyncThunk('files/fetchFiles', async (_, { rejec
 
 export const deleteFile = createAsyncThunk('files/deleteFile', async (filename, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
     await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/files/delete/`, {
       params: { filename },
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
     });
     return filename; // Return the filename to remove it from the state
   } catch (error) {
@@ -36,20 +25,10 @@ export const deleteFile = createAsyncThunk('files/deleteFile', async (filename, 
 
 export const renameFile = createAsyncThunk('files/renameFile', async ({ oldName, newName }, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.put(
-      `${import.meta.env.VITE_BACKEND_URL}/api/files/rename`,
-      {
-        oldName,
-        newName,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          withCredentials: true,
-        },
-      }
-    );
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/files/rename`, {
+      oldName,
+      newName,
+    });
     return response.data; // Assuming the response contains the updated file info
   } catch (error) {
     console.error('Failed to rename file:', error);

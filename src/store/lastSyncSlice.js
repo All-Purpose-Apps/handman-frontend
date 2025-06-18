@@ -10,14 +10,7 @@ const initialState = {
 // Fetch the last sync time
 export const fetchLastSync = createAsyncThunk('lastSync/fetchLastSync', async (_, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/last-synced`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/last-synced`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -28,16 +21,9 @@ export const fetchLastSync = createAsyncThunk('lastSync/fetchLastSync', async (_
 // Update the last sync time
 export const updateLastSync = createAsyncThunk('lastSync/updateLastSync', async (id, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.put(
       `${import.meta.env.VITE_BACKEND_URL}/api/last-synced/${id}`,
-      {}, // Empty body if you're not sending data
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        withCredentials: true,
-      }
+      {} // Empty body if you're not sending data
     );
 
     return response.data;

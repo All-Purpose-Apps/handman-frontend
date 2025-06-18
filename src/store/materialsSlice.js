@@ -10,13 +10,7 @@ const initialState = {
 
 export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', async (_, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials`);
     return response.data;
   } catch (err) {
     console.error('Error fetching materials:', err);
@@ -26,13 +20,7 @@ export const getAllMaterials = createAsyncThunk('materials/getAllMaterials', asy
 
 export const addMaterial = createAsyncThunk('materials/addMaterial', async (material, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/add-material-to-list`, material, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/add-material-to-list`, material);
     return response.data;
   } catch (err) {
     console.log(err);
@@ -42,13 +30,7 @@ export const addMaterial = createAsyncThunk('materials/addMaterial', async (mate
 
 export const deleteMaterial = createAsyncThunk('materials/deleteMaterial', async (id, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-material-from-list/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-material-from-list/${id}`);
     return response.data;
   } catch (err) {
     console.log(err);
@@ -58,13 +40,7 @@ export const deleteMaterial = createAsyncThunk('materials/deleteMaterial', async
 
 export const updateMaterial = createAsyncThunk('materials/updateMaterial', async (material, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/materials/update-material-in-list/${material._id}`, material, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/materials/update-material-in-list/${material._id}`, material);
     return response.data;
   } catch (err) {
     console.error('Error updating material:', err);
@@ -74,13 +50,7 @@ export const updateMaterial = createAsyncThunk('materials/updateMaterial', async
 
 export const createMaterialsList = createAsyncThunk('materials/createMaterialsList', async (materials, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/create-materials-list`, materials, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/materials/create-materials-list`, materials);
     return response.data;
   } catch (err) {
     console.error('Error creating materials list:', err);
@@ -90,13 +60,7 @@ export const createMaterialsList = createAsyncThunk('materials/createMaterialsLi
 
 export const getMaterialList = createAsyncThunk('materials/getMaterialList', async (proposalNumber, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list/${proposalNumber}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list/${proposalNumber}`);
     return response.data;
   } catch (err) {
     console.error('Error fetching material list:', err);
@@ -106,13 +70,7 @@ export const getMaterialList = createAsyncThunk('materials/getMaterialList', asy
 
 export const getMaterialListById = createAsyncThunk('materials/getMaterialListById', async (id, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list-by-id/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/materials/get-materials-list-by-id/${id}`);
     return response.data;
   } catch (err) {
     console.error('Error fetching material list by ID:', err);
@@ -122,7 +80,6 @@ export const getMaterialListById = createAsyncThunk('materials/getMaterialListBy
 
 export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsList', async ({ id, materials, total, discountTotal }, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
     const response = await axios.put(
       `${import.meta.env.VITE_BACKEND_URL}/api/materials/update-materials-list/${id}`,
       { materials, total, discountTotal },
@@ -142,13 +99,7 @@ export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsLi
 
 export const deleteMaterialsList = createAsyncThunk('materials/deleteMaterialsList', async (id, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-materials-list/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/materials/delete-materials-list/${id}`);
     return response.data;
   } catch (err) {
     console.error('Error deleting materials list:', err);

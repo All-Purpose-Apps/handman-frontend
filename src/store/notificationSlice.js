@@ -1,8 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from '../utils/axiosInstance';
 
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { handleGoogleSignIn } from '../utils/handleGoogleSignIn';
+import { getAuth } from 'firebase/auth';
 
 const initialState = {
   notifications: [],
@@ -16,13 +15,7 @@ export const fetchNotifications = createAsyncThunk('notifications/fetchNotificat
   const auth = getAuth();
 
   try {
-    const accessToken = await localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notifications`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notifications`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -32,16 +25,9 @@ export const fetchNotifications = createAsyncThunk('notifications/fetchNotificat
 
 export const markNotificationAsRead = createAsyncThunk('notifications/markNotificationAsRead', async (notificationId, { rejectWithValue }) => {
   try {
-    const accessToken = await localStorage.getItem('accessToken');
     const response = await axios.patch(
       `${import.meta.env.VITE_BACKEND_URL}/api/notifications/markAsRead/${notificationId}`,
-      {}, // Pass an empty object as the request body since it's a PATCH request
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        withCredentials: true,
-      }
+      {} // Pass an empty object as the request body since it's a PATCH request
     );
     return response.data;
   } catch (error) {
@@ -52,13 +38,7 @@ export const markNotificationAsRead = createAsyncThunk('notifications/markNotifi
 
 export const clearNotifications = createAsyncThunk('notifications/clearNotifications', async (_, { rejectWithValue }) => {
   try {
-    const accessToken = await localStorage.getItem('accessToken');
-    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/clear`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/clear`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -68,17 +48,7 @@ export const clearNotifications = createAsyncThunk('notifications/clearNotificat
 
 export const markAllNotificationsAsRead = createAsyncThunk('notifications/markAllNotificationsAsRead', async (_, { rejectWithValue }) => {
   try {
-    const accessToken = await localStorage.getItem('accessToken');
-    const response = await axios.patch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/notifications/markAllAsRead`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          withCredentials: true,
-        },
-      }
-    );
+    const response = await axios.patch(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/markAllAsRead`, {});
     return response.data;
   } catch (error) {
     console.log(error);

@@ -2,8 +2,7 @@
 
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from '../utils/axiosInstance';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { handleGoogleSignIn } from '../utils/handleGoogleSignIn';
+import { getAuth } from 'firebase/auth';
 
 const initialState = {
   calendar: [],
@@ -16,13 +15,7 @@ const initialState = {
 export const fetchCalendars = createAsyncThunk('calendar/fetchCalendars', async (_, { rejectWithValue }) => {
   const auth = getAuth();
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/calendars`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/calendars`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -34,13 +27,7 @@ export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({
   const auth = getAuth();
 
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -50,19 +37,8 @@ export const fetchCalendar = createAsyncThunk('calendar/fetchCalendar', async ({
 
 export const createCalendarEvent = createAsyncThunk('calendar/createCalendarEvent', async ({ eventData, calendarId }, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, eventData, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
+    await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, eventData);
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -72,19 +48,8 @@ export const createCalendarEvent = createAsyncThunk('calendar/createCalendarEven
 
 export const updateCalendarEvent = createAsyncThunk('calendar/updateCalendarEvent', async ({ eventId, eventData, calendarId }, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, eventData, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
+    await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, eventData);
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -94,13 +59,7 @@ export const updateCalendarEvent = createAsyncThunk('calendar/updateCalendarEven
 
 export const deleteCalendarEvent = createAsyncThunk('calendar/deleteCalendarEvent', async ({ eventId, calendarId }, { rejectWithValue }) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
+    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events/${eventId}?calendarId=${calendarId}`);
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/google/calendar/events?calendarId=${calendarId}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
