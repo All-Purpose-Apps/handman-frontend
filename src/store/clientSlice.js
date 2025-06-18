@@ -56,10 +56,6 @@ export const updateClient = createAsyncThunk('clients/updateClient', async (clie
 export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ resourceName, id }, { rejectWithValue }) => {
   try {
     await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/google/contacts`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
       params: {
         resourceName,
         id,
