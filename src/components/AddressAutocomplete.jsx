@@ -18,9 +18,9 @@ const AddressAutocomplete = ({ value, onChange }) => {
     const onPlaceChanged = () => {
         if (autocompleteRef.current) {
             const place = autocompleteRef.current.getPlace();
-            setAddress(place.formatted_address || '');
+            setAddress(place?.formatted_address || '');
 
-            const components = place.address_components || [];
+            const components = place?.address_components || [];
             const getComponent = (types) =>
                 components.find(c => types.every(t => c.types.includes(t)))?.long_name || '';
 
@@ -32,7 +32,7 @@ const AddressAutocomplete = ({ value, onChange }) => {
             const streetAddress = [streetNumber, route].filter(Boolean).join(' ');
 
             onChange({
-                address: place.formatted_address || '',
+                address: place?.formatted_address || '',
                 streetAddress,
                 city,
                 state,
