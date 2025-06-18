@@ -653,8 +653,11 @@ const ClientsPage = () => {
                                 </Select>
                             </FormControl>
                         </Box>
-                        <Fade in={sortField === 'updatedAt' && sortOrder === 'desc'}>
-                            <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
+                        <Fade in={sortField === 'updatedAt' && sortOrder === 'desc'} sx={{
+                            display: sortField === 'updatedAt' ? 'block' : 'none',
+                            mb: 1,
+                        }}>
+                            <Typography variant="caption" sx={{ ml: 1, mb: 1, color: 'text.secondary' }}>
                                 Default sorting: Last Updated (Descending)
                             </Typography>
                         </Fade>
