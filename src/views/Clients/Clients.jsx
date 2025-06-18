@@ -16,7 +16,12 @@ import {
     useTheme,
     useMediaQuery,
     Backdrop,
-    Button
+    Button,
+    MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
+    Fade
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -39,6 +44,9 @@ const ClientsPage = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+    const [sortField, setSortField] = useState('updatedAt');
+    const [sortOrder, setSortOrder] = useState('desc');
 
     const [device, setDevice] = useState('desktop');
 
@@ -204,6 +212,28 @@ const ClientsPage = () => {
             setFilteredClients([]);
         }
     }, [clients]);
+
+    // Sort filteredClients based on sortField and sortOrder for mobile
+    useEffect(() => {
+        if (!isMobile) return;
+
+        const sorted = [...filteredClients].sort((a, b) => {
+            let fieldA = a[sortField];
+            let fieldB = b[sortField];
+
+            if (sortField === 'updatedAt') {
+                fieldA = new Date(fieldA || 0);
+                fieldB = new Date(fieldB || 0);
+                return sortOrder === 'asc' ? fieldA - fieldB : fieldB - fieldA;
+            }
+
+            fieldA = (fieldA || '').toString().toLowerCase();
+            fieldB = (fieldB || '').toString().toLowerCase();
+            return sortOrder === 'asc' ? fieldA.localeCompare(fieldB) : fieldB.localeCompare(fieldA);
+        });
+
+        setFilteredClients(sorted);
+    }, [sortField, sortOrder]);
 
     // Initialize visibleClients when filteredClients changes (for infinite scroll)
     useEffect(() => {
@@ -595,50 +625,84 @@ const ClientsPage = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
                 {isMobile ? (
-                    <InfiniteScroll
-                        dataLength={visibleClients.length}
-                        next={loadMoreClients}
-                        hasMore={hasMore}
-                        loader={<Typography textAlign="center">Loading...</Typography>}
-                        scrollThreshold={0.9}
-                    >
-                        {visibleClients.map((client) => {
-                            const sortedStatusHistory = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
-                            const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
-                            const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
-                            return (
-                                <Card
-                                    key={client._id}
-                                    onClick={() => handleCardClick(client._id)}
-                                    sx={{
-                                        mb: 1,
-                                        p: 2,
-                                        cursor: 'pointer',
-                                        '&:hover': { backgroundColor: '#f5f5f5' },
-                                        backgroundColor: bgColor,
-                                        color: '#fff',
-                                    }}
+                    <>
+                        <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" gap={2} mb={2}>
+                            <FormControl size="small" sx={{ minWidth: 140 }}>
+                                <InputLabel id="sort-field-label">Sort By</InputLabel>
+                                <Select
+                                    labelId="sort-field-label"
+                                    value={sortField}
+                                    label="Sort By"
+                                    onChange={(e) => setSortField(e.target.value)}
                                 >
-                                    <Typography variant="body1">{`${client.givenName || ''} ${client.familyName || ''}`}</Typography>
-                                    <Typography
-                                        variant="body2"
+                                    <MenuItem value="givenName">First Name</MenuItem>
+                                    <MenuItem value="familyName">Last Name</MenuItem>
+                                    <MenuItem value="updatedAt">Last Updated</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormControl size="small" sx={{ minWidth: 140 }}>
+                                <InputLabel id="sort-order-label">Order</InputLabel>
+                                <Select
+                                    labelId="sort-order-label"
+                                    value={sortOrder}
+                                    label="Order"
+                                    onChange={(e) => setSortOrder(e.target.value)}
+                                >
+                                    <MenuItem value="asc">Ascending</MenuItem>
+                                    <MenuItem value="desc">Descending</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
+                        <Fade in={sortField === 'updatedAt' && sortOrder === 'desc'}>
+                            <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
+                                Default sorting: Last Updated (Descending)
+                            </Typography>
+                        </Fade>
+                        <InfiniteScroll
+                            dataLength={visibleClients.length}
+                            next={loadMoreClients}
+                            hasMore={hasMore}
+                            loader={<Typography textAlign="center">Loading...</Typography>}
+                            scrollThreshold={0.9}
+                        >
+                            {visibleClients.map((client) => {
+                                const sortedStatusHistory = [...(client.statusHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
+                                const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
+                                const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
+                                return (
+                                    <Card
+                                        key={client._id}
+                                        onClick={() => handleCardClick(client._id)}
                                         sx={{
-                                            fontWeight: 'bold',
-                                            mt: 1,
-                                            fontSize: {
-                                                xs: '0.75rem',
-                                                sm: '0.85rem',
-                                                md: '0.95rem',
-                                                lg: '1rem',
-                                            },
+                                            mb: 1,
+                                            p: 2,
+                                            cursor: 'pointer',
+                                            '&:hover': { backgroundColor: '#f5f5f5' },
+                                            backgroundColor: bgColor,
+                                            color: '#fff',
                                         }}
                                     >
-                                        {recentStatus.toUpperCase()}
-                                    </Typography>
-                                </Card>
-                            );
-                        })}
-                    </InfiniteScroll>
+                                        <Typography variant="body1">{`${client.givenName || ''} ${client.familyName || ''}`}</Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                mt: 1,
+                                                fontSize: {
+                                                    xs: '0.75rem',
+                                                    sm: '0.85rem',
+                                                    md: '0.95rem',
+                                                    lg: '1rem',
+                                                },
+                                            }}
+                                        >
+                                            {recentStatus.toUpperCase()}
+                                        </Typography>
+                                    </Card>
+                                );
+                            })}
+                        </InfiniteScroll>
+                    </>
                 ) : (
                     Array.isArray(filteredClients) && filteredClients.length > 0 ? (
                         <DataGrid
