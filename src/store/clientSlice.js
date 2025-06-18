@@ -98,16 +98,7 @@ export const clearClientHistory = createAsyncThunk('clients/clearClientHistory',
   const auth = getAuth();
   // Clear the client history by making a DELETE request to the backend with the client ID in the body
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BACKEND_URL}/api/clients/clear-status-history`,
-      { clientId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          withCredentials: true,
-        },
-      }
-    );
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/clear-status-history`, { clientId });
     return response.data;
   } catch (error) {
     console.log(error);
