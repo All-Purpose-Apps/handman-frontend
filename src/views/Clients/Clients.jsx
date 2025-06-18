@@ -680,7 +680,7 @@ const ClientsPage = () => {
                                             mb: 1,
                                             p: 2,
                                             cursor: 'pointer',
-                                            '&:hover': { backgroundColor: '#f5f5f5' },
+                                            '&:hover': { backgroundColor: '#33daff' },
                                             backgroundColor: bgColor,
                                             color: '#fff',
                                         }}
