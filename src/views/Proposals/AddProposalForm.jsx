@@ -22,13 +22,18 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import AddressAutocomplete from '../../components/AddressAutocomplete';
+
 
 export default function AddProposalForm() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const { clientId } = location.state || {};
+
+    // Submission state to prevent double submission
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
 
     const { proposalNumber: routeProposalNumber } = useParams();
@@ -77,12 +82,18 @@ export default function AddProposalForm() {
                 }));
             } else {
                 if (proposals.length > 0) {
-                    const latestNumber = Math.max(
-                        ...proposals.map((p) =>
-                            parseInt(p.proposalNumber.replace(/\D/g, ''), 10)
-                        )
-                    );
-                    const nextNumber = `${latestNumber + 1}`;
+                    const numbers = proposals
+                        .map((p) => parseInt(p.proposalNumber.replace(/\D/g, ''), 10))
+                        .filter((n) => !isNaN(n))
+                        .sort((a, b) => a - b);
+                    let nextNumber = 9001;
+                    for (let i = 0; i < numbers.length; i++) {
+                        if (numbers[i] !== nextNumber) {
+                            break;
+                        }
+                        nextNumber++;
+                    }
+                    nextNumber = `${nextNumber}`;
                     localStorage.setItem('proposalNumber', nextNumber);
                     setNewProposalData((prev) => ({
                         ...prev,
@@ -234,6 +245,8 @@ export default function AddProposalForm() {
 
     const handleAddProposal = async (event) => {
         event.preventDefault();
+        if (isSubmitting) return;
+        setIsSubmitting(true);
         try {
             // Include projectAddress in the object sent to addProposal
             const proposalData = await dispatch(addProposal({ ...newProposalData, projectAddress }));
@@ -261,6 +274,8 @@ export default function AddProposalForm() {
                 message: 'Failed to add proposal. Please try again.',
                 severity: 'error',
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -525,9 +540,14 @@ export default function AddProposalForm() {
                             type="submit"
                             variant="contained"
                             color="primary"
-                            disabled={!newProposalData.client}
+                            disabled={!newProposalData.client || isSubmitting}
+                            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+                            sx={{
+                                opacity: isSubmitting ? 0.7 : 1,
+                                pointerEvents: isSubmitting ? 'none' : 'auto',
+                            }}
                         >
-                            Submit
+                            {isSubmitting ? 'Submitting...' : 'Submit'}
                         </Button>
                     </Box>
                 </form>
