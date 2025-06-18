@@ -35,7 +35,7 @@ export default function AddClientModal({
     const handleAddressChange = (address, isValidSelection) => {
         setSelectedFromAutocomplete(isValidSelection);
         Object.entries({
-            address: address.fullAddress,
+            address: address.address,
             streetAddress: address.streetAddress,
             city: address.city,
             state: address.state,

@@ -304,7 +304,7 @@ const ClientsPage = () => {
         setNewClientData((prevData) => ({
             ...prevData,
             ...{
-                address: addressObj.fullAddress,
+                address: addressObj.address,
                 streetAddress: addressObj.streetAddress,
                 city: addressObj.city,
                 state: addressObj.state,
@@ -318,9 +318,8 @@ const ClientsPage = () => {
         setIsCreatingClient(true);
         try {
             // Derive address string if not already present
-            const fullAddress = newClientData.address || `${newClientData.streetAddress}, ${newClientData.city}, ${newClientData.state} ${newClientData.zip}`;
 
-            const contact = await dispatch(createGoogleContact({ ...newClientData, address: fullAddress }));
+            const contact = await dispatch(createGoogleContact({ ...newClientData }));
             const resourceName = contact.payload.contact.resourceName;
 
             const response = await dispatch(addClient({

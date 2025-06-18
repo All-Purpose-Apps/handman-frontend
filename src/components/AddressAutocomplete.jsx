@@ -32,7 +32,7 @@ const AddressAutocomplete = ({ value, onChange }) => {
             const streetAddress = [streetNumber, route].filter(Boolean).join(' ');
 
             onChange({
-                fullAddress: place.formatted_address || '',
+                address: place.formatted_address || '',
                 streetAddress,
                 city,
                 state,
