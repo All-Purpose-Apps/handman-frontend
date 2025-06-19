@@ -159,6 +159,7 @@ const ViewClient = () => {
             email: client.email || '',
             phone: client.phone || '',
             streetAddress: client.streetAddress || '',
+            address: client.address || '',
             city: client.city || '',
             state: client.state || '',
             zip: client.zip || '',
