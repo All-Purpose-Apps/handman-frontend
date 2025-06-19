@@ -80,16 +80,7 @@ export const getMaterialListById = createAsyncThunk('materials/getMaterialListBy
 
 export const updateMaterialsList = createAsyncThunk('materials/updateMaterialsList', async ({ id, materials, total, discountTotal }, { rejectWithValue }) => {
   try {
-    const response = await axios.put(
-      `${import.meta.env.VITE_BACKEND_URL}/api/materials/update-materials-list/${id}`,
-      { materials, total, discountTotal },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          withCredentials: true,
-        },
-      }
-    );
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/materials/update-materials-list/${id}`, { materials, total, discountTotal });
     return response.data;
   } catch (err) {
     console.error('Error updating materials list:', err);
