@@ -829,10 +829,6 @@ const ViewProposal = () => {
                                             </ListItemAvatar>
                                             <ListItemText primary={proposal?.client?.name} secondary="Click to view details" />
                                         </ListItemButton>
-                                        <Typography variant="body1" sx={{ marginTop: '10px' }}>
-                                            <strong>Client Name:</strong>{' '}
-                                            {proposal?.client?.name || 'Loading...'}
-                                        </Typography>
                                         <Box sx={{ marginTop: '10px', display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'column', lg: 'row' } }} >
                                             <Typography variant="body1" sx={{ flex: 1 }}>
                                                 <strong>Client Address:</strong>{' '}
