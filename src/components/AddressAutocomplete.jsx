@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
+import TextField from '@mui/material/TextField';
 
 const libraries = ['places'];
 
@@ -54,22 +55,25 @@ const AddressAutocomplete = ({ value, onChange }) => {
                     }
                 }}
             >
-                <input
+                <TextField
                     type="text"
-                    placeholder="Enter address"
+                    label="Address"
                     value={address}
                     required
+                    fullWidth
+                    margin="normal"
                     onChange={(e) => {
                         setAddress(e.target.value);
                         onChange(e.target.value, false);
                     }}
                     autoComplete="off"
-                    style={{
-                        width: '100%',
-                        padding: '20px',
-                        zIndex: 1300,
-                        position: 'relative',
-                    }}
+                    // style={{
+                    //     width: '100%',
+                    //     zIndex: 1300,
+                    //     position: 'relative',
+                    //     textFont: 'inherit',
+                    //     fontSize: '16px',
+                    // }}
                     onFocus={(e) => {
                         // Optional: select text on focus
                         e.target.select();
