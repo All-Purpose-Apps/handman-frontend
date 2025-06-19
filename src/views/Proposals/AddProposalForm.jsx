@@ -62,63 +62,13 @@ export default function AddProposalForm() {
     const [projectAddress, setProjectAddress] = useState('');
     const [sameAsClientAddress, setSameAsClientAddress] = useState(false);
 
+    // Initial setup: fetch clients/proposals, load localStorage, set client if navigated from clientId
     useEffect(() => {
-        if (sameAsClientAddress && newProposalData.client?.address) {
-            setProjectAddress((prev) =>
-                newProposalData.client.address
-            );
-        } else if (!sameAsClientAddress) {
-            setProjectAddress('');
-        }
-    }, [sameAsClientAddress, newProposalData.client]);
-
-    useEffect(() => {
-        if (!newProposalData.proposalNumber) {
-            const storedProposalNumber = localStorage.getItem('proposalNumber');
-            if (storedProposalNumber) {
-                setNewProposalData((prev) => ({
-                    ...prev,
-                    proposalNumber: storedProposalNumber,
-                }));
-            } else {
-                if (proposals.length > 0) {
-                    const numbers = proposals
-                        .map((p) => parseInt(p.proposalNumber.replace(/\D/g, ''), 10))
-                        .filter((n) => !isNaN(n))
-                        .sort((a, b) => a - b);
-                    let nextNumber = 9001;
-                    for (let i = 0; i < numbers.length; i++) {
-                        if (numbers[i] !== nextNumber) {
-                            break;
-                        }
-                        nextNumber++;
-                    }
-                    nextNumber = `${nextNumber}`;
-                    localStorage.setItem('proposalNumber', nextNumber);
-                    setNewProposalData((prev) => ({
-                        ...prev,
-                        proposalNumber: nextNumber,
-                    }));
-                } else {
-                    localStorage.setItem('proposalNumber', '9001');
-                    setNewProposalData((prev) => ({ ...prev, proposalNumber: '9001' }));
-                }
-            }
-        }
-    }, [proposals, newProposalData.proposalNumber]);
-
-    useEffect(() => {
+        // Fetch clients and proposals on mount
         dispatch(fetchClients());
         dispatch(fetchProposals());
-        if (clientId) {
-            const selectedClient = clients.find((client) => client._id === clientId);
-            if (selectedClient) {
-                setNewProposalData((prev) => ({
-                    ...prev,
-                    client: selectedClient,
-                }));
-            }
-        }
+
+        // Load stored values from localStorage
         const storedClient = localStorage.getItem('proposalClient');
         const storedItems = localStorage.getItem('proposalItems');
         const storedProjectAddress = localStorage.getItem('projectAddress');
@@ -127,12 +77,8 @@ export default function AddProposalForm() {
         if (storedSameAsClientAddress) {
             setSameAsClientAddress(JSON.parse(storedSameAsClientAddress));
         }
-        if (storedProjectAddress) {
-            setProjectAddress(JSON.parse(storedProjectAddress));
-        }
-        if (storedProjectAddress) {
-            setSameAsClientAddress(JSON.parse(storedProjectAddress));
-        }
+
+        // Set client and items from storage if present
         if (storedClient) {
             setNewProposalData((prev) => ({
                 ...prev,
@@ -145,7 +91,77 @@ export default function AddProposalForm() {
                 items: JSON.parse(storedItems),
             }));
         }
-    }, [dispatch]);
+
+        // Set project address from storage only if not same as client address
+        if (storedProjectAddress && !(storedSameAsClientAddress && JSON.parse(storedSameAsClientAddress))) {
+            setProjectAddress(JSON.parse(storedProjectAddress));
+        }
+
+        // If navigating from a client, set that client
+        if (clientId) {
+            const selectedClient = clients.find((client) => client._id === clientId);
+            if (selectedClient) {
+                setNewProposalData((prev) => ({
+                    ...prev,
+                    client: selectedClient,
+                }));
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Set proposal number from localStorage or calculate new one when proposals are loaded
+    useEffect(() => {
+        if (!newProposalData.proposalNumber) {
+            const storedProposalNumber = localStorage.getItem('proposalNumber');
+            if (storedProposalNumber) {
+                setNewProposalData((prev) => ({
+                    ...prev,
+                    proposalNumber: storedProposalNumber,
+                }));
+            } else if (proposals.length > 0) {
+                const numbers = proposals
+                    .map((p) => parseInt(p.proposalNumber.replace(/\D/g, ''), 10))
+                    .filter((n) => !isNaN(n))
+                    .sort((a, b) => a - b);
+                let nextNumber = 9001;
+                for (let i = 0; i < numbers.length; i++) {
+                    if (numbers[i] !== nextNumber) {
+                        break;
+                    }
+                    nextNumber++;
+                }
+                nextNumber = `${nextNumber}`;
+                localStorage.setItem('proposalNumber', nextNumber);
+                setNewProposalData((prev) => ({
+                    ...prev,
+                    proposalNumber: nextNumber,
+                }));
+            } else {
+                localStorage.setItem('proposalNumber', '9001');
+                setNewProposalData((prev) => ({ ...prev, proposalNumber: '9001' }));
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [proposals]);
+
+    // When sameAsClientAddress or client changes, update projectAddress in proposal data directly
+    useEffect(() => {
+        setNewProposalData((prev) => {
+            // If same as client address, set projectAddress to client address
+            if (sameAsClientAddress && prev.client?.address) {
+                return { ...prev, projectAddress: prev.client.address };
+            }
+            // If not same as client address, retain prev.projectAddress (which user can edit)
+            return { ...prev, projectAddress: projectAddress };
+        });
+        // If not same as client address, projectAddress remains as is (user can edit)
+        // projectAddress state is still used for the AddressAutocomplete input
+        // (the value is synced on change)
+        // But the source of truth for submit is newProposalData.projectAddress
+        // To avoid double render, do not setProjectAddress here
+        // Only update newProposalData
+    }, [sameAsClientAddress, newProposalData.client]);
 
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
@@ -248,8 +264,8 @@ export default function AddProposalForm() {
         if (isSubmitting) return;
         setIsSubmitting(true);
         try {
-            // Include projectAddress in the object sent to addProposal
-            const proposalData = await dispatch(addProposal({ ...newProposalData, projectAddress }));
+            // Use projectAddress from newProposalData (source of truth)
+            const proposalData = await dispatch(addProposal({ ...newProposalData, projectAddress: newProposalData.projectAddress }));
             await dispatch(updateMaterialsList({
                 id: newProposalData.materialsListId,
                 materials,
@@ -400,6 +416,10 @@ export default function AddProposalForm() {
                                         value={projectAddress}
                                         onChange={(val, isAutoComplete) => {
                                             setProjectAddress(val);
+                                            setNewProposalData((prev) => ({
+                                                ...prev,
+                                                projectAddress: val,
+                                            }));
                                         }}
                                     />}
                                 </>
@@ -512,15 +532,17 @@ export default function AddProposalForm() {
                                     Add Item
                                 </Button>
                             )}
-                            {newProposalData.client && !newProposalData.materials && (
-                                <Button
-                                    variant="contained"
-                                    onClick={handleAddMaterials}
-                                    sx={{ mt: 2, ml: 2 }}
-                                >
-                                    Add Materials
-                                </Button>
-                            )}
+                            {newProposalData.client
+                                && !newProposalData.materials
+                                && materialsList.length > 0 && (
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleAddMaterials}
+                                        sx={{ mt: 2, ml: 2 }}
+                                    >
+                                        Add Materials
+                                    </Button>
+                                )}
                         </Grid>
                         <Grid item xs={12}>
                             <Typography variant="h6">
