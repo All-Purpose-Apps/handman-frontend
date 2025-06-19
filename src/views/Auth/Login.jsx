@@ -18,7 +18,7 @@ const Login = () => {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [auth, navigate]);
 
     const handleClick = async () => {
         if (sessionStorage.getItem('loginInProgress')) return;
