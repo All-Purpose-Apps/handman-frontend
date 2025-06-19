@@ -15,6 +15,7 @@ import {
     MenuItem,
     IconButton,
     CircularProgress,
+    useTheme,
 } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import DeleteIcon from '@mui/icons-material/Delete'; // Added this import
@@ -229,8 +230,9 @@ const InvoicesPage = () => {
     const [searchText, setSearchText] = useState('');
     const [openModal, setOpenModal] = useState(false);
     const [loading, setLoading] = useState(true);
-    const isTablet = useMediaQuery('(min-width:600px) and (max-width:1024px)');
-    const isMobile = useMediaQuery('(max-width:600px)');
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
 
     const { clientId } = location.state || {};
 
