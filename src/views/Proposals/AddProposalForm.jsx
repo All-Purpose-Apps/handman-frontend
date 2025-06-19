@@ -48,7 +48,11 @@ export default function AddProposalForm() {
         packagePrice: 0,
         fileUrl: '',
         materialsListId: null,
+        projectFullAddress: '',
         projectAddress: '',
+        projectCity: '',
+        projectState: '',
+        projectZip: '',
     });
 
     const [materials, setMaterials] = useState([]);
@@ -61,6 +65,7 @@ export default function AddProposalForm() {
     // Project address state
     const [projectAddress, setProjectAddress] = useState('');
     const [sameAsClientAddress, setSameAsClientAddress] = useState(false);
+
 
     // Initial setup: fetch clients/proposals, load localStorage, set client if navigated from clientId
     useEffect(() => {
@@ -94,7 +99,17 @@ export default function AddProposalForm() {
 
         // Set project address from storage only if not same as client address
         if (storedProjectAddress && !(storedSameAsClientAddress && JSON.parse(storedSameAsClientAddress))) {
-            setProjectAddress(JSON.parse(storedProjectAddress));
+            const projectAddressFromStorage = JSON.parse(storedProjectAddress);
+
+            setProjectAddress(projectAddressFromStorage.address || '');
+            setNewProposalData((prev) => ({
+                ...prev,
+                projectFullAddress: projectAddressFromStorage.address || '',
+                projectAddress: projectAddressFromStorage.streetAddress || '',
+                projectCity: projectAddressFromStorage.city || '',
+                projectState: projectAddressFromStorage.state || '',
+                projectZip: projectAddressFromStorage.zip || '',
+            }));
         }
 
         // If navigating from a client, set that client
@@ -153,7 +168,10 @@ export default function AddProposalForm() {
                 return { ...prev, projectAddress: prev.client.address };
             }
             // If not same as client address, retain prev.projectAddress (which user can edit)
-            return { ...prev, projectAddress: projectAddress };
+            return {
+                ...prev,
+                projectFullAddress: projectAddress
+            };
         });
         // If not same as client address, projectAddress remains as is (user can edit)
         // projectAddress state is still used for the AddressAutocomplete input
@@ -265,7 +283,9 @@ export default function AddProposalForm() {
         setIsSubmitting(true);
         try {
             // Use projectAddress from newProposalData (source of truth)
-            const proposalData = await dispatch(addProposal({ ...newProposalData, projectAddress: newProposalData.projectAddress }));
+            const proposalData = await dispatch(addProposal({
+                ...newProposalData,
+            }));
             await dispatch(updateMaterialsList({
                 id: newProposalData.materialsListId,
                 materials,
@@ -341,6 +361,7 @@ export default function AddProposalForm() {
             },
         });;
     }
+
 
     return (
         <>
@@ -532,9 +553,10 @@ export default function AddProposalForm() {
                                     Add Item
                                 </Button>
                             )}
+
                             {newProposalData.client
                                 && !newProposalData.materials
-                                && materialsList.length > 0 && (
+                                && !newProposalData.materialsListId && (
                                     <Button
                                         variant="contained"
                                         onClick={handleAddMaterials}
@@ -576,7 +598,7 @@ export default function AddProposalForm() {
             </Paper >
             <Snackbar
                 open={snackbar.open}
-                autoHideDuration={4000}
+                autoHideDuration={2000}
                 onClose={handleCloseSnackbar}
             >
                 <MuiAlert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} elevation={6} variant="filled">
