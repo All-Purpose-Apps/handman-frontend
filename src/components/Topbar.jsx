@@ -223,6 +223,8 @@ function Topbar({ setShowSidebar }) {
                                         borderBottom: '1px solid #f0f0f0',
                                         opacity: 0,
                                         animation: 'fadeIn 0.5s ease-in forwards',
+                                        textWrap: 'auto',
+                                        maxWidth: { sm: '400px', md: '500px' },
                                     }}
                                 >
                                     <Box sx={{ flex: 1 }}>
