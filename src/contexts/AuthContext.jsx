@@ -9,7 +9,6 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const auth = getAuth(app);
-  const accessToken = localStorage.getItem('accessToken');
 
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
