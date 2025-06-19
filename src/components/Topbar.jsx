@@ -43,6 +43,7 @@ function Topbar({ setShowSidebar }) {
 
     // State for the notification menu
     const [anchorEl, setAnchorEl] = useState(null);
+    const [showAllNotifications, setShowAllNotifications] = useState(false);
     const open = Boolean(anchorEl);
 
 
@@ -80,6 +81,7 @@ function Topbar({ setShowSidebar }) {
     // Handle closing the notification menu
     const handleNotificationClose = () => {
         setAnchorEl(null);
+        setShowAllNotifications(false);
         dispatch(markAllNotificationsAsRead()).then(() => {
             dispatch(fetchNotifications());
         });
@@ -108,7 +110,7 @@ function Topbar({ setShowSidebar }) {
     };
 
     // State to control showing all notifications
-    const [showAllNotifications, setShowAllNotifications] = useState(false);
+
 
     // Memoize displayedNotifications and slicedNotifications
     const displayedNotifications = useMemo(() => {
