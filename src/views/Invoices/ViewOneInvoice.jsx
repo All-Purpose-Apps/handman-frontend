@@ -410,7 +410,7 @@ Han-D-Man Pro<br>
                         </Box>
                     </Box>
                     <Grid container spacing={2} alignItems="flex-start">
-                        <Grid item xs={12} md={4}>
+                        <Grid item xs={12} md={12}>
                             {isEditing ? (
                                 clients && clients.length > 0 ? (
                                     <Autocomplete
@@ -442,35 +442,43 @@ Han-D-Man Pro<br>
                                     <ListItemText primary={invoice?.client?.name} secondary="Click to view details" />
                                 </ListItemButton>
                             )}
-                            {isEditing ? (
-                                <>
-                                    <TextField
-                                        label="Invoice Address"
-                                        name="address"
-                                        fullWidth
-                                        value={editedInvoice.address || ''}
-                                        onChange={handleInputChange}
-                                        sx={{ mt: 2 }}
-                                    />
-                                    <TextField
-                                        label="Project Address"
-                                        name="projectFullAddress"
-                                        fullWidth
-                                        value={editedInvoice.projectFullAddress || ''}
-                                        onChange={handleInputChange}
-                                        sx={{ mt: 2 }}
-                                    />
-                                </>
-                            ) : (
-                                <Box>
-                                    <Typography variant="body2" sx={{ mt: 2 }}>
-                                        Client Address: {invoice?.client?.address || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ mt: 1 }}>
-                                        Project Address: {invoice?.projectFullAddress}
-                                    </Typography>
-                                </Box>
-                            )}
+                            <Grid container spacing={2} sx={{ mt: 2 }}>
+                                {isEditing ? (
+                                    <>
+                                        <Grid item xs={12} sm={6}>
+                                            <TextField
+                                                label="Invoice Address"
+                                                name="address"
+                                                fullWidth
+                                                value={editedInvoice.address || ''}
+                                                onChange={handleInputChange}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={6}>
+                                            <TextField
+                                                label="Project Address"
+                                                name="projectFullAddress"
+                                                fullWidth
+                                                value={editedInvoice.projectFullAddress || ''}
+                                                onChange={handleInputChange}
+                                            />
+                                        </Grid>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Grid item xs={12} sm={6}>
+                                            <Typography variant="body1">
+                                                <strong>Client Address:</strong> {invoice?.client?.address || 'N/A'}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid item xs={12} sm={6}>
+                                            <Typography variant="body1">
+                                                <strong>Project Address:</strong> {invoice?.projectFullAddress}
+                                            </Typography>
+                                        </Grid>
+                                    </>
+                                )}
+                            </Grid>
                         </Grid>
                         <Grid item xs={12}>
                             <Grid container spacing={2} alignItems="center">
@@ -823,7 +831,7 @@ Han-D-Man Pro<br>
                         </Button>
                     </Box>
                 </Fade>
-            </Modal>
+            </Modal >
 
             <Modal
                 open={sendSuccessModalOpen}
