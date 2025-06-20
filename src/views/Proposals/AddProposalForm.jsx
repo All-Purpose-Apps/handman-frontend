@@ -435,6 +435,7 @@ export default function AddProposalForm() {
                                     />
                                     {!sameAsClientAddress && <AddressAutocomplete
                                         value={projectAddress}
+                                        label="Project Address"
                                         onChange={(val, isAutoComplete) => {
                                             setProjectAddress(val);
                                             setNewProposalData((prev) => ({

@@ -134,7 +134,7 @@ export default function AddClientModal({
                     <AddressAutocomplete
                         value={newClientData.address}
                         onChange={handleAddressChange}
-
+                        label="Address"
                     />
 
                     {isFormValid() && (

@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField';
 
 const libraries = ['places'];
 
-const AddressAutocomplete = ({ value, onChange }) => {
+const AddressAutocomplete = ({ value, onChange, label }) => {
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: import.meta.env.VITE_PEOPLE_API_KEY,
         libraries,
@@ -57,7 +57,7 @@ const AddressAutocomplete = ({ value, onChange }) => {
             >
                 <TextField
                     type="text"
-                    label="Address"
+                    label={label || 'Address'}
                     value={address}
                     required
                     fullWidth
