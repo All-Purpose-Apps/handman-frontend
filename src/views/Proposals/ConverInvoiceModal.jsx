@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { TextField, Typography, Box, Button, Modal, Paper, Grid, Autocomplete, FormControl, InputLabel, Select, MenuItem, IconButton, Switch, FormControlLabel } from '@mui/material'
+import { TextField, Typography, Box, Button, Modal, Paper, Grid, Autocomplete, FormControl, InputLabel, Select, MenuItem, IconButton, Checkbox, FormControlLabel } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddressAutocomplete from '../../components/AddressAutocomplete';
 
@@ -15,13 +15,40 @@ export default function ConvertInvoiceModal({
     handleAddInvoice,
     clients }) {
     const [invoiceAddress, setInvoiceAddress] = useState('');
-    const [useClientAddress, setUseClientAddress] = useState(true);
+    const [projectAddress, setProjectAddress] = useState('');
+    const [useClientAddress, setUseClientAddress] = useState(newInvoiceData.useClientAddress);
 
     useEffect(() => {
-        if (useClientAddress && newInvoiceData.client?.address) {
-            setInvoiceAddress(newInvoiceData.client.address);
+        if (newInvoiceData.projectFullAddress) {
+            setProjectAddress(newInvoiceData.projectFullAddress);
+        } else {
+            setProjectAddress(newInvoiceData.client?.address || '');
         }
-    }, [useClientAddress, newInvoiceData.client]);
+    }, [newInvoiceData.client, newInvoiceData.projectFullAddress]);
+
+    // Sync useClientAddress to newInvoiceData if it changes externally
+    useEffect(() => {
+        setUseClientAddress(newInvoiceData.useClientAddress);
+    }, [newInvoiceData.useClientAddress]);
+
+    // When user selects a new address in AddressAutocomplete, update projectAddress state
+    // Now `val` is an object with address fields
+    const handleAddressChange = (val, isAutoComplete) => {
+        setProjectAddress(val); // val: { address, streetAddress, city, state, zip }
+    };
+
+    // Custom submit handler to update project address, city, state, zip if checkbox checked
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (useClientAddress && projectAddress) {
+            handleInputChange({ target: { name: 'projectFullAddress', value: projectAddress.address } });
+            handleInputChange({ target: { name: 'projectAddress', value: projectAddress.streetAddress } });
+            handleInputChange({ target: { name: 'projectCity', value: projectAddress.city } });
+            handleInputChange({ target: { name: 'projectState', value: projectAddress.state } });
+            handleInputChange({ target: { name: 'projectZip', value: projectAddress.zip } });
+        }
+        handleAddInvoice(e);
+    };
 
     const modalStyle = {
         position: 'absolute',
@@ -51,7 +78,7 @@ export default function ConvertInvoiceModal({
                 >
                     Add New Invoice
                 </Typography>
-                <form onSubmit={handleAddInvoice}>
+                <form onSubmit={handleSubmit}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <Typography variant="h6">
@@ -96,23 +123,24 @@ export default function ConvertInvoiceModal({
                                     <strong>Client Address:</strong> {newInvoiceData.client?.address || 'N/A'}
                                 </Typography>
                                 <Typography variant="body2" sx={{ flex: 1 }}>
-                                    <strong>Invoice Address:</strong> {invoiceAddress || 'N/A'}
+                                    <strong>Project Address:</strong> {newInvoiceData.projectFullAddress || 'N/A'}
                                 </Typography>
                             </Box>
                             <FormControlLabel
                                 control={
-                                    <Switch
+                                    <Checkbox
                                         checked={useClientAddress}
                                         onChange={(e) => setUseClientAddress(e.target.checked)}
                                     />
                                 }
-                                label="Same as client address"
+                                label="Change Project Address?"
                                 sx={{ mt: 1 }}
                             />
-                            {!useClientAddress && (
+                            {useClientAddress && (
                                 <AddressAutocomplete
-                                    value={invoiceAddress}
-                                    onChange={(val, isAutoComplete) => setInvoiceAddress(val)}
+                                    value={projectAddress}
+                                    onChange={handleAddressChange}
+                                    label="Project Address"
                                 />
                             )}
                         </Grid>
