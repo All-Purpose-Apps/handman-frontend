@@ -462,14 +462,14 @@ Han-D-Man Pro<br>
                                     />
                                 </>
                             ) : (
-                                <>
+                                <Box>
                                     <Typography variant="body2" sx={{ mt: 2 }}>
-                                        Invoice Address: {invoice?.address}
+                                        Client Address: {invoice?.client?.address || 'N/A'}
                                     </Typography>
                                     <Typography variant="body2" sx={{ mt: 1 }}>
                                         Project Address: {invoice?.projectFullAddress}
                                     </Typography>
-                                </>
+                                </Box>
                             )}
                         </Grid>
                         <Grid item xs={12}>
@@ -785,11 +785,12 @@ Han-D-Man Pro<br>
                         </Box>
                     </Box>
                 </Modal>
-            </Card>
+            </Card >
             {/* Modals for send invoice and missing PDF */}
-            <Modal
+            < Modal
                 open={missingPdfModalOpen}
-                onClose={() => setMissingPdfModalOpen(false)}
+                onClose={() => setMissingPdfModalOpen(false)
+                }
                 closeAfterTransition
                 slots={{ backdrop: Backdrop }}
                 slotProps={{ backdrop: { timeout: 300 } }}
