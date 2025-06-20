@@ -90,6 +90,12 @@ const ViewProposal = () => {
         creditCardFee: 0,
         depositAdjustment: 0,
         total: 0,
+        projectFullAddress: '',
+        projectAddress: '',
+        projectCity: '',
+        projectState: '',
+        projectZip: '',
+        materialsListId: null,
     });
 
     const [editedProposal, setEditedProposal] = useState({
@@ -99,6 +105,14 @@ const ViewProposal = () => {
         proposalDate: '',
         packagePrice: 0,
         materialsIncludedPrice: 0,
+        projectFullAddress: '',
+        projectAddress: '',
+        projectCity: '',
+        projectState: '',
+        projectZip: '',
+        signedPdfUrl: '',
+        fileUrl: '',
+        materialsListId: '',
     });
 
     // Responsive design
@@ -149,6 +163,14 @@ const ViewProposal = () => {
                 proposalTitle: proposal.proposalTitle || '',
                 proposalDate: proposal.proposalDate || '',
                 packagePrice: proposal.packagePrice || 0,
+                projectFullAddress: proposal.projectFullAddress || '',
+                projectAddress: proposal.projectAddress || '',
+                projectCity: proposal.projectCity || '',
+                projectState: proposal.projectState || '',
+                projectZip: proposal.projectZip || '',
+                materialsListId: proposal.materialsListId || '',
+                signedPdfUrl: proposal.signedPdfUrl || '',
+                fileUrl: proposal.fileUrl || '',
             });
         }
     }, [proposal]);
@@ -297,6 +319,13 @@ const ViewProposal = () => {
             creditCardFee: 0,
             depositAdjustment: 0,
             total: 0,
+            projectFullAddress: editedProposal.projectFullAddress || '',
+            projectAddress: editedProposal.projectAddress || '',
+            projectCity: editedProposal.projectCity || '',
+            projectState: editedProposal.projectState || '',
+            projectZip: editedProposal.projectZip || '',
+            materialsListId: editedProposal.materialsListId || null,
+            useClientAddress: editedProposal.client?.address === editedProposal?.projectAddress,
         });
         setInvoiceModalOpen(true);
     };
@@ -635,10 +664,10 @@ const ViewProposal = () => {
                     variant="contained"
                     onClick={handleCreatePdf}
                 >
-                    Create PDF
+                    {proposal.signedPdfUrl ? 'Regenerate PDF' : 'Create PDF'}
                 </Button>
             ),
-            proposal.signedPdfUrl && (
+            proposal.signedPdfUrl && !isEditing && (
                 <Button
                     key="view-proposal"
                     variant="contained"
@@ -836,7 +865,7 @@ const ViewProposal = () => {
                                             </Typography>
                                             <Typography variant="body1" sx={{ flex: 1 }}>
                                                 <strong>Project Address:</strong>{' '}
-                                                {proposal?.projectAddress || 'N/A'}
+                                                {proposal?.projectFullAddress || 'N/A'}
                                             </Typography>
                                         </Box>
                                     </>
