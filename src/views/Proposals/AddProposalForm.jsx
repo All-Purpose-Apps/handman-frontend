@@ -440,7 +440,11 @@ export default function AddProposalForm() {
                                             setProjectAddress(val);
                                             setNewProposalData((prev) => ({
                                                 ...prev,
-                                                projectAddress: val,
+                                                projectAddress: val.streetAddress || '',
+                                                projectFullAddress: val.address || '',
+                                                projectCity: val.city || '',
+                                                projectState: val.state || '',
+                                                projectZip: val.zip || '',
                                             }));
                                         }}
                                     />}
