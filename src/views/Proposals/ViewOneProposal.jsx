@@ -36,7 +36,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import moment from 'moment';
 import { getAuth } from 'firebase/auth';
-import axios from 'axios';
+import axios from '../../utils/axiosInstance';
 import ConvertInvoiceModal from './ConverInvoiceModal';
 import {
     fetchOneProposal,
@@ -112,7 +112,7 @@ const ViewProposal = () => {
         projectZip: '',
         signedPdfUrl: '',
         fileUrl: '',
-        materialsListId: '',
+        materialsListId: null,
     });
 
     // Responsive design
@@ -168,7 +168,7 @@ const ViewProposal = () => {
                 projectCity: proposal.projectCity || '',
                 projectState: proposal.projectState || '',
                 projectZip: proposal.projectZip || '',
-                materialsListId: proposal.materialsListId || '',
+                materialsListId: proposal.materialsListId || null,
                 signedPdfUrl: proposal.signedPdfUrl || '',
                 fileUrl: proposal.fileUrl || '',
             });
@@ -267,16 +267,10 @@ const ViewProposal = () => {
         setIsCreatingPdf(true);
         setSendSuccessModalOpen(false);
         setSendFailureModalOpen(false);
-        const accessToken = localStorage.getItem('accessToken');
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/api/proposals/create-pdf`,
                 { proposal: editedProposal },
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
             );
             await dispatch(
                 updateProposal({
@@ -375,12 +369,6 @@ const ViewProposal = () => {
                     proposalId: editedProposal._id,
                     data: { proposalUrl: editedProposal.fileUrl },
                 },
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        withCredentials: true,
-                    },
-                }
             );
 
             const tokenUrl = `${import.meta.env.VITE_FRONTEND_URL}/sign/${token.data.token}`;
@@ -413,12 +401,6 @@ const ViewProposal = () => {
                     pdfUrl: editedProposal.fileUrl,
                     proposal: editedProposal,
                 },
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        withCredentials: true,
-                    },
-                }
             );
 
             setSendSuccessModalOpen(true);

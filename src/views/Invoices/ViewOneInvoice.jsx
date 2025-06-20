@@ -442,6 +442,35 @@ Han-D-Man Pro<br>
                                     <ListItemText primary={invoice?.client?.name} secondary="Click to view details" />
                                 </ListItemButton>
                             )}
+                            {isEditing ? (
+                                <>
+                                    <TextField
+                                        label="Invoice Address"
+                                        name="address"
+                                        fullWidth
+                                        value={editedInvoice.address || ''}
+                                        onChange={handleInputChange}
+                                        sx={{ mt: 2 }}
+                                    />
+                                    <TextField
+                                        label="Project Address"
+                                        name="projectFullAddress"
+                                        fullWidth
+                                        value={editedInvoice.projectFullAddress || ''}
+                                        onChange={handleInputChange}
+                                        sx={{ mt: 2 }}
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <Typography variant="body2" sx={{ mt: 2 }}>
+                                        Invoice Address: {invoice?.address}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mt: 1 }}>
+                                        Project Address: {invoice?.projectFullAddress}
+                                    </Typography>
+                                </>
+                            )}
                         </Grid>
                         <Grid item xs={12}>
                             <Grid container spacing={2} alignItems="center">
