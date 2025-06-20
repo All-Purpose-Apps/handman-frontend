@@ -379,6 +379,7 @@ Han-D-Man Pro<br>
                         <Typography variant="h6">
                             No. {editedInvoice?.invoiceNumber || 'Loading...'}
                         </Typography>
+
                         <Box mt={2} mb={2}>
                             <Typography
                                 variant="subtitle1"
@@ -407,8 +408,16 @@ Han-D-Man Pro<br>
                             >
                                 Status: {editedInvoice?.status?.toUpperCase() || 'Loading...'}
                             </Typography>
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Last updated {moment(editedInvoice.updatedAt).fromNow()} ({moment(editedInvoice.updatedAt).format('MM/DD/YYYY')})
+                            </Typography>
                         </Box>
+
                     </Box>
+                    <Typography align="left" variant="body1" gutterBottom>
+                        <strong>Invoice Date:</strong>{' '}
+                        {moment.utc(editedInvoice?.invoiceDate).format('MM/DD/YY')}
+                    </Typography>
                     <Grid container spacing={2} alignItems="flex-start">
                         <Grid item xs={12} md={12}>
                             {isEditing ? (
@@ -478,35 +487,6 @@ Han-D-Man Pro<br>
                                         </Grid>
                                     </>
                                 )}
-                            </Grid>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Grid container spacing={2} alignItems="center">
-                                <Grid item xs={12} sm={4}>
-                                    <Typography variant="h6" align="left">
-                                        Invoice Number: {editedInvoice?.invoiceNumber}
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={12} sm={4}>
-                                    {isEditing ? (
-                                        <TextField
-                                            label="Invoice Date"
-                                            type="date"
-                                            name="invoiceDate"
-                                            value={editedInvoice?.invoiceDate?.split('T')[0] || ''}
-                                            onChange={handleInputChange}
-                                            InputLabelProps={{
-                                                shrink: true,
-                                            }}
-                                            fullWidth
-                                        />
-                                    ) : (
-                                        <Typography align="left">
-                                            Invoice Date:{' '}
-                                            {moment.utc(editedInvoice?.invoiceDate).format('MM/DD/YY')}
-                                        </Typography>
-                                    )}
-                                </Grid>
                             </Grid>
                         </Grid>
                         <Grid item xs={12}>
