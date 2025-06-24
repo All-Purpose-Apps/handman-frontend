@@ -34,6 +34,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import moment from 'moment';
 import { getAuth } from 'firebase/auth';
 import axios from '../../utils/axiosInstance';
@@ -591,7 +592,6 @@ const ViewProposal = () => {
             >
                 Go to Invoice
             </Button>,
-
             <Button
                 key="delete"
                 variant="contained"
@@ -600,7 +600,6 @@ const ViewProposal = () => {
             >
                 Delete
             </Button>
-
         ];
         rightActions = [
             <Typography key="converted-msg" variant="body1" color="error">
@@ -610,7 +609,6 @@ const ViewProposal = () => {
     } else if (editedProposal?.status === 'accepted') {
         leftActions = [
             backOrCancelButton,
-
             <Button
                 key="edit"
                 variant="contained"
@@ -741,7 +739,11 @@ const ViewProposal = () => {
         <>
             <Card elevation={3} sx={{ p: 2 }}>
                 <CardContent>
-
+                    <Grid item>
+                        <IconButton aria-label="back" onClick={handleCancelBackButton} >
+                            <ArrowBackIcon />
+                        </IconButton>
+                    </Grid>
                     <Box display="flex" justifyContent="space-between" alignItems="center">
                         <Typography variant="h6">
                             No. {proposal?.proposalNumber || 'Loading...'}
