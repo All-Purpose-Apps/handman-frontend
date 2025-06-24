@@ -26,9 +26,9 @@ const Login = () => {
         try {
             sessionStorage.setItem('loginInProgress', 'true');
             await handleGoogleSignIn(auth, navigate);
-            navigate('/dashboard');
         } finally {
             sessionStorage.removeItem('loginInProgress');
+            navigate('/dashboard');
         }
     }
 
