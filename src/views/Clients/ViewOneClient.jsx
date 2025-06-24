@@ -63,6 +63,7 @@ const ViewClient = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         givenName: '',
+        middleName: '',
         familyName: '',
         email: '',
         phone: '',
@@ -85,6 +86,7 @@ const ViewClient = () => {
         if (client) {
             setFormData({
                 givenName: client.givenName || '',
+                middleName: client.middleName || '',
                 familyName: client.familyName || '',
                 email: client.email || '',
                 phone: client.phone || '',
@@ -155,6 +157,7 @@ const ViewClient = () => {
         setIsEditing(false);
         setFormData({
             givenName: client.givenName || '',
+            middleName: client.middleName || '',
             familyName: client.familyName || '',
             email: client.email || '',
             phone: client.phone || '',
@@ -169,12 +172,11 @@ const ViewClient = () => {
 
 
     const handleSave = async () => {
-        if (!selectedFromAutocomplete) {
-            alert('Please select a valid address from the suggestions.');
-            return;
-        }
-        if (!formData.streetAddress || !formData.city || !formData.state || !formData.zip) {
-            alert('Please select a valid address from the suggestions.');
+        const addressFieldsEmpty = !formData.streetAddress && !formData.city && !formData.state && !formData.zip;
+        const addressFieldsIncomplete = !formData.streetAddress || !formData.city || !formData.state || !formData.zip;
+
+        if (addressFieldsEmpty || (!selectedFromAutocomplete && addressFieldsIncomplete)) {
+            alert('Please confirm the address by selecting a valid suggestion.');
             return;
         }
         setIsSaving(true);
@@ -252,6 +254,9 @@ const ViewClient = () => {
     const createLabels = (label) => {
         if (label == 'givenName') {
             return 'First Name';
+        }
+        if (label == 'middleName') {
+            return 'Middle Name';
         }
         if (label == 'familyName') {
             return 'Last Name';
@@ -360,12 +365,12 @@ const ViewClient = () => {
                                     textAlign: { xs: 'center', md: 'left' },
                                 }}
                             >
-                                {isEditing ? 'Edit Client' : `${client.givenName || 'N/A'} ${client.familyName || 'N/A'}`}
+                                {isEditing ? 'Edit Client' : `${client.givenName || 'N/A'} ${client.middleName || ''} ${client.familyName || 'N/A'}`}
                             </Typography>
                             <Divider sx={{ marginY: 1 }} />
                             {isEditing ? (
                                 <>
-                                    {['givenName', 'familyName', 'email', 'phone'].map((field) => (
+                                    {['givenName', 'middleName', 'familyName', 'email', 'phone'].map((field) => (
                                         <Box sx={{ marginBottom: 1 }} key={field}>
                                             <TextField
                                                 label={createLabels(field)}
@@ -397,11 +402,20 @@ const ViewClient = () => {
                                                 } else {
                                                     setFormData((prev) => ({
                                                         ...prev,
-                                                        streetAddress: addressObj,
+                                                        address: addressObj,
+                                                        streetAddress: '',
+                                                        city: '',
+                                                        state: '',
+                                                        zip: '',
                                                     }));
                                                 }
                                             }}
                                         />
+                                        {/* {!selectedFromAutocomplete && (
+                                            <Typography variant="caption" color="warning.main">
+                                                Please confirm address by selecting a valid suggestion.
+                                            </Typography>
+                                        )} */}
                                     </Box>
                                 </>
                             ) : (
@@ -593,11 +607,12 @@ const ViewClient = () => {
                                                 startIcon={<SaveIcon />}
                                                 disabled={
                                                     isSaving ||
-                                                    !selectedFromAutocomplete ||
-                                                    !formData.streetAddress ||
-                                                    !formData.city ||
-                                                    !formData.state ||
-                                                    !formData.zip
+                                                    (!formData.streetAddress && !formData.city && !formData.state && !formData.zip) ||
+                                                    (!selectedFromAutocomplete &&
+                                                        (!formData.streetAddress ||
+                                                            !formData.city ||
+                                                            !formData.state ||
+                                                            !formData.zip))
                                                 }
                                                 sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
                                             >

@@ -8,6 +8,7 @@ export default function AddClientModal({
     handleCloseModal,
     newClientData = {
         givenName: '',
+        middleName: '',
         familyName: '',
         email: '',
         phone: '',
@@ -46,14 +47,14 @@ export default function AddClientModal({
     };
 
     const isFormValid = () => {
-        const { givenName = '', familyName = '', email = '', phone = '', address = '', streetAddress = '', city = '', state = '', zip = '' } = newClientData;
+        const { givenName = '', middleName = '', familyName = '', email = '', phone = '', address = '', streetAddress = '', city = '', state = '', zip = '' } = newClientData;
 
         return (
             selectedFromAutocomplete &&
-            givenName.trim() &&
-            familyName.trim() &&
+            givenName.replace(/\s+/g, '') &&
+            familyName.replace(/\s+/g, '') &&
             email.trim() &&
-            phone.trim() &&
+            phone.replace(/[\s().]/g, '') &&
             address.trim() &&
             streetAddress.trim() &&
             city.trim() &&
@@ -75,16 +76,19 @@ export default function AddClientModal({
                         top: 10,
                         right: 10,
                         minWidth: 'auto',
-                        padding: '6px 10px',
+                        padding: '10px 20px',
                         fontSize: '2rem',
                         lineHeight: 1,
                     }}
+                    aria-label="Close"
                 >
                     ×
                 </Button>
-                <Typography variant="h6" component="h2" gutterBottom>
-                    Add New Client
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="h6" component="h2" gutterBottom>
+                        Add New Client
+                    </Typography>
+                </Box>
                 <form
                     onSubmit={handleAddClient}
                     onKeyDown={(e) => {
@@ -101,6 +105,14 @@ export default function AddClientModal({
                         fullWidth
                         margin="normal"
                         required
+                    />
+                    <TextField
+                        label="Middle Name"
+                        name="middleName"
+                        value={newClientData.middleName}
+                        onChange={handleInputChange}
+                        fullWidth
+                        margin="normal"
                     />
                     <TextField
                         label="Last Name"

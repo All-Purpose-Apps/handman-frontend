@@ -84,6 +84,7 @@ const ClientsPage = () => {
     const [isCreatingClient, setIsCreatingClient] = useState(false);
     const [newClientData, setNewClientData] = useState({
         givenName: '',
+        middleName: '',
         familyName: '',
         email: '',
         phone: '',
@@ -280,6 +281,7 @@ const ClientsPage = () => {
         }
         setNewClientData({
             givenName: '',
+            middleName: '',
             familyName: '',
             email: '',
             phone: '',
@@ -318,19 +320,25 @@ const ClientsPage = () => {
         setIsCreatingClient(true);
         try {
             // Derive address string if not already present
-
             const contact = await dispatch(createGoogleContact({ ...newClientData }));
             const resourceName = contact.payload.contact.resourceName;
 
-            const response = await dispatch(addClient({
+            await dispatch(addClient({
                 ...newClientData,
-                name: `${newClientData.givenName} ${newClientData.familyName}`,
+                name: `${newClientData.givenName} ${newClientData.middleName} ${newClientData.familyName}`,
                 resourceName,
                 statusHistory: [{ status: 'created by user', date: new Date().toISOString() }]
-            }));
+            })).then((response) => {
+                console.log("response", response);
+                const clientId = response?.payload?._id;
+                if (!clientId) {
+                    throw new Error('Client creation failed');
+                }
+                navigate(`/clients/${clientId}`);
+            });
 
             handleCloseModal();
-            navigate(`/clients/${response.payload._id}`);
+
         } catch (error) {
             console.error('Error adding client:', error);
             alert('Failed to add client.');

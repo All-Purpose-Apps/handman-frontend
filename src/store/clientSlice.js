@@ -39,6 +39,7 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
     return response.data;
   } catch (error) {
     console.log(error);
+    console.log('error', error.response);
     return rejectWithValue(error.response?.data || 'Failed to add client');
   }
 });
