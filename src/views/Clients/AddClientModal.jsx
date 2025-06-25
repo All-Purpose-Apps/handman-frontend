@@ -137,7 +137,19 @@ export default function AddClientModal({
                         label="Phone"
                         name="phone"
                         value={newClientData.phone}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            let formatted = raw;
+                            if (raw.length > 6) {
+                                formatted = `(${raw.slice(0, 3)}) ${raw.slice(3, 6)}-${raw.slice(6)}`;
+                            } else if (raw.length > 3) {
+                                formatted = `(${raw.slice(0, 3)}) ${raw.slice(3)}`;
+                            } else if (raw.length > 0) {
+                                formatted = `(${raw}`;
+                            }
+                            handleInputChange({ target: { name: 'phone', value: formatted } });
+                        }}
+                        inputProps={{ maxLength: 14 }}
                         fullWidth
                         margin="normal"
                         required
