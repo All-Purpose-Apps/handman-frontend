@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addProposal, fetchProposals } from '../../store/proposalSlice';
 import { getMaterialList, updateMaterialsList, deleteMaterialsList } from '../../store/materialsSlice';
 import { fetchClients } from '../../store/clientSlice';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router';
 
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';

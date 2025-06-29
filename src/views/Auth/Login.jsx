@@ -1,7 +1,7 @@
 // src/components/Login.jsx
 import React from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { app } from '../../utils/firebase';
 import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
 import { Box, Button, Typography, Paper } from '@mui/material';

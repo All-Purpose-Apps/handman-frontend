@@ -15,7 +15,7 @@ import {
   Autocomplete,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllMaterials, createMaterialsList, getMaterialList, updateMaterialsList } from '../../store/materialsSlice';
 

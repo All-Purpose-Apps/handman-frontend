@@ -2,7 +2,7 @@
 export const drawerWidth = 240;
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import {
     Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Toolbar, Box,
     useMediaQuery, useTheme,

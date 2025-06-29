@@ -22,7 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete'; // Added this import
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInvoices, addInvoice } from '../../store/invoiceSlice';
 import { fetchClients } from '../../store/clientSlice';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import moment from 'moment';
 import AddInvoiceModal from './AddInvoiceModal';
 

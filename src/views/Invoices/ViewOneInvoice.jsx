@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchOneInvoice, updateInvoice, deleteInvoice } from '../../store/invoiceSlice';
 import { fetchClients } from '../../store/clientSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import {
     Button,
     TextField,

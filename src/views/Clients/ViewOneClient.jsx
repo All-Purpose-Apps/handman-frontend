@@ -1,7 +1,7 @@
 // src/views/Clients/ViewOneClient.jsx
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     CircularProgress,

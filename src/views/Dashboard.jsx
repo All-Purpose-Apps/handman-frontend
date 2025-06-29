@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { useSettings } from '../contexts/SettingsContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import {
     Card,
     CardContent,

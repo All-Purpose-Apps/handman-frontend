@@ -1,7 +1,7 @@
 // Proposals.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProposals } from '../../store/proposalSlice';
 import { fetchClients } from '../../store/clientSlice';

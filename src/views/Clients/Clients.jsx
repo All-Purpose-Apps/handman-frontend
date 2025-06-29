@@ -24,7 +24,7 @@ import {
     Fade
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import AddClientModal from './AddClientModal';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';

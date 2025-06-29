@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import {
     Button,

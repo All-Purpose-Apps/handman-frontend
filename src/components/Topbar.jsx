@@ -17,7 +17,7 @@ import {
 } from '@mui/icons-material';
 import CloseIcon from '@mui/icons-material/Close';
 import { getAuth, signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { app } from '../utils/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useDispatch, useSelector } from 'react-redux';

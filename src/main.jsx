@@ -1,21 +1,21 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
-import { BrowserRouter } from 'react-router-dom'
+import App from './router.jsx'
+import { RouterProvider } from 'react-router'
 import { Provider } from 'react-redux'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import store from './store'
 import "./assets/css/main.css"
+import RouterWrapper from './router.jsx';
+import router from './router.jsx';
 
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-      <Provider store={store}>
-        <GoogleOAuthProvider clientId="1040736667872-ag7rvp0srjd7b43r1n7bcdhe852cgj24.apps.googleusercontent.com">
-          <App />
-        </GoogleOAuthProvider>
-      </Provider>
-    </BrowserRouter>
+    <Provider store={store}>
+      <GoogleOAuthProvider clientId="1040736667872-ag7rvp0srjd7b43r1n7bcdhe852cgj24.apps.googleusercontent.com">
+        <RouterProvider router={router} />
+      </GoogleOAuthProvider>
+    </Provider>
   </StrictMode>,
 )

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { Button, Box, Typography, Stack } from '@mui/material';
 import { makeStyles } from '@mui/styles';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
 
 const useStyles = makeStyles({
