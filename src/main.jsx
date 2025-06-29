@@ -1,12 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './router.jsx'
 import { RouterProvider } from 'react-router'
 import { Provider } from 'react-redux'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import store from './store'
 import "./assets/css/main.css"
-import RouterWrapper from './router.jsx';
 import router from './router.jsx';
 
 
