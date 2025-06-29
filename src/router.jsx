@@ -1,14 +1,10 @@
-import React from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router';
 import MainLayout from './layouts/MainLayout';
 import NoMatch from './views/NoMatch';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
 import AuthWatcher from './components/AuthWatcher.jsx';
 import Login from './views/Auth/Login';
-import Dashboard from './views/Dashboard.jsx';
-import { SocketProvider } from './contexts/SocketContext.jsx';
-import { getAuth } from 'firebase/auth';
 import { routes } from './routes';
 import ProtectedRoute from './views/ProtectedRoute.jsx';
 import SignDocument from './views/User/SignDocument.jsx';
