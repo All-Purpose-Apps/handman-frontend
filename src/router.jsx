@@ -1,9 +1,13 @@
-import { createBrowserRouter, redirect } from 'react-router';
+//React Router
+import { createBrowserRouter } from 'react-router';
+//MainLayout and Contexts
 import MainLayout from './layouts/MainLayout';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
-import Login from './views/Auth/Login';
+//routes
 import { routes } from './routes';
+//components
+import Login from './views/Auth/Login';
 import SignDocument from './views/User/SignDocument.jsx';
 import Signature from './components/Signature.jsx';
 import NoMatch from './views/NoMatch.jsx';

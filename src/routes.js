@@ -1,26 +1,18 @@
-import About from './views/About';
-// Clients
+//Icons
+import HomeIcon from '@mui/icons-material/Home';
+import PeopleIcon from '@mui/icons-material/People';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import DescriptionIcon from '@mui/icons-material/Description';
+import FileIcon from '@mui/icons-material/FileCopy';
+import SettingsIcon from '@mui/icons-material/Settings';
+//Views
 import Clients from './views/Clients/Clients';
 import ViewOneClient from './views/Clients/ViewOneClient';
-
 import Invoices from './views/Invoices/Invoices';
 import Proposals from './views/Proposals/Proposals';
 import ViewOneProposal from './views/Proposals/ViewOneProposal';
 import Dashboard from './views/Dashboard';
 import Settings from './views/Settings';
-
-import {
-  Home as HomeIcon,
-  Info as InfoIcon,
-  Favorite as FavoriteIcon,
-  People as PeopleIcon,
-  Receipt as ReceiptIcon,
-  Description as DescriptionIcon,
-  AttachMoney as AttachMoneyIcon,
-  CalendarMonth as CalendarMonthIcon,
-  FileCopy as FileIcon,
-} from '@mui/icons-material';
-import SettingsIcon from '@mui/icons-material/Settings';
 import ViewOneInvoice from './views/Invoices/ViewOneInvoice';
 import MaterialsListing from './views/Proposals/MaterialsListing';
 import AddProposalForm from './views/Proposals/AddProposalForm';
@@ -62,6 +54,10 @@ export const routes = [
     component: ViewOneProposal,
   },
   {
+    path: '/proposal/:id/materials-list',
+    component: MaterialsListing,
+  },
+  {
     path: '/invoices',
     component: Invoices,
     name: 'Invoices',
@@ -71,10 +67,6 @@ export const routes = [
   {
     path: '/invoices/:id',
     component: ViewOneInvoice,
-  },
-  {
-    path: '/proposal/:id/materials-list',
-    component: MaterialsListing,
   },
   {
     path: '/files',
