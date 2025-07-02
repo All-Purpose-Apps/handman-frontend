@@ -1,7 +1,7 @@
 // MainLayout.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link } from 'react-router';
+import { Outlet } from 'react-router';
 import {
     Toolbar,
     CssBaseline,

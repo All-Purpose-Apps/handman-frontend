@@ -274,7 +274,7 @@ export default function AddProposalForm() {
             fileUrl: '',
             materialsListId: null,
         });
-        navigate('/proposals');
+        navigate('/proposals', { viewTransition: true });
     };
 
     const handleAddProposal = async (event) => {
