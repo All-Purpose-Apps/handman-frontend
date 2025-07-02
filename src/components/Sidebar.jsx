@@ -43,7 +43,7 @@ export default function Sidebar({ showSidebar, onNavigate }) {
                             onClick={onNavigate}
                             sx={{
                                 pl: 2,
-                                '&.Mui-selected': { backgroundColor: 'info.main' },
+                                '&.Mui-selected': { backgroundColor: 'info.main', color: 'white' },
                                 '&.Mui-selected:hover': { backgroundColor: 'text.disabled' },
                                 '&:hover': { backgroundColor: 'text.disabled' },
                             }}
@@ -82,7 +82,6 @@ export default function Sidebar({ showSidebar, onNavigate }) {
                     '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' },
                 }}
             >
-                <Toolbar />
                 <IconButton onClick={onNavigate} sx={{ ml: 'auto', m: 1 }}>
                     <CloseIcon />
                 </IconButton>
