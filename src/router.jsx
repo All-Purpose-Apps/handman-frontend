@@ -1,6 +1,5 @@
 import { createBrowserRouter } from 'react-router';
 import MainLayout from './layouts/MainLayout';
-import NoMatch from './views/NoMatch';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
 import AuthWatcher from './components/AuthWatcher.jsx';
@@ -9,6 +8,7 @@ import { routes } from './routes';
 import ProtectedRoute from './views/ProtectedRoute.jsx';
 import SignDocument from './views/User/SignDocument.jsx';
 import Signature from './components/Signature.jsx';
+import NoMatch from './views/NoMatch.jsx';
 
 const getRoutes = () => {
   return routes.map((route, index) => {
@@ -34,18 +34,26 @@ const router = createBrowserRouter([
     children: [
       ...getRoutes(),
     ],
+    errorElement: <NoMatch />,
   },
   {
     path: '/login',
     element: <Login />,
+    errorElement: <NoMatch />,
   },
   {
     path: 'sign/:token',
     element: <SignDocument />,
+    errorElement: <NoMatch />,
   },
   {
     path: '/signature/:document/:id',
     element: <Signature />,
+    errorElement: <NoMatch />,
+  },
+  {
+    path: '*',
+    element: <NoMatch />,
   },
 ]);
 
