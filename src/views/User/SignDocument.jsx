@@ -207,6 +207,8 @@ const SignDocument = () => {
                         sx={{
                             border: '1px solid #ccc',
                             marginBottom: 2,
+                            overflow: 'auto',
+                            maxHeight: '70vh',
                             display: 'flex',
                             justifyContent: 'center',
                         }}
@@ -219,7 +221,7 @@ const SignDocument = () => {
                             <Page
                                 pageNumber={1}
                                 renderTextLayer={false}
-                                width={isSmallScreen ? 300 : 600}
+                                scale={isSmallScreen ? .5 : 1.2}
                             />
                         </Document>
                     </Box>
