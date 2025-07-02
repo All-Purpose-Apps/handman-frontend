@@ -11,7 +11,7 @@ import router from './router.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-      <GoogleOAuthProvider clientId="1040736667872-ag7rvp0srjd7b43r1n7bcdhe852cgj24.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_OATH_CLIENT_ID}>
         <RouterProvider router={router} />
       </GoogleOAuthProvider>
     </Provider>
