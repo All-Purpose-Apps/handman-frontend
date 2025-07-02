@@ -69,6 +69,7 @@ const SignDocument = () => {
                 }
             } catch (error) {
                 console.error('Proposal token verification failed:', error);
+                setTokenInfo(error.response?.data || null);
                 setError('Invalid or expired token.');
             }
         };
