@@ -96,7 +96,7 @@ export default function NotFoundPage() {
                         variant="outlined"
                         startIcon={<HomeIcon />}
                         component={Link}
-                        to="/dashboard"
+                        to="/"
                     >
                         Go Home
                     </Button>

@@ -13,7 +13,7 @@ const Login = () => {
     React.useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                navigate('/dashboard');
+                navigate('/');
             }
         });
 
@@ -28,7 +28,7 @@ const Login = () => {
             await handleGoogleSignIn(auth, navigate);
         } finally {
             sessionStorage.removeItem('loginInProgress');
-            navigate('/dashboard');
+            navigate('/');
         }
     }
 

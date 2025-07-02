@@ -6,9 +6,7 @@ import ViewOneClient from './views/Clients/ViewOneClient';
 import Invoices from './views/Invoices/Invoices';
 import Proposals from './views/Proposals/Proposals';
 import ViewOneProposal from './views/Proposals/ViewOneProposal';
-import Calendar from './views/Calendar';
 import Dashboard from './views/Dashboard';
-import SignDocument from './views/User/SignDocument';
 import Settings from './views/Settings';
 
 import {
@@ -30,12 +28,11 @@ import FilesExplore from './views/FilesExplorer';
 
 export const routes = [
   {
-    path: '/dashboard',
+    path: '/',
     component: Dashboard,
     name: 'Dashboard',
     sidebar: true,
     icon: HomeIcon,
-    protected: true,
   },
 
   {
@@ -44,12 +41,10 @@ export const routes = [
     name: 'Clients',
     sidebar: true,
     icon: PeopleIcon,
-    protected: true,
   },
   {
     path: '/clients/:id',
     component: ViewOneClient,
-    protected: true,
   },
   {
     path: '/proposals',
@@ -57,17 +52,14 @@ export const routes = [
     name: 'Proposals',
     sidebar: true,
     icon: DescriptionIcon,
-    protected: true,
   },
   {
     path: '/proposals/new',
     component: AddProposalForm,
-    protected: true,
   },
   {
     path: '/proposals/:id',
     component: ViewOneProposal,
-    protected: true,
   },
   {
     path: '/invoices',
@@ -75,33 +67,21 @@ export const routes = [
     name: 'Invoices',
     sidebar: true,
     icon: ReceiptIcon,
-    protected: true,
   },
   {
     path: '/invoices/:id',
     component: ViewOneInvoice,
-    protected: true,
   },
   {
     path: '/proposal/:id/materials-list',
     component: MaterialsListing,
-    protected: true,
   },
-  // {
-  //   path: '/calendar',
-  //   component: Calendar,
-  //   name: 'Calendar',
-  //   sidebar: true,
-  //   icon: CalendarMonthIcon,
-  //   protected: true,
-  // },
   {
     path: '/files',
     component: FilesExplore,
     name: 'Files',
     sidebar: true,
     icon: FileIcon,
-    protected: true,
   },
   {
     path: '/settings',
@@ -109,15 +89,5 @@ export const routes = [
     name: 'Settings',
     sidebar: true,
     icon: SettingsIcon,
-    protected: true,
   },
-
-  // {
-  //   path: '/about',
-  //   component: About,
-  //   name: 'About',
-  //   sidebar: true,
-  //   icon: InfoIcon,
-  //   protected: true,
-  // },
 ];
