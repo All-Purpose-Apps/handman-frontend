@@ -11,7 +11,6 @@ const initialState = {
 
 // Fetch all clients
 export const fetchClients = createAsyncThunk('clients/fetchClients', async (_, { rejectWithValue }) => {
-  const auth = getAuth();
   try {
     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/clients`);
     return response.data;
@@ -39,7 +38,6 @@ export const addClient = createAsyncThunk('clients/addClient', async (client, { 
     return response.data;
   } catch (error) {
     console.log(error);
-    console.log('error', error.response);
     return rejectWithValue(error.response?.data || 'Failed to add client');
   }
 });
@@ -70,18 +68,16 @@ export const deleteClient = createAsyncThunk('clients/deleteClient', async ({ re
 });
 
 export const syncClients = createAsyncThunk('clients/syncClients', async (clients, { rejectWithValue }) => {
-  const auth = getAuth();
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/sync`, clients);
     return response.data;
   } catch (error) {
-    console.log('error', error.response);
+    console.log(error);
     return rejectWithValue(error.response?.data || 'Failed to sync clients');
   }
 });
 
 export const createGoogleContact = createAsyncThunk('clients/createGoogleContact', async (contact, { rejectWithValue }) => {
-  const auth = getAuth();
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/google/contacts`, contact);
     return response.data;
@@ -92,7 +88,6 @@ export const createGoogleContact = createAsyncThunk('clients/createGoogleContact
 });
 
 export const clearClientHistory = createAsyncThunk('clients/clearClientHistory', async (clientId, { rejectWithValue }) => {
-  const auth = getAuth();
   // Clear the client history by making a DELETE request to the backend with the client ID in the body
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/clients/clear-status-history`, { clientId });
@@ -148,13 +143,12 @@ export const clientSlice = createSlice({
         state.error = action.payload || action.error.message;
       })
 
-      // Handle addClient actions
       .addCase(addClient.pending, (state) => {
         state.status = 'loading';
       })
       .addCase(addClient.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.client = action.payload; // Add the new client to the list
+        state.client = action.payload;
       })
       .addCase(addClient.rejected, (state, action) => {
         state.status = 'failed';
@@ -165,7 +159,7 @@ export const clientSlice = createSlice({
       })
       .addCase(updateClient.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.client = action.payload; // Update the client in the list
+        state.client = action.payload;
       })
       .addCase(updateClient.rejected, (state, action) => {
         state.status = 'failed';
@@ -176,7 +170,7 @@ export const clientSlice = createSlice({
       })
       .addCase(deleteClient.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.clients = state.clients.filter((client) => client._id !== action.payload);
+        state.clients = action.payload;
       })
       .addCase(deleteClient.rejected, (state, action) => {
         state.status = 'failed';
