@@ -3,34 +3,26 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { DataGrid } from '@mui/x-data-grid';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { handleGoogleSignIn } from '../../utils/handleGoogleSignIn';
-import {
-    Card,
-    CardContent,
-    Typography,
-    TextField,
-    FormControlLabel,
-    Switch,
-    CircularProgress,
-    Box,
-    Modal,
-    useTheme,
-    useMediaQuery,
-    Backdrop,
-    Button,
-    MenuItem,
-    Select,
-    FormControl,
-    InputLabel,
-    Fade
-} from '@mui/material';
-import Grid from '@mui/material/Grid2';
+import Card from '@mui/material/Card';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
+import useTheme from '@mui/material/styles/useTheme';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import Button from '@mui/material/Button';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Fade from '@mui/material/Fade';
 import { useNavigate, useLocation } from 'react-router';
 import AddClientModal from './AddClientModal';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import { fetchLastSync, updateLastSync } from '../../store/lastSyncSlice';
 import { addClient, fetchClients, syncClients, createGoogleContact } from '../../store/clientSlice';
-import ClientCard from '../../components/ClientCard';
 import ClientButtons from '../../components/ClientButtons';
 import { formatPhoneNumber } from '../../utils/formatPhoneNumber';
 import axios from 'axios';
@@ -205,9 +197,6 @@ const ClientsPage = () => {
         }
     }, [lastSync]);
 
-    // useEffect(() => {
-    //     localStorage.setItem('tableView', JSON.stringify(tableView));
-    // }, [tableView]);
 
     useEffect(() => {
         if (Array.isArray(clients)) {
@@ -364,8 +353,6 @@ const ClientsPage = () => {
         }
     };
 
-    const handleToggleChange = () => setTableView(!tableView);
-
     const handleRowClick = (params) => navigate(`/clients/${params.row._id}`);
     const handleCardClick = (clientId) => navigate(`/clients/${clientId}`);
     const colorMap = {
@@ -402,238 +389,120 @@ const ClientsPage = () => {
 
     }
 
-    const columns = isMobile
-        ? [
-            {
-                field: 'name',
-                headerName: 'Name',
-                flex: 1,
-                minWidth: 150,
-                sortable: true,
-                renderCell: (params) => {
-                    return `${params.row.givenName || 'N/A'} ${params.row.familyName || 'N/A'}`;
-                },
-                sortComparator: (v1, v2, cellParams1, cellParams2) => {
-                    const name1 = `${cellParams1.value || ''} ${cellParams1.value || ''}`;
-                    const name2 = `${cellParams2.value || ''} ${cellParams2.value || ''}`;
-                    return name1.localeCompare(name2);
-                }
-            },
-            {
-                field: 'statusHistory',
-                headerName: 'Status',
-                flex: 1,
-                minWidth: 150,
-                sortable: false,
-                renderCell: (params) => {
-                    const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
-                    const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
-                    const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
-                    return (
-                        <Box
-                            sx={{
-                                width: '100%',
-                                height: '100%',
-                                backgroundColor: bgColor,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: 1,
-                            }}
-                        >
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    fontSize: {
-                                        xs: '0.75rem',
-                                        sm: '0.85rem',
-                                        md: '0.95rem',
-                                        lg: '1rem',
-                                    },
-                                }}
-                            >
-                                {recentStatus}
-                            </Typography>
-                        </Box>
-                    );
-                },
+    const renderNameCell = (params) =>
+        `${params.row.givenName || 'N/A'} ${params.row.familyName || 'N/A'}`;
 
-            },
-        ]
-        : isTablet || window.innerWidth <= 1220
-            ? [
-                {
-                    field: 'name',
-                    headerName: 'Name',
-                    flex: 1,
-                    minWidth: 150,
-                    sortable: true,
-                    renderCell: (params) => {
-                        return `${params.row.givenName || 'N/A'} ${params.row.familyName || 'N/A'}`;
-                    },
-                    sortComparator: (v1, v2, cellParams1, cellParams2) => {
-                        const name1 = `${cellParams1.value || ''} ${cellParams1.value || ''}`;
-                        const name2 = `${cellParams2.value || ''} ${cellParams2.value || ''}`;
-                        return name1.localeCompare(name2);
-                    }
-                },
-                {
-                    field: 'email',
-                    headerName: 'Email',
-                    flex: 1,
-                    minWidth: 180,
-                    sortable: true,
-                },
-                {
-                    field: 'updatedAt',
-                    headerName: 'Updated At',
-                    flex: 1,
-                    minWidth: 150,
-                    sortable: true,
-                    valueFormatter: (params) => {
-                        return moment(params).format('MM/DD/YY h:mm A');
-                    }
-                },
-                {
-                    field: 'statusHistory',
-                    headerName: 'Status',
-                    flex: 1,
-                    minWidth: 150,
-                    sortable: false,
-                    renderCell: (params) => {
-                        const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
-                        const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
-                        const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
-                        return (
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    backgroundColor: bgColor,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    borderRadius: 1,
-                                }}
-                            >
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                        fontSize: {
-                                            xs: '0.75rem',
-                                            sm: '0.85rem',
-                                            md: '0.95rem',
-                                            lg: '1rem',
-                                        },
-                                    }}
-                                >
-                                    {recentStatus.toUpperCase()}
-                                </Typography>
-                            </Box>
-                        );
-                    },
-                },
-            ]
-            : [
-                {
-                    field: 'name',
-                    headerName: 'Name',
-                    flex: 1,
-                    minWidth: 150,
-                    sortable: true,
-                    renderCell: (params) => {
-                        return `${params.row.givenName || 'N/A'} ${params.row.familyName || 'N/A'}`;
-                    },
-                    sortComparator: (v1, v2, cellParams1, cellParams2) => {
-                        const name1 = `${cellParams1.value || ''} ${cellParams1.value || ''}`;
-                        const name2 = `${cellParams2.value || ''} ${cellParams2.value || ''}`;
-                        return name1.localeCompare(name2);
-                    }
-                },
-                {
-                    field: 'email',
-                    headerName: 'Email',
-                    flex: 1,
-                    minWidth: 180,
-                    sortable: true,
-                },
-                {
-                    field: 'phone',
-                    headerName: 'Phone',
-                    flex: 1,
-                    minWidth: 120,
-                    sortable: true,
-                    valueFormatter: (params) => formatPhoneNumber(params),
-                },
-                {
-                    field: 'createdAt',
-                    headerName: 'Created At',
-                    flex: 1,
-                    minWidth: 150,
-                    sortable: true,
-                    valueFormatter: (params) => {
-                        return moment(params).format('MM/DD/YY h:mm A');
-                    }
-                },
-                {
-                    field: 'updatedAt',
-                    headerName: 'Updated At',
-                    flex: 1,
-                    minWidth: 150,
-                    sortable: true,
-                    valueFormatter: (params) => {
-                        return moment(params).format('MM/DD/YY h:mm A');
-                    }
-                },
-                {
-                    field: 'statusHistory',
-                    headerName: 'Status',
-                    flex: 1,
-                    minWidth: 150,
-                    sortable: false,
-                    renderCell: (params) => {
-                        const sortedStatusHistory = [...params.value].sort((a, b) => new Date(b.date) - new Date(a.date));
-                        const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
-                        const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
-                        return (
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    backgroundColor: bgColor,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    borderRadius: 1,
-                                }}
-                            >
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                        fontSize: {
-                                            xs: '0.75rem',
-                                            sm: '0.85rem',
-                                            md: '0.95rem',
-                                            lg: '1rem',
-                                        },
-                                    }}
-                                >
-                                    {recentStatus.toUpperCase()}
-                                </Typography>
-                            </Box>
-                        );
-                    },
-                },
-            ];
+    const sortNameComparator = (v1, v2, cellParams1, cellParams2) => {
+        const name1 = `${cellParams1.value || ''} ${cellParams1.value || ''}`;
+        const name2 = `${cellParams2.value || ''} ${cellParams2.value || ''}`;
+        return name1.localeCompare(name2);
+    };
+
+    const renderStatusCell = (params) => {
+        const sortedStatusHistory = [...params.value].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+        );
+        const recentStatus = sortedStatusHistory[0]?.status || 'N/A';
+        const bgColor = colorMap[recentStatus.toUpperCase()] || '#e0e0e0';
+
+        return (
+            <Box
+                sx={{
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: bgColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 1,
+                }}
+            >
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: {
+                            xs: '0.75rem',
+                            sm: '0.85rem',
+                            md: '0.95rem',
+                            lg: '1rem',
+                        },
+                    }}
+                >
+                    {recentStatus.toUpperCase()}
+                </Typography>
+            </Box>
+        );
+    };
+
+    const nameColumn = {
+        field: 'name',
+        headerName: 'Name',
+        flex: 1,
+        minWidth: 150,
+        sortable: true,
+        renderCell: renderNameCell,
+        sortComparator: sortNameComparator,
+    };
+
+    const statusColumn = {
+        field: 'statusHistory',
+        headerName: 'Status',
+        flex: 1,
+        minWidth: 150,
+        sortable: false,
+        renderCell: renderStatusCell,
+    };
+
+    const emailColumn = {
+        field: 'email',
+        headerName: 'Email',
+        flex: 1,
+        minWidth: 180,
+        sortable: true,
+    };
+
+    const phoneColumn = {
+        field: 'phone',
+        headerName: 'Phone',
+        flex: 1,
+        minWidth: 120,
+        sortable: true,
+        valueFormatter: (params) => formatPhoneNumber(params),
+    };
+
+    const createdAtColumn = {
+        field: 'createdAt',
+        headerName: 'Created At',
+        flex: 1,
+        minWidth: 150,
+        sortable: true,
+        valueFormatter: (params) => moment(params).format('MM/DD/YY h:mm A'),
+    };
+
+    const updatedAtColumn = {
+        field: 'updatedAt',
+        headerName: 'Updated At',
+        flex: 1,
+        minWidth: 150,
+        sortable: true,
+        valueFormatter: (params) => moment(params).format('MM/DD/YY h:mm A'),
+    };
+
+    const columns = isTablet || window.innerWidth <= 1220
+        ? [nameColumn, emailColumn, updatedAtColumn, statusColumn]
+        : [
+            nameColumn,
+            emailColumn,
+            phoneColumn,
+            createdAtColumn,
+            updatedAtColumn,
+            statusColumn,
+        ];
 
 
-    // Remove loading spinner on initial load, will show spinners above table instead
+
 
     return (
         <div style={{ padding: 20 }}>
