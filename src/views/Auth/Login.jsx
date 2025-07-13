@@ -41,6 +41,7 @@ const Login = () => {
             id="login-container"
             p={{ xs: 4, md: 10 }}
             m={2}
+            borderRadius={30}
         >
             <Paper elevation={3} sx={{ padding: 4, borderRadius: 2, textAlign: 'center' }}>
                 <Typography variant="h4" gutterBottom>

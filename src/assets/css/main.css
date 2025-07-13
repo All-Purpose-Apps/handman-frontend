@@ -1,3 +1,8 @@
 .pac-container {
   z-index: 1300 !important;
 } /*# sourceMappingURL=main.css.map */
+
+.file-manager-sandbox * {
+  all: revert;
+  box-sizing: border-box;
+}
