@@ -58,7 +58,9 @@ export default function AddProposalForm() {
     const [materials, setMaterials] = useState([]);
     const [materialsTotal, setMaterialsTotal] = useState(0);
     const [materialsDiscountPrice, setMaterialsDiscountPrice] = useState(0);
-    const clients = useSelector((state) => state.clients.clients);
+    const clients = useSelector((state) =>
+        state.clients.clients.filter(client => client.address)
+    );
     const proposals = useSelector((state) => state.proposals.proposals);
     const materialsList = useSelector((state) => state.materials.materialsList);
 
@@ -363,6 +365,7 @@ export default function AddProposalForm() {
     }
 
 
+
     return (
         <>
             <Paper sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
@@ -397,8 +400,16 @@ export default function AddProposalForm() {
                         </Grid>
                         <Grid item xs={12}>
                             <Autocomplete
-                                options={[...clients].sort((a, b) => a.name.localeCompare(b.name))}
-                                getOptionLabel={(client) => `${client.name}`}
+                                options={[...clients].sort((a, b) => {
+                                    // Handle cases where 'a' or 'b' or their 'name' properties are missing
+                                    if (!a?.name && !b?.name) return 0; // Both are missing, treat as equal
+                                    if (!a?.name) return 1;             // Only 'a' is missing, put it at the end
+                                    if (!b?.name) return -1;            // Only 'b' is missing, put it at the end
+
+                                    // Both names exist, so we can safely compare them
+                                    return a.name.localeCompare(b.name);
+                                })}
+                                getOptionLabel={(client) => `${client?.name || 'Unnamed Client'}`} // Also make getOptionLabel safe
                                 value={newProposalData.client}
                                 onChange={handleClientChange}
                                 renderInput={(params) => (
