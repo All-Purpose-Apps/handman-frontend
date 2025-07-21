@@ -1,36 +1,28 @@
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { FileManager } from "@cubone/react-file-manager";
 import Frame from 'react-frame-component';
 import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 import Box from '@mui/material/Box'; // Import Box for centering
+import { fetchFiles } from "../store/filesSlice";
 
 function App() {
-    const [files, setFiles] = useState([
-        {
-            name: "Documents",
-            isDirectory: true,
-            path: "/Documents",
-            updatedAt: "2024-09-09T10:30:00Z",
-        },
-        {
-            name: "Pictures",
-            isDirectory: true,
-            path: "/Pictures",
-            updatedAt: "2024-09-09T11:00:00Z",
-        },
-        {
-            name: "Pic.png",
-            isDirectory: false,
-            path: "/Pictures/Pic.png",
-            updatedAt: "2024-09-08T16:45:00Z",
-            size: 2048,
-        },
-    ]);
-
+    const dispatch = useDispatch();
+    const { items: files, loading, error } = useSelector((state) => state.files);
     const [styleLoaded, setStyleLoaded] = useState(false);
+
+    useEffect(() => {
+        dispatch(fetchFiles());
+    }, [dispatch]);
 
     const handleStyleLoad = () => {
         setStyleLoaded(true);
+    };
+
+    const handleFileOpen = (file) => {
+        if (!file.isDirectory) {
+            window.open(file.url, '_blank');
+        }
     };
 
     return (
@@ -47,7 +39,22 @@ function App() {
             }
         >
             {styleLoaded ? (
-                <FileManager files={files} />
+                loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                        <CircularProgress />
+                    </Box>
+                ) : error ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'red' }}>
+                        Error: {error}
+                    </Box>
+                ) : (
+                    <FileManager files={files}
+                        enableFilePreview={false}
+                        permissions={{ create: false, copy: false, upload: false, download: false, move: false, delete: false, rename: false }}
+                        onFileOpen={handleFileOpen}
+                        layout={'list'}
+                    />
+                )
             ) : (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                     <CircularProgress />

@@ -849,7 +849,10 @@ const ViewProposal = () => {
                                             </Typography>
                                             <Typography variant="body1" sx={{ flex: 1 }}>
                                                 <strong>Project Address:</strong>{' '}
-                                                {proposal?.projectFullAddress || 'N/A'}
+                                                {!proposal?.projectFullAddress
+                                                    ? 'Same'
+                                                    : (proposal?.projectFullAddress || 'N/A')
+                                                }
                                             </Typography>
                                         </Box>
                                     </>
