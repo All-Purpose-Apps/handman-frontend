@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     Box,
     Button,
@@ -58,15 +58,16 @@ export default function AddProposalForm() {
     const [materials, setMaterials] = useState([]);
     const [materialsTotal, setMaterialsTotal] = useState(0);
     const [materialsDiscountPrice, setMaterialsDiscountPrice] = useState(0);
-    const clients = useSelector((state) =>
-        state.clients.clients.filter(client => client.address)
-    );
+    const allClients = useSelector((state) => state.clients.clients);
     const proposals = useSelector((state) => state.proposals.proposals);
     const materialsList = useSelector((state) => state.materials.materialsList);
-
+    const clients = useMemo(() =>
+        allClients.filter(client => client.address),
+        [allClients] // Dependency array: this calculation only runs when allClients changes
+    );
     // Project address state
     const [projectAddress, setProjectAddress] = useState('');
-    const [sameAsClientAddress, setSameAsClientAddress] = useState(false);
+    const [sameAsClientAddress, setSameAsClientAddress] = useState(true);
 
 
     // Initial setup: fetch clients/proposals, load localStorage, set client if navigated from clientId

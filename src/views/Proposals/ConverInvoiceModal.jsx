@@ -16,7 +16,7 @@ export default function ConvertInvoiceModal({
     clients }) {
     const [invoiceAddress, setInvoiceAddress] = useState('');
     const [projectAddress, setProjectAddress] = useState('');
-    const [useClientAddress, setUseClientAddress] = useState(newInvoiceData.useClientAddress);
+    const [useClientAddress, setUseClientAddress] = useState(false);
 
     useEffect(() => {
         if (newInvoiceData.projectFullAddress) {
@@ -27,9 +27,6 @@ export default function ConvertInvoiceModal({
     }, [newInvoiceData.client, newInvoiceData.projectFullAddress]);
 
     // Sync useClientAddress to newInvoiceData if it changes externally
-    useEffect(() => {
-        setUseClientAddress(newInvoiceData.useClientAddress);
-    }, [newInvoiceData.useClientAddress]);
 
     // When user selects a new address in AddressAutocomplete, update projectAddress state
     // Now `val` is an object with address fields
@@ -123,14 +120,17 @@ export default function ConvertInvoiceModal({
                                     <strong>Client Address:</strong> {newInvoiceData.client?.address || 'N/A'}
                                 </Typography>
                                 <Typography variant="body2" sx={{ flex: 1 }}>
-                                    <strong>Project Address:</strong> {newInvoiceData.projectFullAddress || 'N/A'}
+                                    <strong>Project Address:</strong> {
+                                        newInvoiceData.projectFullAddress || 'N/A'}
                                 </Typography>
                             </Box>
                             <FormControlLabel
                                 control={
                                     <Checkbox
                                         checked={useClientAddress}
-                                        onChange={(e) => setUseClientAddress(e.target.checked)}
+                                        onChange={(e) => {
+                                            setUseClientAddress(e.target.checked)
+                                        }}
                                     />
                                 }
                                 label="Change Project Address?"
