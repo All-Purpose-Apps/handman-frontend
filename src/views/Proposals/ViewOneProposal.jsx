@@ -76,6 +76,11 @@ const ViewProposal = () => {
     const [sendFailureModalOpen, setSendFailureModalOpen] = useState(false);
     // State-driven modal for sending proposal
     const [isSendingProposal, setIsSendingProposal] = useState(false);
+    // Confirmation modals
+    const [createPdfConfirmOpen, setCreatePdfConfirmOpen] = useState(false);
+    const [sendProposalConfirmOpen, setSendProposalConfirmOpen] = useState(false);
+    const [convertInvoiceConfirmOpen, setConvertInvoiceConfirmOpen] = useState(false);
+    const [saveChangesConfirmOpen, setSaveChangesConfirmOpen] = useState(false);
 
 
     const [invoiceData, setInvoiceData] = useState({
@@ -242,32 +247,44 @@ const ViewProposal = () => {
     };
 
     const handleEditToggle = async () => {
-
         if (isEditing) {
-            await dispatch(
-                updateProposal({
-                    ...editedProposal,
-                    fileUrl: '', updatedAt: moment().toISOString(), status: 'draft', signedPdfUrl: '',
-                })
-            );
-            if (materialsList && materialsList._id) {
-                await dispatch(
-                    updateMaterialsList({
-                        id: materialsList._id,
-                        discountTotal: materialsListDiscount,
-                    })
-                )
-            }
-            dispatch(fetchOneProposal(id));
+            setSaveChangesConfirmOpen(true);
+        } else {
+            setIsEditing(true);
+            setIsEditingClient(false);
         }
-        setIsEditing(!isEditing);
+    };
+
+    const handleConfirmSaveChanges = async () => {
+        await dispatch(
+            updateProposal({
+                ...editedProposal,
+                fileUrl: '', updatedAt: moment().toISOString(), status: 'draft', signedPdfUrl: '',
+            })
+        );
+        if (materialsList && materialsList._id) {
+            await dispatch(
+                updateMaterialsList({
+                    id: materialsList._id,
+                    discountTotal: materialsListDiscount,
+                })
+            )
+        }
+        dispatch(fetchOneProposal(id));
+        setIsEditing(false);
         setIsEditingClient(false);
+        setSaveChangesConfirmOpen(false);
     };
 
     const handleCreatePdf = async () => {
+        setCreatePdfConfirmOpen(true);
+    };
+
+    const handleConfirmCreatePdf = async () => {
         setIsCreatingPdf(true);
         setSendSuccessModalOpen(false);
         setSendFailureModalOpen(false);
+        setCreatePdfConfirmOpen(false);
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/api/proposals/create-pdf`,
@@ -298,6 +315,10 @@ const ViewProposal = () => {
     };
 
     const handleOpenInvoiceModal = () => {
+        setConvertInvoiceConfirmOpen(true);
+    };
+
+    const handleConfirmConvertToInvoice = () => {
         setInvoiceData({
             ...invoiceData,
             invoiceDate: moment().format('YYYY-MM-DD'),
@@ -322,6 +343,7 @@ const ViewProposal = () => {
             materialsListId: editedProposal.materialsListId || null,
             useClientAddress: editedProposal.client?.address === editedProposal?.projectAddress,
         });
+        setConvertInvoiceConfirmOpen(false);
         setInvoiceModalOpen(true);
     };
 
@@ -353,16 +375,20 @@ const ViewProposal = () => {
     };
 
     const handleSendProposal = async () => {
-        const accessToken = localStorage.getItem('accessToken');
-
         if (!editedProposal.fileUrl) {
             setMissingPdfModalOpen(true);
             return;
         }
+        setSendProposalConfirmOpen(true);
+    };
+
+    const handleConfirmSendProposal = async () => {
+        const accessToken = localStorage.getItem('accessToken');
 
         setIsSendingProposal(true);
         setSendSuccessModalOpen(false);
         setSendFailureModalOpen(false);
+        setSendProposalConfirmOpen(false);
         try {
             const token = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/api/proposals/create-token`,
@@ -1198,6 +1224,179 @@ const ViewProposal = () => {
                         </Button>
                     </Box>
                 </Fade>
+            </Modal>
+
+            {/* Save Changes Confirmation Modal */}
+            <Modal
+                open={saveChangesConfirmOpen}
+                onClose={() => setSaveChangesConfirmOpen(false)}
+                aria-labelledby="save-changes-confirmation-modal"
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    bgcolor="background.paper"
+                    p={4}
+                    borderRadius={1}
+                    boxShadow={3}
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: '80%', md: 400 },
+                        textAlign: 'center'
+                    }}
+                >
+                    <Typography variant="h6" mb={2}>
+                        Save Changes?
+                    </Typography>
+                    <Typography variant="body2" mb={3} color="text.secondary">
+                        Are you sure you want to save these changes? This will update the proposal and reset the PDF status.
+                    </Typography>
+                    <Box display="flex" justifyContent="space-around" width="100%">
+                        <Button variant="outlined" onClick={() => setSaveChangesConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="contained" onClick={handleConfirmSaveChanges}>
+                            Save Changes
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Create PDF Confirmation Modal */}
+            <Modal
+                open={createPdfConfirmOpen}
+                onClose={() => setCreatePdfConfirmOpen(false)}
+                aria-labelledby="create-pdf-confirmation-modal"
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    bgcolor="background.paper"
+                    p={4}
+                    borderRadius={1}
+                    boxShadow={3}
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: '80%', md: 400 },
+                        textAlign: 'center'
+                    }}
+                >
+                    <Typography variant="h6" mb={2}>
+                        {proposal.fileUrl ? 'Regenerate PDF?' : 'Create PDF?'}
+                    </Typography>
+                    <Typography variant="body2" mb={3} color="text.secondary">
+                        {proposal.fileUrl
+                            ? 'This will create a new PDF and replace the existing one.'
+                            : 'This will generate a PDF document for this proposal.'
+                        }
+                    </Typography>
+                    <Box display="flex" justifyContent="space-around" width="100%">
+                        <Button variant="outlined" onClick={() => setCreatePdfConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="contained" onClick={handleConfirmCreatePdf}>
+                            {proposal.fileUrl ? 'Regenerate' : 'Create PDF'}
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Send Proposal Confirmation Modal */}
+            <Modal
+                open={sendProposalConfirmOpen}
+                onClose={() => setSendProposalConfirmOpen(false)}
+                aria-labelledby="send-proposal-confirmation-modal"
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    bgcolor="background.paper"
+                    p={4}
+                    borderRadius={1}
+                    boxShadow={3}
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: '80%', md: 400 },
+                        textAlign: 'center'
+                    }}
+                >
+                    <Typography variant="h6" mb={2}>
+                        Send Proposal to Client?
+                    </Typography>
+                    <Typography variant="body2" mb={1} color="text.secondary">
+                        <strong>Client:</strong> {editedProposal.client?.name}
+                    </Typography>
+                    <Typography variant="body2" mb={3} color="text.secondary">
+                        <strong>Email:</strong> {editedProposal.client?.email}
+                    </Typography>
+                    <Typography variant="body2" mb={3} color="text.secondary">
+                        This will send the proposal PDF and signing link to the client via email.
+                    </Typography>
+                    <Box display="flex" justifyContent="space-around" width="100%">
+                        <Button variant="outlined" onClick={() => setSendProposalConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="contained" onClick={handleConfirmSendProposal}>
+                            Send to Client
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Convert to Invoice Confirmation Modal */}
+            <Modal
+                open={convertInvoiceConfirmOpen}
+                onClose={() => setConvertInvoiceConfirmOpen(false)}
+                aria-labelledby="convert-invoice-confirmation-modal"
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    bgcolor="background.paper"
+                    p={4}
+                    borderRadius={1}
+                    boxShadow={3}
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: '80%', md: 400 },
+                        textAlign: 'center'
+                    }}
+                >
+                    <Typography variant="h6" mb={2}>
+                        Convert to Invoice?
+                    </Typography>
+                    <Typography variant="body2" mb={3} color="text.secondary">
+                        This will create a new invoice based on this proposal. The proposal status will be updated to "converted to invoice".
+                    </Typography>
+                    <Box display="flex" justifyContent="space-around" width="100%">
+                        <Button variant="outlined" onClick={() => setConvertInvoiceConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="contained" onClick={handleConfirmConvertToInvoice}>
+                            Convert to Invoice
+                        </Button>
+                    </Box>
+                </Box>
             </Modal>
             {/* Removed old sendSuccessModalOpen and sendFailureModalOpen modals, now handled by enhanced modal above */}
         </>
